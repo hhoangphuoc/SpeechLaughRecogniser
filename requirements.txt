@@ -1,0 +1,12 @@
+transformers
+torch
+tqdm
+sphfile
+numpy
+matplotlib
+torchaudio
+onnxruntime
+librosa
+soundfile
+whisper-timestamped
+datasets
