@@ -3,17 +3,22 @@ import os
 import sys
 import torch
 import torchaudio
-from datasets import Dataset
-from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
 import pandas as pd
 import librosa
+import numpy as np
+from huggingface_hub import notebook_login
+from datasets import Dataset, load_dataset, DatasetDict
+from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
+from model.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
+from eval import compute_metrics
+#----------------------------------------------------------
 
 """
 This is the fine-tuning Whisper model 
 for the specific task of transcribing recognizing speech laughter, fillers, 
 pauses, and other non-speech sounds in conversations.
 """
-
+notebook_login()
 
 def SpeechLaughWhisper(args):
     """
@@ -24,18 +29,26 @@ def SpeechLaughWhisper(args):
 
     """
     # MODEL CONFIGS
-    # Load the fine-tuned Whisper model and processor
-    model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
-    processor = WhisperProcessor.from_pretrained(args.model_path)
+    #----------------------------------------------------------
+    #Processor and Tokenizer
+    feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
+    processor = WhisperProcessor.from_pretrained(args.model_path) # processor - combination of feature extractor and tokenizer
 
-    tokenizer = WhisperTokenizer.from_pretrained(args.model_path)
+   
+
+    tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
     special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
     tokenizer.add_tokens(special_tokens)
     # model.config.decoder_start_token_id = tokenizer.get_vocab()["<|startoftext|>"]
     # model.config.decoder_end_token_id = tokenizer.get_vocab()["<|endoftext|>"]
 
+    # Load the fine-tuned Whisper model
+    model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
+
     model.resize_token_embeddings(len(tokenizer))
     #----------------------------------------------------------
+    #Data collator for random noise
+    speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor, padding=True)
 
 
     def prepare_dataset(batch):
@@ -69,7 +82,12 @@ def SpeechLaughWhisper(args):
         data_loader_num_workers=8,
         logging_steps=25,
         save_steps=1000,
-        report_to="tensorboard"
+        eval_steps=1000,
+        report_to="tensorboard",
+        load_best_model_at_end=True,
+        metric_for_best_model="wer",
+        greater_is_better=False,
+        push_to_hub=True,
     )
 
     trainer = Seq2SeqTrainer(
@@ -77,14 +95,16 @@ def SpeechLaughWhisper(args):
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=dataset,
+        eval_dataset=dataset, #TODO- create validation dataset for evaluation instead
+        data_collator=speech_laugh_collator,
+        compute_metrics=compute_metrics
     )
     trainer.train()
 
 if __name__ == "__main__":
-    pass
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--input_file_path", default="../datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
-    parser.add_argument("--model_path", default="openai/whisper-large-v3", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_path", default="openai/whisper-large-v2", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--model_output_dir", default="./speechlaugh-whisper-fine-tuned", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--batch_size", default=256, type=int, required=False, help="Batch size for training")
     parser.add_argument("--num_train_epochs", default=3, type=int, required=False, help="Number of training epochs")
