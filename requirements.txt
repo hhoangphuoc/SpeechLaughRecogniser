@@ -10,3 +10,4 @@ librosa
 soundfile
 whisper-timestamped
 datasets
+huggingface-hub

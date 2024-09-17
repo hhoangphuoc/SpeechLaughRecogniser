@@ -7,114 +7,18 @@
 
 import re
 import os
-import openai
-#---------------THESE FUNCTIONS ARE USED FOR MERGING TRANSCRIPTS---------------#
-def merge_transcripts(transcript_a, transcript_b):
-    """
-    Merges two transcripts from the same conversation, ensuring proper 
-    timeline ordering and handling silence annotations.
+import openai #for clean and format transcripts
 
-    Args:
-        transcript_a (str): Transcript of speaker A.
-        transcript_b (str): Transcript of speaker B.
 
-    Returns:
-        str: The merged transcript with each line in the format:
-             "Turn number Speaker (start_timestamp, stop_timestamp) annotated_token\n"
-    """
+# SETS OF SPECIAL PATTERNS FOR TRANSCRIPT TOKENS:
+word_pattern = r"\b\w+\b"
+pause_pattern = r"\[silence\]"
+noise_pattern = r"\[noise\]"
+filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|hmm+|yeah|well)\b"
+speech_laugh_pattern = r"\[laughter-(\w+)\]"
+vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
-    lines_a = transcript_a.splitlines()
-    print("Lines of transcript A: ", lines_a)
-    lines_b = transcript_b.splitlines()
-    print("Lines of transcript B: ", lines_b)
-
-    merged_transcript = []
-    i, j = 0, 0  # Indices to iterate through lines_a and lines_b
-    turn_number = 0
-
-    while i < len(lines_a) or j < len(lines_b):
-        if i < len(lines_a) and j < len(lines_b):
-            _, start_a, end_a, token_a = lines_a[i].split()
-            _, start_b, end_b, token_b = lines_b[j].split()
-            start_a, end_a, start_b, end_b = map(float, [start_a, end_a, start_b, end_b])
-
-            # Check if both speakers are talking in the same turn
-            if abs(start_a - start_b) < 0.01: 
-                merged_transcript.append(f"{turn_number} A ({start_a:.2f}, {end_a:.2f}) {token_a}\n")
-                merged_transcript.append(f"{turn_number} B ({start_b:.2f}, {end_b:.2f}) {token_b}\n")
-                i += 1
-                j += 1
-                turn_number += 1
-            elif start_a < start_b:
-                # A starts talking before B
-                merged_transcript.append(f"{turn_number} A ({start_a:.2f}, {end_a:.2f}) {token_a}\n")
-                if token_b == "[silence]":
-                    # Adjust B's silence annotation if needed
-                    lines_b[j] = f"{lines_b[j].split()[0]} {end_a:.2f} {end_b} {token_b}" 
-                i += 1
-            else:
-                # B starts talking before A
-                merged_transcript.append(f"{turn_number} B ({start_b:.2f}, {end_b:.2f}) {token_b}\n")
-                if token_a == "[silence]":
-                    # Adjust A's silence annotation if needed
-                    lines_a[i] = f"{lines_a[i].split()[0]} {end_b:.2f} {end_a} {token_a}"
-                j += 1
-
-        elif i < len(lines_a):
-            # Only A is left
-            _, start_a, end_a, token_a = lines_a[i].split()
-            start_a, end_a = float(start_a), float(end_a)
-            merged_transcript.append(f"{turn_number} A ({start_a:.2f}, {end_a:.2f}) {token_a}\n")
-            i += 1
-            turn_number += 1
-        else:
-            # Only B is left
-            _, start_b, end_b, token_b = lines_b[j].split()
-            start_b, end_b = float(start_b), float(end_b)
-            merged_transcript.append(f"{turn_number} B ({start_b:.2f}, {end_b:.2f}) {token_b}\n")
-            j += 1
-            turn_number += 1
-    
-    return "".join(merged_transcript)
-def merge_transcripts_from_files(
-    file_name_a, 
-    file_name_b,
-    base_dir = "../data/switchboard/transcripts/20/2001"):
-    """
-    Merges two transcripts from files, ensuring proper timeline ordering and handling 
-    silence annotations.
-
-    Args:
-        file_path_a (str): Path to the transcript file of speaker A.
-        file_path_b (str): Path to the transcript file of speaker B.
-
-    Returns:
-        str: The merged transcript with each line in the format:
-             "Turn number Speaker (start_timestamp, stop_timestamp) annotated_token\n"
-    """
-    
-    file_path_a = os.path.join(base_dir, file_name_a)
-    file_path_b = os.path.join(base_dir, file_name_b)
-    merged_file_name = os.path.basename(file_name_a).split('-')[0]
-    output_file_path = os.path.join(base_dir, f"{merged_file_name}-merged.txt")
-    
-    if os.path.exists(output_file_path):
-        print(f"Merged transcript already exists at {output_file_path}")
-        return output_file_path
-    else:
-
-        print(f"Merging transcripts from {file_path_a} and {file_path_b}")
-
-        with open(file_path_a, 'r') as f_a, open(file_path_b, 'r') as f_b:
-            transcript_a = f_a.read()
-            transcript_b = f_b.read()
-
-        with open(output_file_path, 'w') as f_out:
-            f_out.write(merge_transcripts(transcript_a, transcript_b))
-
-    return output_file_path
-#--------------------------------------NOT USED--------------------------------------#
-
+#-----------------------------------------------------#
 
 def retokenize_and_extract_timestamps_from_transcript(transcript):
     """
@@ -130,13 +34,6 @@ def retokenize_and_extract_timestamps_from_transcript(transcript):
         list: A list of lists, each containing retokenized sentences with timestamps.
         list: A list of tuples, each containing a word and its corresponding audio segment.
     """
-
-    # Define regular expressions to match different token types
-    word_pattern = r"\b\w+\b"
-    pause_pattern = r"\[silence\]"
-    noise_pattern = r"\[noise\]"
-    filler_pattern = r"\b(uh|um|uh[ -]huh|ah|hmm+)\b"
-    speech_laugh_pattern = r"\[laughter-(\w+)\]"
 
     all_tokens_with_timestamps = []
     all_audio_segments = []
@@ -186,3 +83,88 @@ def retokenize_and_extract_timestamps_from_transcript(transcript):
         start_time, end_time = float(start_time), float(end_time)
         audio_segments.append((token, (start_time, end_time)))
     return audio_segments
+
+def retokenize_transcript_pattern(transcript_line):
+    """
+    Retokenize the transcript line based on the given pattern.
+    The rules are:
+    - Remove the line that has only "[silence]" or "[noise]"
+    - Uppercase the line that only contains vocalsound
+    - For the word in the line that matches filler, speech_laugh, noise:
+        - Ignore the noise
+        - Uppercase the filler
+        - Replace the speech_laugh with the corresponding token
+    """
+    if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]":
+        continue #ignore the line
+    elif re.match(vocalsound_pattern, transcript_line):
+        #if the line only contains vocalsound
+        transcript_line = transcript_line.upper()
+            # new_transcript_lines.append(line)
+    else:
+        # transform the word in the line when it matches the pattern
+        #filler, speech_laugh, noise inside line
+        new_line = ""
+        for word in transcript_line.split():
+            if re.match(noise_pattern, word):
+                continue #ignore the noise
+            elif re.match(filler_pattern, word): #uh, um,...
+                word = "[" + word.upper() + "]" # [UH], [UM], [MM], [YEAH],...
+            elif re.match(speech_laugh_pattern, word):
+                #TODO: Find a way to annotate the speech_laugh as a token
+                token = match.group(1) + "_speech_laugh"
+                word = "[" + token + "]" # [LAUGHTER_speech_laugh]
+            else:
+                #normal word
+                word = word
+            new_line += word + " "
+        transcript_line = new_line.strip()
+    return transcript_line
+
+#------------------------
+# Functions created for separate datasets
+def process_switchboard_transcript(audio_file):
+    filename = audio_file.split('.')[0] #sw02001A
+    speaker = filename[-1] #A or B
+    file_prefix = filename[3:-1] #2001
+    subfolder1 = file_prefix[:2] #20
+    subfolder2 = file_prefix
+    transcript_file = f"sw{file_prefix}{speaker}-ms98-a-trans.text"
+    transcript_path = os.path.join(transcript_dir, subfolder1, file_prefix, transcript_file)
+
+    with open(transcript_path, 'r') as f:
+        transcript_lines = f.readlines()
+    
+    switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
+    new_transcript_lines = []
+    for line in transcript_lines:
+        
+        match = re.match(switchboard_pattern, line) #sw.. <start_time> <end_time> <text>
+        start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+        text = retokenize_transcript_pattern(text)
+        #TODO: apply cleaning with GPT-4o
+        # text = clean_transcript(text)
+
+        # TODO: get audio segment with adding padding_time seconds to start and end
+        # audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
+
+        new_transcript_lines.append((start_time, end_time, text))
+
+    return new_transcript_lines
+
+def process_ami_transcript(transcript_line):
+    """
+    Process the transcript of AMI dataset
+    """
+    transcript = transcript_line.lower()
+    transcript = retokenize_transcript_pattern(transcript) #expected to change the filler token in the transcript
+
+    #TODO: apply cleaning with GPT-4o
+    # transcript = clean_transcript(transcript)
+    return transcript
+
+
+# Clean and format transcripts
+def clean_transcript(transcript):
+    # Could apply GPT-4o or other LLMs to clean and format transcripts
+    return transcript

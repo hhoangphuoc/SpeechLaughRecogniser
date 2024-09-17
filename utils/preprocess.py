@@ -6,125 +6,146 @@ import librosa
 import re
 import os
 
-# Clean and format transcripts
-def clean_transcript(transcript):
-    # TODO: Clean and format transcripts
-    # Could apply GPT-4o or other LLMs to clean and format transcripts
-    return transcript
+from datasets import load_dataset
 
-# 1. Combined audio and transcript into csv files
-def combine_audio_and_transcript(
-    audio_dir='../data/switchboard/audio_wav', 
-    transcript_dir='../data/switchboard/transcripts', 
-    csv_dir='../datasets/switchboard/'
-):
+from transcript_process import *
+from audio_process import *
+    
+# 2. Combined audio and transcript into csv files
+def switchboard_to_batch(
+    data_name="switchboard", #also implement for AMI, VocalSound, LibriSpeech, ...
+    audio_dir=f'../data/{data_name}/audio_wav', 
+    transcript_dir=f'../data/{data_name}/transcripts',
+    batch_audio=[],
+    batch_transcript=[]):
     """
-    Combines audio files and their corresponding transcripts into separate CSV files 
-    named after the audio files.
+    Combines audio files and their corresponding transcripts into a batch
 
     Args:
+        data_name (str): Name of the dataset
         audio_dir (str): Path to the directory containing audio files.
         transcript_dir (str): Path to the root directory containing transcript subfolders.
-        output_dir (str): Path to the directory where CSV files will be saved.
+        batch_audio (list): List of audio segments
+        batch_transcript (list): List of transcript segments
 
     Returns:
-        None: The function saves the combined data to CSV files in the output directory.
+        batch (dict): {"audio": batch_audio, "transcript": batch_transcript}
     """
 
     for audio_file in tqdm(os.listdir(audio_dir), desc="Combining audio and transcript..."):
         if audio_file.endswith(".wav"):
             audio_path = os.path.join(audio_dir, audio_file) #audio_wav/sw02001A.wav
-            filename = audio_file.split('.')[0] #sw02001A
-            speaker = filename[-1] #A or B
-            file_prefix = filename[3:-1] #2001
-            subfolder1 = file_prefix[:2] #20
-        #   subfolder2 = file_prefix
-            transcript_file = f"sw{file_prefix}{speaker}-ms98-a-trans.text"
-            transcript_path = os.path.join(transcript_dir, subfolder1, file_prefix, transcript_file)
+            transcript_lines = process_switchboard_transcript(audio_file) #produce the transcript lines for each corresponding audio
 
-        with open(transcript_path, 'r') as f:
-            transcript_lines = f.readlines() #["sw2001A-ms98-a-0001 0.000000 0.977625 [silence]", "sw2001A-ms98-a-0002 0.977625 11.561375 hi um yeah i'd like to.....","..."]
-            
-            #TODO: Applied Transcript Processing
-            # transcript_lines = clean_transcript(transcript_lines)
-
-            #TODO: Applied Audio Cutting and Segmenting based on transcripts_lines
-            audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
+        #TODO: Applied Audio Cutting and Segmenting based on transcripts_lines
+        #EXPECTED: 
+        # audio_file_segments: ["../audio_segments/sw2001A/sw2001A_0.0_0.977625.wav", "../audio_segments/sw2001A/sw2001A_0.977625_11.561375.wav", ...]
+        # audio_segments: [array(..., dtype=float32), array(..., dtype=float32), ...]
+        # transcripts_segments: ["[silence]", "hi um yeah i'd like to.....", "..."]
+        audio_file_segments, audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
                 audio_path, 
                 transcript_lines,
-                audio_segments_dir=f"../audio_segments/{filename}/"
-            ) #audio_segments: ["../audio_segments/sw2001A/sw2001A_0.0_0.977625.wav", "../audio_segments/sw2001A/sw2001A_0.977625_11.561375.wav", ...]
-            #transcripts_segments: ["[silence]", "hi um yeah i'd like to.....", "..."]
+                padding_time=0.3,
+                data_name=data_name,
+                audio_segments_dir=f"../audio_segments/{data_name}/"
+        )
+        # Add to batch
+        batch_audio.extend([{"array": segment, "sampling_rate": 16000} for segment in audio_segments])
+        batch_transcript.extend(transcripts_segments)
+    
+    batch = {"audio": batch_audio, "transcript": batch_transcript}
+    print(f"Successfully combined audio and transcript and added to batch")
+    return batch
 
-            #construct dataframe for audio segments and transcripts_segments
-            segments_df = pd.DataFrame({
-                "audio": audio_segments,
-                "transcript": transcripts_segments
-            })
-            # data = [{"audio": audio_path, "transcript": transcript_lines}]
-            # df = pd.DataFrame(data)
+def vocalsound_to_batch(
+    batch_audio=[], 
+    batch_transcript=[]):
+    """
+    Process the vocalsound dataset
+    """
+    label_to_transcript = {
+        "laughter": "[LAUGHTER]",
+        "cough": "[COUGH]",
+        "sigh": "[SIGH]",
+        "sneeze": "[SNEEZE]",
+        "sniff": "[SNIFF]",
+        "throatclearing": "[THROAT-CLEARING]"
+    }
 
-            # Create output file name based on audio file name
-            output_file = os.path.join(csv_dir, f"{filename}.csv")
-            df.to_csv(output_file, index=False)
+    for audio, label in tqdm(zip(vocalsound_dataset["audio"], vocalsound_dataset["label"]), desc="Processing vocalsound dataset..."):
+        batch_audio.append({"array": audio, "sampling_rate": 16000})
+        batch_transcript.append(label_to_transcript[label])
 
-    print(f"Successfully combined audio and transcript for switchboard dataset")
+    batch = {"audio": batch_audio, "transcript": batch_transcript}
+    print(f"Successfully processed vocalsound dataset!")
+    return batch
 
-# 2. Cut audio based on transcript segments, and extend the csv file
-def cut_audio_based_on_transcript_segments(
-    audio_path,
-    transcript_lines,
-    padding_time=0.1, #seconds
-    audio_segments_dir = "../audio_segments/"):  
-    # load audio
-    audio, sr = librosa.load(audio_path)
+def ami_to_batch(
+    batch_audio=[], 
+    batch_transcript=[]):
+    """
+    Process the ami dataset
+    """
+    for audio, transcript in tqdm(zip(ami_dataset["audio"], ami_dataset["text"]), desc="Processing ami dataset..."):
+        batch_audio.append({"array": audio, "sampling_rate": 16000})
 
-    #resample audio to 16kHz
-    if sr != 16000:
-        audio = librosa.resample(audio, sr, 16000)
+        #TODO: process the transcript of AMI dataset
+        transcript = process_ami_transcript(transcript) #Expected: I'VE GOTTEN MM HARDLY ANY -> I'v gotten [MM] hardly any
+        batch_transcript.append(transcript)
+    
+    batch = {"audio": batch_audio, "transcript": batch_transcript}
+    print(f"Successfully processed ami dataset!")
+    return batch
 
-    filename = os.path.basename(audio_path).split(".")[0]
-    #Extract timestamps from transcript_lines
-    audio_segments = []
-    transcripts_segments = []
+def prepare_csv_data(
+    data_name, 
+    to_csv=False):
+    """
+    Prepare the specific dataset to be match the same input
+    for the batch
+    """
+
+    if data_name == "switchboard":
+        batch = switchboard_audio_transcript_to_batch(data_name=data_name)
+
+    if data_name == "vocalsound":
+        vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train")
+        batch = vocalsound_to_batch(batch_audio=[], batch_transcript=[])
+
+    elif data_name == "ami":
+        ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train")
+        batch = ami_to_batch(batch_audio=[], batch_transcript=[])
+    else:
+        raise ValueError(f"Dataset {data_name} is not supported")
+    
+    df = pd.DataFrame({
+        "audio": batch["audio"],
+        "transcript": batch["transcript"]
+    })
+
+    if to_csv:
+        csv_dir=f'../datasets/{data_name}'
+        os.makedirs(csv_dir, exist_ok=True)
+        output_file = os.path.join(csv_dir, f"{data_name}.csv") #../datasets/switchboard.csv
+        df.to_csv(output_file, index=False)
+
+    return df
+
+if __name__ == "__main__":
+    #PROCESS SWITCHBOARD DATASET
+    switchboard_df = prepare_dataset(data_name="switchboard", to_csv=True) #switchboard.csv
+    vocalsound_df = prepare_dataset(data_name="vocalsound", to_csv=True) #vocalsound.csv
+    ami_df = prepare_dataset(data_name="ami", to_csv=True) #ami.csv
 
 
-    for line in transcript_lines:
-        #line = "sw2001A-ms98-a-0001 0.000000 0.977625 [silence]"
-        match = re.match(r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)", line) #sw.. <start_time> <end_time> <text>
-        start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+    # combine all datasets
+    combined_df = pd.concat([switchboard_df, vocalsound_df, ami_df], ignore_index=True)
+    print(combined_df.head())
 
-        #remove line [silence]
-        if text == "[silence]":
-            #skip the line
-            continue
+    # shuffle the dataset
+    combined_df = combined_df.sample(frac=1).reset_index(drop=True)
+    print(combined_df.head())
 
-        #get audio segment with adding padding_time seconds to start and end
-        audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
-
-        #TODO: Could apply GPT-4o to refine the text
-        # text = clean_transcript(text)
-
-        #create audio_segments_dir if not exists
-        os.makedirs(audio_segments_dir, exist_ok=True)
-
-        #save audio segment
-        output_file = f"{audio_segments_dir}/{filename}_{start_time}_{end_time}.wav"
-        torchaudio.save(output_file, audio_segment, sr)
-
-        #save audio and transcript segment
-        audio_segments.append(output_file)
-        transcripts_segments.append(text)
-
-    return audio_segments, transcripts_segments
-
-
-#-----------------------------------
-
-
-
-
-
-
-
+    # save to csv
+    combined_df.to_csv("../datasets/train.csv", index=False)
 
