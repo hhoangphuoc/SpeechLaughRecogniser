@@ -72,29 +72,57 @@ def vocalsound_to_batch(
         "throatclearing": "[THROAT-CLEARING]"
     }
 
-    for audio, label in tqdm(zip(vocalsound_dataset["audio"], vocalsound_dataset["label"]), desc="Processing vocalsound dataset..."):
-        batch_audio.append({"array": audio, "sampling_rate": 16000})
-        batch_transcript.append(label_to_transcript[label])
+    # for audio, label in tqdm(zip(vocalsound_dataset["audio"], vocalsound_dataset["label"]), desc="Processing vocalsound dataset..."):
+    #     batch_audio.append({"array": audio, "sampling_rate": 16000})
+    #     batch_transcript.append(label_to_transcript[label])
 
+    # batch = {"audio": batch_audio, "transcript": batch_transcript}
+    # print(f"Successfully processed vocalsound dataset!")
+    # return batch
+    for example in tqdm(vocalsound_dataset, desc="Processing VocalSound dataset..."):
+        audio_array = example["audio"]["array"]
+        sampling_rate = example["audio"]["sampling_rate"] 
+        label = example["label"] 
+        batch_audio.append({"array": audio_array, "sampling_rate": sampling_rate})
+        batch_transcript.append(label_to_transcript[label]) 
     batch = {"audio": batch_audio, "transcript": batch_transcript}
-    print(f"Successfully processed vocalsound dataset!")
+    print(f"Successfully processed VocalSound dataset!")
     return batch
 
-def ami_to_batch(
-    batch_audio=[], 
-    batch_transcript=[]):
-    """
-    Process the ami dataset
-    """
-    for audio, transcript in tqdm(zip(ami_dataset["audio"], ami_dataset["text"]), desc="Processing ami dataset..."):
-        batch_audio.append({"array": audio, "sampling_rate": 16000})
+# def ami_to_batch(
+#     batch_audio=[], 
+#     batch_transcript=[]):
+#     """
+#     Process the ami dataset
+#     """
+#     for audio, transcript in tqdm(zip(ami_dataset["audio"], ami_dataset["text"]), desc="Processing ami dataset..."):
+#         batch_audio.append({"array": audio, "sampling_rate": 16000})
 
-        #TODO: process the transcript of AMI dataset
-        transcript = process_ami_transcript(transcript) #Expected: I'VE GOTTEN MM HARDLY ANY -> I'v gotten [MM] hardly any
-        batch_transcript.append(transcript)
+#         #TODO: process the transcript of AMI dataset
+#         transcript = process_ami_transcript(transcript) #Expected: I'VE GOTTEN MM HARDLY ANY -> I'v gotten [MM] hardly any
+#         batch_transcript.append(transcript)
     
+#     batch = {"audio": batch_audio, "transcript": batch_transcript}
+#     print(f"Successfully processed ami dataset!")
+#     return batch
+
+def ami_to_batch(batch_audio=[], batch_transcript=[]):
+    for example in tqdm(ami_dataset, desc="Processing AMI..."):
+        audio_array = example["audio"]["array"]
+        sampling_rate = example["audio"]["sampling_rate"]
+        transcript_line = example["text"]  
+        # Process transcript (extract timestamps, etc.):
+        transcript_data = process_ami_transcript(transcript_line) 
+        if transcript_data:  # Check if processing was successful
+            start_time, end_time, transcript_text = transcript_data
+            # Segment audio (use start_time, end_time from transcript_data):
+            audio_segment = audio_array[int(start_time * sampling_rate): int(end_time * sampling_rate)]
+            batch_audio.append({"array": audio_segment, "sampling_rate": sampling_rate})
+            batch_transcript.append(transcript_text)
+        
     batch = {"audio": batch_audio, "transcript": batch_transcript}
-    print(f"Successfully processed ami dataset!")
+    print(f"Successfully processed AMI dataset!")
+
     return batch
 
 def prepare_csv_data(
@@ -103,6 +131,7 @@ def prepare_csv_data(
     """
     Prepare the specific dataset to be match the same input
     for the batch
+    Output the csv file and return the dataframe
     """
 
     if data_name == "switchboard":
@@ -133,9 +162,9 @@ def prepare_csv_data(
 
 if __name__ == "__main__":
     #PROCESS SWITCHBOARD DATASET
-    switchboard_df = prepare_dataset(data_name="switchboard", to_csv=True) #switchboard.csv
-    vocalsound_df = prepare_dataset(data_name="vocalsound", to_csv=True) #vocalsound.csv
-    ami_df = prepare_dataset(data_name="ami", to_csv=True) #ami.csv
+    switchboard_df = prepare_csv_data(data_name="switchboard", to_csv=True) #switchboard.csv
+    vocalsound_df = prepare_csv_data(data_name="vocalsound", to_csv=True) #vocalsound.csv
+    ami_df = prepare_csv_data(data_name="ami", to_csv=True) #ami.csv
 
 
     # combine all datasets

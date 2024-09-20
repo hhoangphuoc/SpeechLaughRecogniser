@@ -125,8 +125,8 @@ def SpeechLaughWhisper(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--input_file_path", default="../datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
-    parser.add_argument("--model_path", default="openai/whisper-large-v2", type=str, required=False, help="Select pretrained model")
-    parser.add_argument("--model_output_dir", default="../vocalwhisper/vocalspeech-whisper-large", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--model_path", default="openai/whisper-medium", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_output_dir", default="../vocalwhisper/vocalspeech-whisper-medium", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--batch_size", default=8, type=int, required=False, help="Batch size for training")
     parser.add_argument("--num_train_epochs", default=3, type=int, required=False, help="Number of training epochs")

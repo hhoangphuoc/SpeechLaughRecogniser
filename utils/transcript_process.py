@@ -152,16 +152,32 @@ def process_switchboard_transcript(audio_file):
 
     return new_transcript_lines
 
+# def process_ami_transcript(transcript_line):
+#     """
+#     Process the transcript of AMI dataset
+#     """
+#     transcript = transcript_line.lower()
+#     transcript = retokenize_transcript_pattern(transcript) #expected to change the filler token in the transcript
+
+#     #TODO: apply cleaning with GPT-4o
+#     # transcript = clean_transcript(transcript)
+#     return transcript
+
 def process_ami_transcript(transcript_line):
     """
     Process the transcript of AMI dataset
+    and return it as a tuple of (start_time, end_time, text)
     """
-    transcript = transcript_line.lower()
-    transcript = retokenize_transcript_pattern(transcript) #expected to change the filler token in the transcript
+    ami_pattern = r"\S+ (\d+\.\d+) (\d+\.\d+) (.*)" 
+    match = re.match(ami_pattern, transcript_line)
+    if match:
+        start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+        text = retokenize_transcript_pattern(text) 
+        return start_time, end_time, text
+        # return transcript
 
-    #TODO: apply cleaning with GPT-4o
-    # transcript = clean_transcript(transcript)
-    return transcript
+    else:
+        return None  # Or handle invalid format differently
 
 
 # Clean and format transcripts
