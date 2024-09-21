@@ -2,16 +2,16 @@ import numpy as np
 import random
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
-from transformers import WhisperProcessor, DataCollatorForSeq2Seq
+from transformers import WhisperProcessor
 from transformers.tokenization_utils_base import PaddingStrategy, PreTrainedTokenizerBase
 from datasets import load_dataset
 import torch
 
 @dataclass
-class DataCollatorSpeechSeq2SeqWithPadding(DataCollatorForSeq2Seq):
+class DataCollatorSpeechSeq2SeqWithPadding:
     processor: WhisperProcessor
     padding: Union[bool, str, PaddingStrategy] = True
-    max_length: Optional[int] = None
+    # max_length: Optional[int] = None
     # max_target_length: Optional[int] = None
     # pad_to_multiple_of: Optional[int] = None
     # pad_to_multiple_of_labels: Optional[int] = None
@@ -23,7 +23,7 @@ class DataCollatorSpeechSeq2SeqWithPadding(DataCollatorForSeq2Seq):
         label_features = [{"input_ids": feature["labels"]} for feature in features]
 
         #Padding the input features and create attention mask
-        batch = self.processor.feature_extractor.pad(input_features, padding=self.padding, return_tensors="pt", max_length=self.max_length)
+        batch = self.processor.feature_extractor.pad(input_features, padding=self.padding, return_tensors="pt")
         
         #Padding batch[labels]
         with self.processor.as_target_processor():

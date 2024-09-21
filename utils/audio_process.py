@@ -4,6 +4,7 @@ import torchaudio
 import librosa
 import re
 import os
+import torch
 
 # 2. Cut audio based on transcript segments, and extend the csv file
 def cut_audio_based_on_transcript_segments(
@@ -11,7 +12,8 @@ def cut_audio_based_on_transcript_segments(
     transcript_lines, #list of tuples: (start_time, end_time, text)
     padding_time=0.3, #seconds
     data_name="switchboard",
-    audio_segments_dir = f"../audio_segments/{data_name}"):
+    #audio_segments_dir = f"../audio_segments/{data_name}"):
+    audio_segments_dir=""):
     """
     Use to cut audio based on transcript segments,
     and only apply for the dataset which have the transcripts: switchboard, ami
@@ -23,13 +25,17 @@ def cut_audio_based_on_transcript_segments(
 
     #resample audio to 16kHz
     if sr != 16000:
-        audio = librosa.resample(audio, sr, 16000)
+        audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000)
 
     filename = os.path.basename(audio_path).split(".")[0] #sw02001A
     #Extract timestamps from transcript_lines
     audio_file_segments = []
     audio_segments = []
     transcripts_segments = []
+    if audio_segments_dir is None:
+        audio_segments_dir = f"../audio_segments/{data_name}"
+    
+    os.makedirs(audio_segments_dir, exist_ok=True)
 
     os.makedirs(audio_segments_dir, exist_ok=True)
     #transcript_line format: (start_time, end_time, text)
@@ -37,9 +43,12 @@ def cut_audio_based_on_transcript_segments(
         
         audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
         
+        # Convert audio_segment to a 2D tensor:
+        audio_segment_tensor = torch.tensor(audio_segment).unsqueeze(0)  # Add channel dimension
+
         #save the audio segment to corresponding folder
         output_file = f"{audio_segments_dir}/{filename}_{start_time}_{end_time}.wav"
-        torchaudio.save(output_file, audio_segment, sr)
+        torchaudio.save(output_file, audio_segment_tensor, sr)  # Save the tensor
 
         #append to list
         audio_file_segments.append(output_file)

@@ -7,7 +7,7 @@
 
 import re
 import os
-import openai #for clean and format transcripts
+# import openai #for clean and format transcripts
 
 
 # SETS OF SPECIAL PATTERNS FOR TRANSCRIPT TOKENS:
@@ -96,26 +96,25 @@ def retokenize_transcript_pattern(transcript_line):
         - Replace the speech_laugh with the corresponding token
     """
     if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]":
-        continue #ignore the line
+        return #ignore the line and not call this function
     elif re.match(vocalsound_pattern, transcript_line):
         #if the line only contains vocalsound
         transcript_line = transcript_line.upper()
             # new_transcript_lines.append(line)
     else:
         # transform the word in the line when it matches the pattern
-        #filler, speech_laugh, noise inside line
         new_line = ""
         for word in transcript_line.split():
             if re.match(noise_pattern, word):
-                continue #ignore the noise
-            elif re.match(filler_pattern, word): #uh, um,...
-                word = "[" + word.upper() + "]" # [UH], [UM], [MM], [YEAH],...
-            elif re.match(speech_laugh_pattern, word):
-                #TODO: Find a way to annotate the speech_laugh as a token
+                continue  # ignore the noise
+            elif re.match(filler_pattern, word):  # uh, um,...
+                word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
+            elif match := re.match(speech_laugh_pattern, word):
+                # Now 'match' is guaranteed to be defined here
                 token = match.group(1) + "_speech_laugh"
-                word = "[" + token + "]" # [LAUGHTER_speech_laugh]
+                word = "[" + token + "]"  # [LAUGHTER_speech_laugh]
             else:
-                #normal word
+                # normal word
                 word = word
             new_line += word + " "
         transcript_line = new_line.strip()
@@ -123,34 +122,79 @@ def retokenize_transcript_pattern(transcript_line):
 
 #------------------------
 # Functions created for separate datasets
-def process_switchboard_transcript(audio_file):
-    filename = audio_file.split('.')[0] #sw02001A
-    speaker = filename[-1] #A or B
-    file_prefix = filename[3:-1] #2001
-    subfolder1 = file_prefix[:2] #20
-    subfolder2 = file_prefix
-    transcript_file = f"sw{file_prefix}{speaker}-ms98-a-trans.text"
-    transcript_path = os.path.join(transcript_dir, subfolder1, file_prefix, transcript_file)
+# def process_switchboard_transcript(
+#     audio_file,
+#     transcript_dir="../data/switchboard/transcripts"
 
-    with open(transcript_path, 'r') as f:
-        transcript_lines = f.readlines()
+# ):
+#     filename = audio_file.split('.')[0] #sw02001A
+#     speaker = filename[-1] #A or B
+#     subfolder2 = filename[3:-1] #2001
+#     subfolder1 = subfolder2[:2] #20
+#     transcript_file = f"sw{subfolder2}{speaker}-ms98-a-trans.text"
+#     transcript_path = os.path.join(transcript_dir, subfolder1, subfolder2, transcript_file)
+
+#     with open(transcript_path, 'r') as f:
+#         transcript_lines = f.readlines()
     
-    switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
-    new_transcript_lines = []
-    for line in transcript_lines:
+#     switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
+#     new_transcript_lines = []
+#     for line in transcript_lines:
         
-        match = re.match(switchboard_pattern, line) #sw.. <start_time> <end_time> <text>
-        start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
-        text = retokenize_transcript_pattern(text)
-        #TODO: apply cleaning with GPT-4o
-        # text = clean_transcript(text)
+#         match = re.match(switchboard_pattern, line) #sw.. <start_time> <end_time> <text>
+#         start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+#         text = retokenize_transcript_pattern(text)
+#         #TODO: apply cleaning with GPT-4o
+#         # text = clean_transcript(text)
 
-        # TODO: get audio segment with adding padding_time seconds to start and end
-        # audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
+#         # TODO: get audio segment with adding padding_time seconds to start and end
+#         # audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
 
-        new_transcript_lines.append((start_time, end_time, text))
+#         new_transcript_lines.append((start_time, end_time, text))
 
-    return new_transcript_lines
+#     return new_transcript_lines
+def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboard/transcripts'):
+    """
+    Processes a Switchboard transcript file.
+
+    Args:
+        audio_file (str): Name of the audio file (e.g., 'sw02001A.wav').
+        transcript_dir (str, optional): Path to the root directory containing transcript subfolders. 
+                                         Defaults to '../data/switchboard/transcripts'. 
+
+    Returns:
+        list: A list of tuples (start_time, end_time, text), or None if the file is not found.
+    """
+    filename = audio_file.split('.')[0]  # sw02001A
+    speaker = filename[-1]  # A or B
+    file_prefix = filename[3:-1]  # 2001
+    subfolder1 = file_prefix[:2]  # 20
+    subfolder2 = file_prefix  # 2001
+
+    transcript_file = f"sw{file_prefix}{speaker}-ms98-a-trans.text"
+    transcript_path = os.path.join(transcript_dir, subfolder1, subfolder2, transcript_file)
+
+    try:
+        with open(transcript_path, 'r') as f:
+            transcript_lines = f.readlines()
+
+        switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
+        new_transcript_lines = []
+        for line in transcript_lines:
+            match = re.match(switchboard_pattern, line)  # sw.. <start_time> <end_time> <text>
+            if match:
+                start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+                text = retokenize_transcript_pattern(text)
+                
+                ##TODO: apply clean_transcript if needed
+                #text = clean_transcript(text)
+                new_transcript_lines.append((start_time, end_time, text))
+
+        return new_transcript_lines
+
+    except FileNotFoundError:
+        print(f"Warning: Transcript file not found: {transcript_path}")
+        return None
 
 # def process_ami_transcript(transcript_line):
 #     """

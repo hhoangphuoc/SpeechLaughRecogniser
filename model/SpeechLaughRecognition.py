@@ -11,8 +11,9 @@ from datasets import Dataset, load_dataset, DatasetDict
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers.trainer_callback import EarlyStoppingCallback
 
-from model.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
-from eval import compute_metrics
+from SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
+
+import evaluate
 #----------------------------------------------------------
 
 """
@@ -20,7 +21,23 @@ This is the fine-tuning Whisper model
 for the specific task of transcribing recognizing speech laughter, fillers, 
 pauses, and other non-speech sounds in conversations.
 """
-notebook_login()
+# notebook_login()
+
+metric = evaluate.load("wer")
+def compute_metrics(pred):
+    pred_ids = pred.predictions
+    label_ids = pred.label_ids
+
+    # replace -100 with the pad_token_id
+    label_ids[label_ids == -100] = tokenizer.pad_token_id
+
+    # we do not want to group tokens when computing the metrics
+    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+
+    wer = 100 * metric.compute(predictions=pred_str, references=label_str)
+
+    return {"wer": wer}
 
 def SpeechLaughWhisper(args):
     """
@@ -54,22 +71,40 @@ def SpeechLaughWhisper(args):
 
 
     def prepare_dataset(batch):
-        audio = batch["audio"]
-        transcript = batch["transcript"] #this audio and transcript are merged from all the dataset
+        #TODO: FIX THIS TO CONVERT THE STRING FORMAT OF ARRAY TO ACTUAL NUMPY ARRAY
+        # audio = batch["audio"]
+        # transcript = batch["transcript"] #this audio and transcript are merged from all the dataset
+        
 
-        #TODO: Add the transcript to the batch
-        batch["input_features"] = processor(audio["array"], sampling_rate=audio["sampling_rate"], return_tensors="pt").input_features.numpy()
+        # #TODO: Add the transcript to the batch
+        # batch["input_features"] = processor(audio_array, sampling_rate=audio["sampling_rate"], return_tensors="pt").input_features.numpy()
+        # batch["audio"] = batch["audio"].apply(ast.literal_eval)
+
+        # Create a temporary DataFrame from the batch
+        df = pd.DataFrame(batch)
+        print(df.head())
+        # Convert "array" values to NumPy arrays 
+        df["array"] = df["audio"].apply(lambda x: np.array(x["array"], dtype=float)) 
+        df["sampling_rate"] = df["audio"].apply(lambda x: x["sampling_rate"])
+
+    # Now process the data using the Whisper processor
+        batch["input_features"] = processor(df["array"].to_list(), sampling_rate=df["sampling_rate"].to_list(), return_tensors="pt").input_features.numpy()
+        
         batch["labels"] = processor(text=transcript, return_tensors="pt").input_ids
         # batch["input_features"] = input_features
         # batch["labels"] = input_ids
         return batch
 
     #----------------------------------------------------------
-    df = pd.read_csv(args.input_file_path) #datasets/train.csv
-    dataset = Dataset.from_pandas(df)
-    dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names)
+    train_df = pd.read_csv(args.input_file_path) #datasets/train.csv
+    train_dataset = Dataset.from_pandas(train_df)
+    train_dataset = train_dataset.map(prepare_dataset, remove_columns=train_dataset.column_names)
     
-    
+    # if args.eval_file_path is not None :
+    eval_df = pd.read_csv(args.eval_file_path) #datasets/val.csv
+    eval_dataset = Dataset.from_pandas(eval_df)
+    eval_dataset = eval_dataset.map(prepare_dataset, remove_columns=eval_dataset.column_names)
+
     #----------------------------------------------------------
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
@@ -89,7 +124,7 @@ def SpeechLaughWhisper(args):
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
-        push_to_hub=True,
+        # push_to_hub=True,
     )
 
     writer = SummaryWriter(log_dir=args.log_dir)
@@ -103,8 +138,9 @@ def SpeechLaughWhisper(args):
         model=model,
         args=training_args,
         tokenizer=tokenizer,
-        train_dataset=dataset,
-        eval_dataset=dataset, #TODO- create validation dataset for evaluation instead
+        train_dataset=train_dataset,
+        # eval_dataset=dataset, #TODO- create validation dataset for evaluation instead
+        eval_dataset=eval_dataset,
         data_collator=speech_laugh_collator,
         compute_metrics=compute_metrics,
         callbacks=[early_stopping],
@@ -125,6 +161,7 @@ def SpeechLaughWhisper(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--input_file_path", default="../datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
+    parser.add_argument("--eval_file_path", default="../datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--model_path", default="openai/whisper-medium", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--model_output_dir", default="../vocalwhisper/vocalspeech-whisper-medium", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
