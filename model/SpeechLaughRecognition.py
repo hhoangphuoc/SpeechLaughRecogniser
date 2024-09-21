@@ -6,7 +6,7 @@ import torchaudio
 import pandas as pd
 import librosa
 import numpy as np
-from huggingface_hub import notebook_login
+# from huggingface_hub import notebook_login
 from datasets import Dataset, load_dataset, DatasetDict
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers.trainer_callback import EarlyStoppingCallback
@@ -73,26 +73,14 @@ def SpeechLaughWhisper(args):
     def prepare_dataset(batch):
         #TODO: FIX THIS TO CONVERT THE STRING FORMAT OF ARRAY TO ACTUAL NUMPY ARRAY
         # audio = batch["audio"]
+        # sampling_rate = batch["sampling_rate"]
+        # # audio_array = np.array(audio["array"], dtype=float)
+        # # audio["array"] = audio["array"].apply(lambda x: np.array(x, dtype=float))
         # transcript = batch["transcript"] #this audio and transcript are merged from all the dataset
-        
 
         # #TODO: Add the transcript to the batch
-        # batch["input_features"] = processor(audio_array, sampling_rate=audio["sampling_rate"], return_tensors="pt").input_features.numpy()
-        # batch["audio"] = batch["audio"].apply(ast.literal_eval)
-
-        # Create a temporary DataFrame from the batch
-        df = pd.DataFrame(batch)
-        print(df.head())
-        # Convert "array" values to NumPy arrays 
-        df["array"] = df["audio"].apply(lambda x: np.array(x["array"], dtype=float)) 
-        df["sampling_rate"] = df["audio"].apply(lambda x: x["sampling_rate"])
-
-    # Now process the data using the Whisper processor
-        batch["input_features"] = processor(df["array"].to_list(), sampling_rate=df["sampling_rate"].to_list(), return_tensors="pt").input_features.numpy()
-        
-        batch["labels"] = processor(text=transcript, return_tensors="pt").input_ids
-        # batch["input_features"] = input_features
-        # batch["labels"] = input_ids
+        batch["input_features"] = processor(batch["audio"], sampling_rate=batch["sampling_rate"], return_tensors="pt").input_features.numpy()
+        batch["labels"] = processor(text=batch["transcript"], return_tensors="pt").input_ids
         return batch
 
     #----------------------------------------------------------
@@ -104,8 +92,8 @@ def SpeechLaughWhisper(args):
     eval_df = pd.read_csv(args.eval_file_path) #datasets/val.csv
     eval_dataset = Dataset.from_pandas(eval_df)
     eval_dataset = eval_dataset.map(prepare_dataset, remove_columns=eval_dataset.column_names)
-
     #----------------------------------------------------------
+
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
