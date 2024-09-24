@@ -2,3 +2,5 @@
 .vscode/
 data/
 audio_segments/
+**/.ipynb_checkpoints/
+cache_data/
