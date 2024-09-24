@@ -2,8 +2,9 @@ import argparse
 import os
 import sys
 import torch
-import torchaudio
+# import torchaudio
 import librosa
+import soundfile as sf
 import pandas as pd
 
 import numpy as np
@@ -53,9 +54,6 @@ def SpeechLaughWhisper(args):
     #Processor and Tokenizer
     feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
     processor = WhisperProcessor.from_pretrained(args.model_path) # processor - combination of feature extractor and tokenizer
-
-   
-
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
     special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
     tokenizer.add_tokens(special_tokens)
@@ -85,23 +83,27 @@ def SpeechLaughWhisper(args):
         train_df = train_df[train_df["audio"].apply(lambda x: len(x) > 0)]
         train_df = train_df[train_df["transcript"].apply(lambda x: len(x) > 0)]
         
+        #replace the train_df['audio'] from "../audio_segments" by "/home/joyan/VocalSpeechWhisper/SpeechLaughRecogniser/audio_segments"
+        
         #shuffle the dataframe
         train_df = train_df.sample(frac=1).reset_index(drop=True)
 
         train_dataset = Dataset.from_pandas(train_df)
         return train_dataset
         
-    def prepare_dataset(batch):
+    def prepare_dataset(example):
         #TODO: FIX THIS TO CONVERT THE STRING FORMAT OF ARRAY TO ACTUAL NUMPY ARRAY
+        
+        audio_path = os.path.abspath(example["audio"]) #using os to open the relative path
 
-        audio, sampling_rate = torchaudio.load(batch["audio"])
-        batch["audio"] = audio.squeeze().numpy() #convert to suitable audio array
-        batch["sampling_rate"] = sampling_rate if sampling_rate is not None else 16000 #convert to suitable sampling rate
+        audio, sampling_rate = sf.read(audio_path, dtype='float32', samplerate=16000) #load the audio file and resample to 16kHz
+        example["audio"] = audio.squeeze().numpy() #convert to suitable audio array
+        example["sampling_rate"] = sampling_rate
 
         # #TODO: Add the transcript to the batch
-        batch["input_features"] = processor(batch["audio"], sampling_rate=batch["sampling_rate"], return_tensors="pt").input_features.numpy()
-        batch["labels"] = processor(text=batch["transcript"], return_tensors="pt").input_ids
-        return batch
+        example["input_features"] = processor(example["audio"], sampling_rate=example["sampling_rate"], return_tensors="pt").input_features.numpy()
+        example["labels"] = processor(text=example["transcript"], return_tensors="pt").input_ids
+        return example
 
     #----------------------------------------------------------
     # train_df = pd.read_csv(args.input_file_path) #datasets/train.csv

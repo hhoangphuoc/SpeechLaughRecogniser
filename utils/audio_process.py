@@ -1,6 +1,7 @@
 import librosa
 from tqdm import tqdm
-import torchaudio
+# import torchaudio
+import soundfile as sf
 import librosa
 import re
 import os
@@ -44,12 +45,13 @@ def cut_audio_based_on_transcript_segments(
         audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
         
         # Convert audio_segment to a 2D tensor:
-        audio_segment_tensor = torch.tensor(audio_segment).unsqueeze(0)  # Add channel dimension
+        # audio_segment_tensor = torch.tensor(audio_segment).unsqueeze(0)  # Add channel dimension
 
         #save the audio segment to corresponding folder
         output_file = f"{audio_segments_dir}/{filename}_{start_time}_{end_time}.wav"
-        torchaudio.save(output_file, audio_segment_tensor, sr)  # Save the tensor
 
+        # torchaudio.save(output_file, audio_segment_tensor, sr)  # Save the tensor
+        sf.write(output_file, audio_segment, samplerate=16000) #save the audio segment to the folder
         #append to list
         audio_file_segments.append(output_file)
         # audio_segments.append(audio_segment)
