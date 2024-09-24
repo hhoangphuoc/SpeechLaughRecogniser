@@ -52,9 +52,9 @@ def cut_audio_based_on_transcript_segments(
 
         #append to list
         audio_file_segments.append(output_file)
-        audio_segments.append(audio_segment)
+        # audio_segments.append(audio_segment)
         transcripts_segments.append(text)
 
         
     #list of audio segments (list of array) and transcripts (list of text)
-    return audio_file_segments, audio_segments, transcripts_segments 
+    return audio_file_segments, transcripts_segments #audio_segments

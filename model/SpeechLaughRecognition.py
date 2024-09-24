@@ -3,8 +3,9 @@ import os
 import sys
 import torch
 import torchaudio
-import pandas as pd
 import librosa
+import pandas as pd
+
 import numpy as np
 # from huggingface_hub import notebook_login
 from datasets import Dataset, load_dataset, DatasetDict
@@ -69,14 +70,33 @@ def SpeechLaughWhisper(args):
     #Data collator for random noise
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor, padding=True)
 
+    def load_dataset(csv_input_path):
+        train_df = pd.read_csv(csv_input_path)
 
+        # convert the audio column to numpy array
+        # train_df["audio"] = train_df["audio"].apply(safe_fromstring)
+        train_df["sampling_rate"] = train_df["sampling_rate"].apply(lambda x: int(x))
+
+        #remove array with loading errors or empty
+        # train_df = train_df[train_df['audio'].notna() & train_df['audio'].apply(lambda x: len(x) > 0)]
+        # train_df = train_df[train_df['audio'].apply(lambda x: len(x) > 0)]
+        
+        #remove the row if train_df["audio"] and train_df["transcript"] have empty string to the audio path/transcripts
+        train_df = train_df[train_df["audio"].apply(lambda x: len(x) > 0)]
+        train_df = train_df[train_df["transcript"].apply(lambda x: len(x) > 0)]
+        
+        #shuffle the dataframe
+        train_df = train_df.sample(frac=1).reset_index(drop=True)
+
+        train_dataset = Dataset.from_pandas(train_df)
+        return train_dataset
+        
     def prepare_dataset(batch):
         #TODO: FIX THIS TO CONVERT THE STRING FORMAT OF ARRAY TO ACTUAL NUMPY ARRAY
-        # audio = batch["audio"]
-        # sampling_rate = batch["sampling_rate"]
-        # # audio_array = np.array(audio["array"], dtype=float)
-        # # audio["array"] = audio["array"].apply(lambda x: np.array(x, dtype=float))
-        # transcript = batch["transcript"] #this audio and transcript are merged from all the dataset
+
+        audio, sampling_rate = torchaudio.load(batch["audio"])
+        batch["audio"] = audio.squeeze().numpy() #convert to suitable audio array
+        batch["sampling_rate"] = sampling_rate if sampling_rate is not None else 16000 #convert to suitable sampling rate
 
         # #TODO: Add the transcript to the batch
         batch["input_features"] = processor(batch["audio"], sampling_rate=batch["sampling_rate"], return_tensors="pt").input_features.numpy()
@@ -84,27 +104,26 @@ def SpeechLaughWhisper(args):
         return batch
 
     #----------------------------------------------------------
-    train_df = pd.read_csv(args.input_file_path) #datasets/train.csv
-    train_dataset = Dataset.from_pandas(train_df)
+    # train_df = pd.read_csv(args.input_file_path) #datasets/train.csv
+    train_dataset = load_dataset(args.input_file_path)
     train_dataset = train_dataset.map(prepare_dataset, remove_columns=train_dataset.column_names)
     
     # if args.eval_file_path is not None :
-    eval_df = pd.read_csv(args.eval_file_path) #datasets/val.csv
-    eval_dataset = Dataset.from_pandas(eval_df)
+    eval_dataset = load_dataset(args.eval_file_path)
     eval_dataset = eval_dataset.map(prepare_dataset, remove_columns=eval_dataset.column_names)
     #----------------------------------------------------------
 
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
-        per_device_train_batch_size=args.batch_size, #8 - default batch size = 8, could add up to 256 based on the GPU max memory
-        gradient_accumulation_steps=4, #increase the batch size by accumulating gradients (add 4 per cycle)
+        per_device_train_batch_size=args.batch_size, #4 - default batch size = 4, could add up to 16 based on the GPU max memory
+        gradient_accumulation_steps=args.grad_steps, #increase the batch size by accumulating gradients (add 8 per cycle), could change to 2
         learning_rate=args.lr, #1e-5
         num_train_epochs=args.num_train_epochs, #default = 3 - change between 2 -5 based on overfitting
         warmup_steps=args.warmup_steps, #800
         fp16=True, #use mixed precision training
         eval_strategy="steps",
-        data_loader_num_workers=24, #default = 24 - can change to 16 if the GPU has less memory, now compatible with 72 cores GPU
+        data_loader_num_workers=args.num_workers, #default = 16 - can change to 24 if the GPU has less memory, now compatible with 72 cores GPU
         logging_steps=25,
         save_steps=1000,
         eval_steps=1000,
@@ -153,13 +172,13 @@ if __name__ == "__main__":
     parser.add_argument("--model_path", default="openai/whisper-medium", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--model_output_dir", default="../vocalwhisper/vocalspeech-whisper-medium", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
-    parser.add_argument("--batch_size", default=8, type=int, required=False, help="Batch size for training")
+    parser.add_argument("--batch_size", default=2, type=int, required=False, help="Batch size for training")
+    parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     parser.add_argument("--num_train_epochs", default=3, type=int, required=False, help="Number of training epochs")
-    parser.add_argument("--num_workers", default=24, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
+    parser.add_argument("--num_workers", default=16, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
     parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
     #----------------------------------------------------------
     args = parser.parse_args()
 
     result = SpeechLaughWhisper(args)
-

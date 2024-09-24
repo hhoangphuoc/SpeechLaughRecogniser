@@ -19,6 +19,10 @@ speech_laugh_pattern = r"\[laughter-(\w+)\]"
 vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
 #-----------------------------------------------------#
+# Clean and format transcripts
+def clean_transcript(transcript):
+    # TODO: Could apply GPT-4o or other LLMs to clean and format transcripts
+    return transcript
 
 def retokenize_and_extract_timestamps_from_transcript(transcript):
     """
@@ -95,6 +99,13 @@ def retokenize_transcript_pattern(transcript_line):
         - Uppercase the filler
         - Replace the speech_laugh with the corresponding token
     """
+    #initially, lowercase the entire line
+    transcript_line = transcript_line.lower()
+    #if the line only contains "[silence]" or "[noise]", ignore the line and not call this function
+
+    #TODO: Apply clean text function to change the transcript into bare text
+    # transcript_line = clean_text(transcript_line)
+
     if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]":
         return #ignore the line and not call this function
     elif re.match(vocalsound_pattern, transcript_line):
@@ -121,38 +132,8 @@ def retokenize_transcript_pattern(transcript_line):
     return transcript_line
 
 #------------------------
-# Functions created for separate datasets
-# def process_switchboard_transcript(
-#     audio_file,
-#     transcript_dir="../data/switchboard/transcripts"
-
-# ):
-#     filename = audio_file.split('.')[0] #sw02001A
-#     speaker = filename[-1] #A or B
-#     subfolder2 = filename[3:-1] #2001
-#     subfolder1 = subfolder2[:2] #20
-#     transcript_file = f"sw{subfolder2}{speaker}-ms98-a-trans.text"
-#     transcript_path = os.path.join(transcript_dir, subfolder1, subfolder2, transcript_file)
-
-#     with open(transcript_path, 'r') as f:
-#         transcript_lines = f.readlines()
-    
-#     switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
-#     new_transcript_lines = []
-#     for line in transcript_lines:
-        
-#         match = re.match(switchboard_pattern, line) #sw.. <start_time> <end_time> <text>
-#         start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
-#         text = retokenize_transcript_pattern(text)
-#         #TODO: apply cleaning with GPT-4o
-#         # text = clean_transcript(text)
-
-#         # TODO: get audio segment with adding padding_time seconds to start and end
-#         # audio_segment = audio[int((start_time-padding_time)*sr):int((end_time+padding_time)*sr)] #the audio segment for specific text
-
-#         new_transcript_lines.append((start_time, end_time, text))
-
-#     return new_transcript_lines
+# Transcript processing functions for each dataset
+#------------------------
 def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboard/transcripts'):
     """
     Processes a Switchboard transcript file.
@@ -196,35 +177,23 @@ def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboa
         print(f"Warning: Transcript file not found: {transcript_path}")
         return None
 
-# def process_ami_transcript(transcript_line):
-#     """
-#     Process the transcript of AMI dataset
-#     """
-#     transcript = transcript_line.lower()
-#     transcript = retokenize_transcript_pattern(transcript) #expected to change the filler token in the transcript
-
-#     #TODO: apply cleaning with GPT-4o
-#     # transcript = clean_transcript(transcript)
-#     return transcript
-
 def process_ami_transcript(transcript_line):
     """
     Process the transcript of AMI dataset
     and return it as a tuple of (start_time, end_time, text)
     """
-    ami_pattern = r"\S+ (\d+\.\d+) (\d+\.\d+) (.*)" 
-    match = re.match(ami_pattern, transcript_line)
-    if match:
-        start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
-        text = retokenize_transcript_pattern(text) 
-        return start_time, end_time, text
+    # lowercase the transcript
+    transcript_line = transcript_line.lower()
+    
+    #TODO: Clean the transcript with LLM
+    # transcript_line = clean_text(transcript_line)
+    # ami_pattern = r"\S+ (\d+\.\d+) (\d+\.\d+) (.*)" 
+    # match = re.match(ami_pattern, transcript_line)
+    # if match:
+        # start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+    ami_text = retokenize_transcript_pattern(transcript_line) 
+    # return start_time, end_time, text
+    return ami_text
         # return transcript
 
-    else:
-        return None  # Or handle invalid format differently
 
-
-# Clean and format transcripts
-def clean_transcript(transcript):
-    # Could apply GPT-4o or other LLMs to clean and format transcripts
-    return transcript
