@@ -12,3 +12,4 @@ whisper-timestamped
 datasets
 huggingface-hub
 evaluate
+gdown

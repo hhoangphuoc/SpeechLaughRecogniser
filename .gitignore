@@ -1,5 +1,6 @@
 .idx/
 .vscode/
+.venv/
 data/
 audio_segments/
 **/.ipynb_checkpoints/
