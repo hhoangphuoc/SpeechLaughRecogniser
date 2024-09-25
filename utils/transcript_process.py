@@ -24,69 +24,6 @@ def clean_transcript(transcript):
     # TODO: Could apply GPT-4o or other LLMs to clean and format transcripts
     return transcript
 
-def retokenize_and_extract_timestamps_from_transcript(transcript):
-    """
-    Retokenizes a list of transcripts and extracts word-level timestamps 
-    also remove the transcript lines that have "[silence]"
-
-    Args:
-        transcript(list): A list of transcripts, each containing multiple sentences.
-        eg:
-        ["sw2001A-ms98-a-0001 0.000000 0.977625 [silence]", "sw2001A-ms98-a-0002 0.977625 11.561375 hi um yeah i'd like to.....","..."]
-
-    Returns:
-        list: A list of lists, each containing retokenized sentences with timestamps.
-        list: A list of tuples, each containing a word and its corresponding audio segment.
-    """
-
-    all_tokens_with_timestamps = []
-    all_audio_segments = []
-
-    # for line in transcript_lines:
-    #     tokens_with_timestamps = []
-    #     audio_segments = []
-
-    for line in transcript.splitlines():
-        if not line.strip():  # Skip empty lines
-            continue
-
-        _, start_time, end_time, token = line.split(" ") #split by space -> #["sw2001A-ms98-a-0001", "0.000000", "0.977625", "[silence]"]
-        start_time, end_time = float(start_time), float(end_time)
-
-        if re.match(word_pattern, token):
-            token_type = "word"
-            audio_segments.append((token, token_type, (start_time, end_time)))
-        elif re.match(pause_pattern, token):
-            token_type = "pause"
-            audio_segments.append((token, token_type, (start_time, end_time)))
-        elif re.match(noise_pattern, token):
-            token_type = "noise"
-            audio_segments.append((token, token_type, (start_time, end_time)))
-        elif re.match(filler_pattern, token):
-            token_type = "filler"
-            audio_segments.append((token, token_type, (start_time, end_time)))
-        elif match := re.match(speech_laugh_pattern, token):
-            token_type = "speech_laugh"
-            token = match.group(1) + "_speech_laugh"
-            audio_segments.append((token, token_type, (start_time, end_time)))
-
-        tokens_with_timestamps.append((token, token_type, (start_time, end_time)))
-
-    all_tokens_with_timestamps.append(tokens_with_timestamps)
-    all_audio_segments.extend(audio_segments)
-
-    return all_tokens_with_timestamps, all_audio_segments
-
-    # Read the file
-    with open(words_transcript, 'r') as file:
-        lines = file.readlines()
-    audio_segments = []
-    # Process each line
-    for line in lines:
-        _, start_time, end_time, token = line.split()
-        start_time, end_time = float(start_time), float(end_time)
-        audio_segments.append((token, (start_time, end_time)))
-    return audio_segments
 
 def retokenize_transcript_pattern(transcript_line):
     """
@@ -108,9 +45,9 @@ def retokenize_transcript_pattern(transcript_line):
 
     if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]":
         return #ignore the line and not call this function
-    elif re.match(vocalsound_pattern, transcript_line):
-        #if the line only contains vocalsound
-        transcript_line = transcript_line.upper()
+    # elif match:= re.match(vocalsound_pattern, transcript_line):
+    #     #if the line only contains vocalsound
+    #     transcript_line = transcript_line.upper()
             # new_transcript_lines.append(line)
     else:
         # transform the word in the line when it matches the pattern
@@ -122,8 +59,11 @@ def retokenize_transcript_pattern(transcript_line):
                 word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
             elif match := re.match(speech_laugh_pattern, word):
                 # Now 'match' is guaranteed to be defined here
-                token = match.group(1) + "_speech_laugh"
-                word = "[" + token + "]"  # [LAUGHTER_speech_laugh]
+                speech_laugh_token = match.group(1) + "_speech_laugh"
+                word = "[" + speech_laugh_token.upper() + "]"  # [LAUGHTER_speech_laugh]
+            elif match := re.match(vocalsound_pattern, word):
+                vocalsound_token = match.group(1)
+                word = "[" + vocalsound_token.upper() + "]"  # expected [LAUGHTER]|[COUGH],....
             else:
                 # normal word
                 word = word
@@ -162,6 +102,9 @@ def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboa
         switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
         new_transcript_lines = []
         for line in transcript_lines:
+            if not line.strip():
+                continue #skip the line
+            
             match = re.match(switchboard_pattern, line)  # sw.. <start_time> <end_time> <text>
             if match:
                 start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
@@ -170,6 +113,8 @@ def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboa
                 ##TODO: apply clean_transcript if needed
                 #text = clean_transcript(text)
                 new_transcript_lines.append((start_time, end_time, text))
+            else:
+                continue
 
         return new_transcript_lines
 

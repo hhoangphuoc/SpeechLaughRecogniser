@@ -47,7 +47,7 @@ def switchboard_to_df(
                 transcript_lines,
                 padding_time=0.3,
                 data_name=data_name,
-                audio_segments_dir=f"../audio_segments/{data_name}/"
+                audio_segments_dir=f"../data/audio_segments/{data_name}/"
                 )
             else:
                 print(f"Skipping audio file due to missing transcript: {audio_file}")
@@ -107,7 +107,7 @@ def vocalsound_to_df(
         "throatclearing": "[THROAT-CLEARING]"
     }
 
-    vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir="../cache_data/")
+    vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir="../data/huggingface_data/")
     
     if vocalsound_dataset is None:
         print("Unable to find VocalSound dataset")
@@ -159,7 +159,7 @@ def ami_to_df(
     to_csv = True,
 ):
     # load the data in here
-    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", cache_dir="../cache_data/")
+    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", cache_dir="../data/huggingface_data/")
     if ami_dataset is None:
         print("Unable to load ami_dataset")
         
