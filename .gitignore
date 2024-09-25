@@ -4,4 +4,5 @@
 data/
 audio_segments/
 **/.ipynb_checkpoints/
+**/__pycache__/
 cache_data/
