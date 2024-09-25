@@ -1,9 +1,7 @@
 import librosa
 from tqdm import tqdm
 import pandas as pd
-import torchaudio
 import librosa
-import re
 import os
 import argparse
 
@@ -11,12 +9,15 @@ from datasets import load_dataset
 
 from transcript_process import *
 from audio_process import *
-    
+
+from params import GLOBAL_DATA_PATH, HUGGINGFACE_DATA_PATH
+
 # 2. Combined audio and transcript into csv files
 def switchboard_to_df(
     data_name="switchboard", #also implement for AMI, VocalSound, LibriSpeech, ...
-    audio_dir='../data/switchboard/audio_wav', 
-    transcript_dir='../data/switchboard/transcripts',
+    audio_dir='/switchboard_data/switchboard/audio_wav', 
+    transcript_dir='/switchboard_data/switchboard/audio_wav',
+    audio_segment_dir='/switchboard_data/audio_segments',
     batch_audio=[],
     batch_sr = [],
     batch_transcript=[],
@@ -40,14 +41,17 @@ def switchboard_to_df(
     for audio_file in tqdm(os.listdir(audio_dir), desc="Combining audio and transcript..."):
         if audio_file.endswith(".wav"):
             audio_path = os.path.join(audio_dir, audio_file) #audio_wav/sw02001A.wav
-            transcript_lines = process_switchboard_transcript(audio_file) #produce the transcript lines for each corresponding audio
+            transcript_lines = process_switchboard_transcript(
+                audio_file,
+                transcript_dir=transcript_dir
+                ) #produce the transcript lines for each corresponding audio
             if transcript_lines is not None:
                 audio_file_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
                 audio_path, 
                 transcript_lines,
                 padding_time=0.3,
                 data_name=data_name,
-                audio_segments_dir=f"../data/audio_segments/{data_name}/"
+                audio_segments_directory=audio_segment_dir,
                 )
             else:
                 print(f"Skipping audio file due to missing transcript: {audio_file}")
@@ -88,6 +92,7 @@ def switchboard_to_df(
 
 def vocalsound_to_df(
     data_name="vocalsound",
+    audio_dir='/vocalsound_data/audio_16k',
     batch_audio=[],
     batch_sr = [],
     batch_transcript=[],
@@ -107,39 +112,45 @@ def vocalsound_to_df(
         "throatclearing": "[THROAT-CLEARING]"
     }
 
-    vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir="../data/huggingface_data/")
+    # vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir=HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
     
-    if vocalsound_dataset is None:
-        print("Unable to find VocalSound dataset")
-        return 
+    # if vocalsound_dataset is None:
+    #     print("Unable to find VocalSound dataset")
+    #     return 
+    
+    # print("Load ami dataset sucessfully, start processing...")
+    # print("VocalSound Dataset:", vocalsound_dataset)
+    # print(vocalsound_dataset[0])
+    # for example in tqdm(vocalsound_dataset, desc="Processing VocalSound dataset..."):
+    #     # audio_segment = example["audio"]["array"]
+    #     audio_path = example['audio']['path']
+    #     sampling_rate = example["audio"]["sampling_rate"] 
+    #     label = example["label"]
 
-    for example in tqdm(vocalsound_dataset, desc="Processing VocalSound dataset..."):
-        # audio_segment = example["audio"]["array"]
-        audio_path = example['audio']['path']
-        sampling_rate = example["audio"]["sampling_rate"] 
-        label = example["label"]
+    #     # batch_audio.append(audio_segment)
+    #     batch_audio.append(audio_path) #adding audio path instead of audio array
+    #     batch_sr.append(sampling_rate)
+    #     batch_transcript.append(label_to_transcript[label])
+    for audio_file in tqdm(os.listdir(audio_dir), desc="Combining audio and transcript..."):
+        if audio_file.endswith(".wav"):
+            audio_path = os.path.join(audio_dir, audio_file) #audio_16k/f2446_0_sniff.wav
+            label = audio_file.split("_")[-1].split(".")[0] #sniff
 
-        # batch_audio.append(audio_segment)
-        batch_audio.append(audio_path) #adding audio path instead of audio array
-        batch_sr.append(sampling_rate)
-        batch_transcript.append(label_to_transcript[label])
-        
-    # batch = {
-    #     "audio": batch_audio,
-    #     "sampling_rate": batch_sr,
-    #     "transcript": batch_transcript
-    #     }
+            if label in label_to_transcript:
+                batch_audio.append(audio_path)
+                batch_sr.append(16000)
+                batch_transcript.append(label_to_transcript[label])
+            else:
+                print(f"Skipping audio file due to mismatching label: {audio_file}")
+                continue
+
+    print(f"Successfully added Vocal Sound to batch")
+    
     df = pd.DataFrame({
         "audio": batch_audio, #batch["audio"],
         "sampling_rate": batch_sr, #batch["sampling_rate"],
         "transcript": batch_transcript, #batch["transcript"]
     })
-    
-    # df = pd.DataFrame({
-    #     "audio": batch["audio"],
-    #     "sampling_rate": batch["sampling_rate"],
-    #     "transcript": batch["transcript"]
-    # })
 
     if to_csv:
         csv_path = os.path.join(csv_dir, data_name)
@@ -148,6 +159,7 @@ def vocalsound_to_df(
         df.to_csv(output_file, index=False)
 
     print(f"Successfully processed VocalSound dataset!")
+    
     return df
 
 def ami_to_df(
@@ -159,14 +171,14 @@ def ami_to_df(
     to_csv = True,
 ):
     # load the data in here
-    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", cache_dir="../data/huggingface_data/")
+    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
     if ami_dataset is None:
         print("Unable to load ami_dataset")
         
     print("Load ami dataset sucessfully, start processing...")
     print(ami_dataset)
     # only use the trained dataset
-    for example in tqdm(ami_dataset['train'], desc="Processing AMI dataset..."):
+    for example in tqdm(ami_dataset, desc="Processing AMI dataset..."):
         # AMI Dataset have the format:
         """
         ami_dataset["train"][0] = 
@@ -255,7 +267,7 @@ def combine_data(
         combined_df["transcript"] = combined_df["transcript"].apply(lambda x: x.upper() if x == "[laughter]" else x)
         
         #FIXME: In combined_df, drop row that have empty array
-        # combined_df = combined_df[combined_df["audio"].apply(lambda x: len(x) > 0)]
+        combined_df = combined_df[combined_df["audio"].apply(lambda x: len(x) > 0)]
 
         # shuffle
         combined_df = combined_df.sample(frac=1).reset_index(drop=True)
@@ -309,6 +321,9 @@ if __name__ == "__main__":
             if data_name == "switchboard":
                 df = switchboard_to_df(
                     data_name = data_name,
+                    audio_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
+                    transcript_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
+                    audio_segment_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "audio_segments"),
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv
                 )
@@ -316,21 +331,16 @@ if __name__ == "__main__":
             elif data_name == "vocalsound":
                 df = vocalsound_to_df(
                     data_name = data_name,
-                    batch_audio=[], 
-                    batch_transcript=[],
+                    audio_dir=os.path.join(GLOBAL_DATA_PATH, "vocalsound_data", "audio_16k"),
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
-                    # vocalsound_dataset = vocalsound_dataset
                 )
 
             elif data_name == "ami":
-                # ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train")
-                # this return a DatasetDict,that contains train, test, val sets
                 df = ami_to_df(
                     data_name = data_name,
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
-                    # ami_dataset = ami_dataset
                 )
     if args.do_combine:
         if args.train_val_split:

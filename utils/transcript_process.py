@@ -74,7 +74,9 @@ def retokenize_transcript_pattern(transcript_line):
 #------------------------
 # Transcript processing functions for each dataset
 #------------------------
-def process_switchboard_transcript(audio_file, transcript_dir='../data/switchboard/transcripts'):
+def process_switchboard_transcript(
+        audio_file, 
+        transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts'):
     """
     Processes a Switchboard transcript file.
 
