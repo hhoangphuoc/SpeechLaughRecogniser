@@ -13,3 +13,4 @@ datasets
 huggingface-hub
 evaluate
 gdown
+jiwer

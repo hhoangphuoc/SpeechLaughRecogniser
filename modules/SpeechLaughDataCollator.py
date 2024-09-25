@@ -7,6 +7,8 @@ from transformers.tokenization_utils_base import PaddingStrategy, PreTrainedToke
 from datasets import load_dataset
 import torch
 
+import params as prs
+
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: WhisperProcessor
@@ -53,8 +55,8 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 # data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor, padding=True)
 
 
-fsdnoisy_dataset = load_dataset("sps44/fsdnoisy18k")
-audioset_dataset = load_dataset("benjamin-paine/audio-set-16khz")
+fsdnoisy_dataset = load_dataset("sps44/fsdnoisy18k", cache_dir=prs.HUGGINGFACE_DATA_PATH)
+audioset_dataset = load_dataset("benjamin-paine/audio-set-16khz", cache_dir=prs.HUGGINGFACE_DATA_PATH)
 def get_random_noise(target_shape):
     # Choose a random noise dataset
     noise_dataset = random.choice([fsdnoisy_dataset, audioset_dataset])

@@ -10,7 +10,9 @@ from datasets import load_dataset
 from transcript_process import *
 from audio_process import *
 
-from params import GLOBAL_DATA_PATH, HUGGINGFACE_DATA_PATH
+import params as prs
+
+# from Spparams import GLOBAL_DATA_PATH, HUGGINGFACE_DATA_PATH
 
 # 2. Combined audio and transcript into csv files
 def switchboard_to_df(
@@ -171,7 +173,7 @@ def ami_to_df(
     to_csv = True,
 ):
     # load the data in here
-    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
+    ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
     if ami_dataset is None:
         print("Unable to load ami_dataset")
         
@@ -321,9 +323,9 @@ if __name__ == "__main__":
             if data_name == "switchboard":
                 df = switchboard_to_df(
                     data_name = data_name,
-                    audio_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
-                    transcript_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
-                    audio_segment_dir=os.path.join(GLOBAL_DATA_PATH, "switchboard_data", "audio_segments"),
+                    audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
+                    transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
+                    audio_segment_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments"),
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv
                 )
@@ -331,7 +333,7 @@ if __name__ == "__main__":
             elif data_name == "vocalsound":
                 df = vocalsound_to_df(
                     data_name = data_name,
-                    audio_dir=os.path.join(GLOBAL_DATA_PATH, "vocalsound_data", "audio_16k"),
+                    audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "vocalsound_data", "audio_16k"),
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
                 )

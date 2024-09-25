@@ -9,11 +9,13 @@ import pandas as pd
 
 import numpy as np
 # from huggingface_hub import notebook_login
-from datasets import Dataset, load_dataset, DatasetDict
+from datasets import Dataset
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers.trainer_callback import EarlyStoppingCallback
+#import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
-from SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
+from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 
 import evaluate
 #----------------------------------------------------------
@@ -26,20 +28,6 @@ pauses, and other non-speech sounds in conversations.
 # notebook_login()
 
 metric = evaluate.load("wer")
-def compute_metrics(pred):
-    pred_ids = pred.predictions
-    label_ids = pred.label_ids
-
-    # replace -100 with the pad_token_id
-    label_ids[label_ids == -100] = tokenizer.pad_token_id
-
-    # we do not want to group tokens when computing the metrics
-    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-    label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-
-    wer = 100 * metric.compute(predictions=pred_str, references=label_str)
-
-    return {"wer": wer}
 
 def SpeechLaughWhisper(args):
     """
@@ -57,12 +45,9 @@ def SpeechLaughWhisper(args):
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
     special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
     tokenizer.add_tokens(special_tokens)
-    # model.config.decoder_start_token_id = tokenizer.get_vocab()["<|startoftext|>"]
-    # model.config.decoder_end_token_id = tokenizer.get_vocab()["<|endoftext|>"]
 
     # Load the fine-tuned Whisper model
     model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
-
     model.resize_token_embeddings(len(tokenizer))
     #----------------------------------------------------------
     #Data collator for random noise
@@ -71,19 +56,10 @@ def SpeechLaughWhisper(args):
     def load_dataset(csv_input_path):
         train_df = pd.read_csv(csv_input_path)
 
-        # convert the audio column to numpy array
-        # train_df["audio"] = train_df["audio"].apply(safe_fromstring)
         train_df["sampling_rate"] = train_df["sampling_rate"].apply(lambda x: int(x))
 
-        #remove array with loading errors or empty
-        # train_df = train_df[train_df['audio'].notna() & train_df['audio'].apply(lambda x: len(x) > 0)]
-        # train_df = train_df[train_df['audio'].apply(lambda x: len(x) > 0)]
-        
-        #remove the row if train_df["audio"] and train_df["transcript"] have empty string to the audio path/transcripts
         train_df = train_df[train_df["audio"].apply(lambda x: len(x) > 0)]
         train_df = train_df[train_df["transcript"].apply(lambda x: len(x) > 0)]
-        
-        #replace the train_df['audio'] from "../audio_segments" by "/home/joyan/VocalSpeechWhisper/SpeechLaughRecogniser/audio_segments"
         
         #shuffle the dataframe
         train_df = train_df.sample(frac=1).reset_index(drop=True)
@@ -96,14 +72,34 @@ def SpeechLaughWhisper(args):
         
         audio_path = os.path.abspath(example["audio"]) #using os to open the relative path
 
-        audio, sampling_rate = sf.read(audio_path, dtype='float32', samplerate=16000) #load the audio file and resample to 16kHz
-        example["audio"] = audio.squeeze().numpy() #convert to suitable audio array
+        # audio, sampling_rate = sf.read(audio_path, dtype='float32', samplerate=16000) #load the audio file and resample to 16kHz
+        audio, sampling_rate = librosa.load(audio_path, sr=16000)
+        # 2. Resample if necessary
+        # if sampling_rate != 16000:
+        #     audio, sampling_rate = librosa.resample(y=audio, orig_sr=sampling_rate, target_sr=16000)
+
+        example["audio"] = audio.squeeze() #convert to suitable audio array
         example["sampling_rate"] = sampling_rate
 
         # #TODO: Add the transcript to the batch
         example["input_features"] = processor(example["audio"], sampling_rate=example["sampling_rate"], return_tensors="pt").input_features.numpy()
         example["labels"] = processor(text=example["transcript"], return_tensors="pt").input_ids
         return example
+    
+    def compute_metrics(pred):
+        pred_ids = pred.predictions
+        label_ids = pred.label_ids
+
+        # replace -100 with the pad_token_id
+        label_ids[label_ids == -100] = tokenizer.pad_token_id
+
+        # we do not want to group tokens when computing the metrics
+        pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+
+        wer = 100 * metric.compute(predictions=pred_str, references=label_str)
+
+        return {"wer": wer}
 
     #----------------------------------------------------------
     # train_df = pd.read_csv(args.input_file_path) #datasets/train.csv
@@ -169,10 +165,10 @@ def SpeechLaughWhisper(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
-    parser.add_argument("--input_file_path", default="../datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
-    parser.add_argument("--eval_file_path", default="../datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
+    parser.add_argument("--input_file_path", default="./datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
+    parser.add_argument("--eval_file_path", default="./datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--model_path", default="openai/whisper-medium", type=str, required=False, help="Select pretrained model")
-    parser.add_argument("--model_output_dir", default="../vocalwhisper/vocalspeech-whisper-medium", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-medium", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--batch_size", default=2, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
