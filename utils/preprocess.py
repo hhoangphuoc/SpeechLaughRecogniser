@@ -1,21 +1,149 @@
 import librosa
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 import librosa
 import os
 import argparse
 
-from datasets import load_dataset
+from datasets import load_dataset, Dataset, Audio
 
-from transcript_process import *
-from audio_process import *
+from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
+from utils.audio_process import cut_audio_based_on_transcript_segments
 
-import params as prs
+import utils.params as prs
 
-# from Spparams import GLOBAL_DATA_PATH, HUGGINGFACE_DATA_PATH
 
-# 2. Combined audio and transcript into csv files
-def switchboard_to_df(
+# MAIN PROCESSING FUNCTIONS FOR LOADING AND PROCESSING DATASETS
+def combine_datasets(
+        to_dataset=True,
+        datasets=["switchboard", "ami", "vocalsound"],
+):
+    """
+    Load all the datasets and combine them into one
+    """
+    switchboard_ds = switchboard_to_ds(to_dataset=True)
+    ami_ds = ami_to_ds(to_dataset=True)
+    vocalsound_ds = vocalsound_to_ds(to_dataset=True)
+    
+    #INSTEAD OF LOADING THESE DATASETS FROM SCRATCH, WE CAN USE THE HUGGINGFACE DATASET
+    # ami_ds = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
+    # vocalsound_ds = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
+
+    # # Only choosing audio array, sample rate and transcript column for the dataset
+    # switchboard_ds = switchboard_ds.map(lambda x: {"audio": x["audio"], "sampling_rate": x["sampling_rate"], "transcript": x["transcript"]})
+    # ami_ds = ami_ds.map(lambda x: {"audio": x["audio"]["array"], "sampling_rate": x["audio"]["sampling_rate"], "transcript": x["text"]})
+    # vocalsound_ds = vocalsound_ds.map(lambda x: {"audio": x["audio"], "sampling_rate": 16000, "transcript": x["label"]})
+
+    combined_ds = Dataset.concatenate([switchboard_ds, ami_ds, vocalsound_ds])
+    return combined_ds
+
+
+def process_dataset(csv_input_path):
+    """
+    Load the dataset from the csv file and convert to HuggingFace Dataset object
+    Args:
+    - csv_input_path: path to the csv file (train.csv, eval.csv)
+    Return:
+    - train_dataset: HuggingFace Dataset object
+    """
+
+    train_df = pd.read_csv(csv_input_path)
+
+    train_df["sampling_rate"] = train_df["sampling_rate"].apply(lambda x: int(x))
+
+    # train_df = train_df[train_df["audio"].apply(lambda x: len(x) > 0)]
+
+    train_df = train_df[train_df["transcript"].apply(lambda x: len(x) > 0)]
+    
+    # # create a new column storing audio array, with path taken from the audio column
+    # train_df["array"] = train_df["audio"].apply(lambda x: librosa.load(x, sr=16000)[0])
+
+    #shuffle the dataframe
+    train_df = train_df.sample(frac=1).reset_index(drop=True)
+
+    train_dataset = Dataset.from_pandas(train_df)
+    
+    #Resample the audio_array column if it not 16kHz
+    train_dataset = train_dataset.cast_column("audio", Audio(sampling_rate=16000))
+
+    return train_dataset
+
+def combine_data_csv(
+    csv_dir="../datasets",
+    combined_data_list=[], #list of dataset names to combined
+    dataframes=[],
+    train_val_split=True,
+    to_csv=True,
+    shuffle_ratio=0.8
+    ):
+    """
+    Load all the csv files and combine them into one dataframe
+    Return:
+     - the combined dataframe and output in csv files, 
+     - if tran_val_split is set: splitted into train and validation set
+    """
+    print("Start combining the dataframes...")
+    
+    for folder in os.listdir(args.csv_dir):
+        if combined_data_list and folder not in combined_data_list:
+            continue
+        folder = os.path.join(args.csv_dir,folder)
+        if os.path.isdir(folder) and not folder.endswith(".ipynb_checkpoints"):
+            print(folder)
+            for file in os.listdir(folder):
+                if file.endswith(".csv"):
+                    print(f"Loading file {file}")
+                    df = pd.read_csv(os.path.join(folder,file))
+                    dataframes.append(df)
+    print("Get total of {} dataframes".format(len(dataframes)))
+    
+    try: 
+        combined_df = pd.concat(dataframes, ignore_index=True)
+        
+        #remove missing value rows
+        combined_df.dropna(inplace=True)
+        
+        #FIXME: Temporary solution to avoid mismatching, should be done in transcript_process instead
+        # combined_df["transcript"] = combined_df["transcript"].apply(lambda x: x.upper() if x == "[laughter]" else x)
+        
+        #FIXME: In combined_df, drop row that have empty array
+        combined_df = combined_df[combined_df["audio"].apply(lambda x: len(x) > 0)]
+
+        # shuffle
+        combined_df = combined_df.sample(frac=1).reset_index(drop=True)
+
+        if not train_val_split:
+            print("Not splitting the dataset into train and val sets, only returning the combined dataframe")
+            if to_csv:
+                combined_df.to_csv(f"{csv_dir}/combined.csv", index=False)
+            else:
+                # return combined_df
+                return combined_df
+        else:
+            # split the dataset into train and validation set
+            train_df = combined_df[:int(len(combined_df)*shuffle_ratio)]
+            val_df = combined_df[int(len(combined_df)*shuffle_ratio):]
+
+            if to_csv:
+                os.makedirs(csv_dir, exist_ok=True)
+                # save to csv
+                train_df.to_csv(f"{csv_dir}/train_{combined_data_list[0]}.csv", index=False)
+                val_df.to_csv(f"{csv_dir}/val_{combined_data_list[0]}.csv", index=False)
+            else:
+                print("Not saving to csv, but returning the train, val dataframes")
+                # return train_df, val_df
+            return train_df, val_df
+        print("Successfully generate combined datasets from different data!!")
+    except ValueError as e:
+        print("Unable to combine the datasets: {}".format(e))
+
+    
+#-------------------------------------------------------------------------------------------------------------
+
+# PROCESSING A CORPUS TO A DATASET
+
+def switchboard_to_ds(
     data_name="switchboard", #also implement for AMI, VocalSound, LibriSpeech, ...
     audio_dir='/switchboard_data/switchboard/audio_wav', 
     transcript_dir='/switchboard_data/switchboard/audio_wav',
@@ -24,10 +152,13 @@ def switchboard_to_df(
     batch_sr = [],
     batch_transcript=[],
     csv_dir = "../datasets/",
-    to_csv = True,
+    to_csv = False,
+    to_dataset = False,
 ):
     """
-    Combines audio files and their corresponding transcripts into a batch
+    Combines audio files and their corresponding transcripts into
+    - a dataframe and save to csv if the to_csv flag is set
+    - a HuggingFace Dataset object if the to_dataset flag is set
 
     Args:
         data_name (str): Name of the dataset
@@ -37,10 +168,11 @@ def switchboard_to_df(
         batch_transcript (list): List of transcript segments
 
     Returns:
-        batch (dict): {"audio": batch_audio, "sample", "transcript": batch_transcript}
+        - switchboard_dataset (HuggingFace Dataset): Dataset object containing the audio and transcript data
+        - OR df (pd.DataFrame): Dataframe containing the audio and transcript data
     """
 
-    for audio_file in tqdm(os.listdir(audio_dir), desc="Combining audio and transcript..."):
+    for audio_file in tqdm(os.listdir(audio_dir), desc="Processing Switchboard dataset..."):
         if audio_file.endswith(".wav"):
             audio_path = os.path.join(audio_dir, audio_file) #audio_wav/sw02001A.wav
             transcript_lines = process_switchboard_transcript(
@@ -48,7 +180,7 @@ def switchboard_to_df(
                 transcript_dir=transcript_dir
                 ) #produce the transcript lines for each corresponding audio
             if transcript_lines is not None:
-                audio_file_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
+                audio_file_segments, audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
                 audio_path, 
                 transcript_lines,
                 padding_time=0.3,
@@ -63,18 +195,19 @@ def switchboard_to_df(
         # audio_file_segments: ["../audio_segments/sw2001A/sw2001A_0.0_0.977625.wav", "../audio_segments/sw2001A/sw2001A_0.977625_11.561375.wav", ...]
         # audio_segments: [array(..., dtype=float32), array(..., dtype=float32), ...]
         # transcripts_segments: ["[silence]", "hi um yeah i'd like to.....", "..."]
-                
-        # Add to batch
-        batch_audio.extend(audio_file_segments)
-        batch_sr.extend([16000]*len(audio_file_segments))
-        # batch_audio.extend([{"array": segment, "sampling_rate": 16000} for segment in audio_segments])
+
+        # batch_audio.extend(audio_segments)
+
+
+        if to_dataset:
+            batch_audio.extend(
+                [{"path": path, "array": segment, "sampling_rate": 16000}
+                 for path, segment in zip(audio_file_segments, audio_segments)
+                 ])
+        else:
+            batch_audio.extend(audio_file_segments)
+            batch_sr.extend([16000]*len(audio_file_segments))
         batch_transcript.extend(transcripts_segments)
-    
-    # batch = {
-    #     "audio": batch_audio, 
-    #     "sampling_rate": batch_sr,
-    #     "transcript": batch_transcript
-    # }
     print(f"Successfully combined audio and transcript and added to batch")
     
     df = pd.DataFrame({
@@ -88,18 +221,21 @@ def switchboard_to_df(
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
+    elif to_dataset:
+        # Convert the dataframe to dataset
+        switchboard_dataset = Dataset.from_pandas(df)
+        switchboard_dataset = switchboard_dataset.cast_column("audio", Audio(sampling_rate=16000))
 
-    return df
-
-
-def vocalsound_to_df(
+    return switchboard_dataset if to_dataset else df
+def vocalsound_to_ds(
     data_name="vocalsound",
     audio_dir='/vocalsound_data/audio_16k',
     batch_audio=[],
     batch_sr = [],
     batch_transcript=[],
     csv_dir = "../datasets/",
-    to_csv = True,
+    to_csv = False,
+    to_dataset = False,
     # vocalsound_dataset = None,
 ):
     """
@@ -114,42 +250,26 @@ def vocalsound_to_df(
         "throatclearing": "[THROAT-CLEARING]"
     }
 
-    # vocalsound_dataset = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir=HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
-    
-    # if vocalsound_dataset is None:
-    #     print("Unable to find VocalSound dataset")
-    #     return 
-    
-    # print("Load ami dataset sucessfully, start processing...")
-    # print("VocalSound Dataset:", vocalsound_dataset)
-    # print(vocalsound_dataset[0])
-    # for example in tqdm(vocalsound_dataset, desc="Processing VocalSound dataset..."):
-    #     # audio_segment = example["audio"]["array"]
-    #     audio_path = example['audio']['path']
-    #     sampling_rate = example["audio"]["sampling_rate"] 
-    #     label = example["label"]
-
-    #     # batch_audio.append(audio_segment)
-    #     batch_audio.append(audio_path) #adding audio path instead of audio array
-    #     batch_sr.append(sampling_rate)
-    #     batch_transcript.append(label_to_transcript[label])
-    for audio_file in tqdm(os.listdir(audio_dir), desc="Combining audio and transcript..."):
+    for audio_file in tqdm(os.listdir(audio_dir), desc="Processing VocalSound dataset..."):
         if audio_file.endswith(".wav"):
             audio_path = os.path.join(audio_dir, audio_file) #audio_16k/f2446_0_sniff.wav
             label = audio_file.split("_")[-1].split(".")[0] #sniff
 
             if label in label_to_transcript:
-                batch_audio.append(audio_path)
-                batch_sr.append(16000)
+                audio, sample_rate = librosa.load(audio_path, sr=16000)
+                if type(audio) is not np.ndarray:
+                    audio = np.array(audio)
+                batch_audio.append(audio)
+                batch_sr.append(sample_rate)
                 batch_transcript.append(label_to_transcript[label])
             else:
                 print(f"Skipping audio file due to mismatching label: {audio_file}")
                 continue
 
-    print(f"Successfully added Vocal Sound to batch")
+    print(f"Successfully added Vocal Sound to batch for dataset processing")
     
     df = pd.DataFrame({
-        "audio": batch_audio, #batch["audio"],
+        "audio": batch_audio, #batch["audio"] - audio array,
         "sampling_rate": batch_sr, #batch["sampling_rate"],
         "transcript": batch_transcript, #batch["transcript"]
     })
@@ -159,18 +279,23 @@ def vocalsound_to_df(
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
+    elif to_dataset:
+        # Convert the dataframe to dataset
+        vocalsound_dataset = Dataset.from_pandas(df)
+        vocalsound_dataset = vocalsound_dataset.cast_column("audio", Audio(sampling_rate=16000))
 
     print(f"Successfully processed VocalSound dataset!")
     
-    return df
+    return vocalsound_dataset if to_dataset else df
 
-def ami_to_df(
+def ami_to_ds(
     data_name="ami",
     batch_audio=[],
     batch_sr = [],
     batch_transcript=[],
     csv_dir = "../datasets/",
-    to_csv = True,
+    to_csv = False,
+    to_dataset = False,
 ):
     # load the data in here
     ami_dataset = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
@@ -199,8 +324,8 @@ def ami_to_df(
         """
         # Process audio:
         try: 
-            audio_path = example["audio"]["path"]
-            # audio_array = example["audio"]["array"]
+            # audio_path = example["audio"]["path"]
+            audio_array = example["audio"]["array"]
             sampling_rate = example["audio"]["sampling_rate"]
             transcript_line = example["text"]
             # Process transcript (extract timestamps, etc.):
@@ -208,17 +333,14 @@ def ami_to_df(
 
             if ami_text:  # Check if processing was successful
                 # batch_audio.append(audio_array)
-                batch_audio.append(audio_path)
+                if type(audio_array) is not np.ndarray:
+                    audio_array = np.array(audio_array)
+                batch_audio.append(audio_array)
                 batch_sr.append(sampling_rate)  
                 batch_transcript.append(ami_text)
         except (FileNotFoundError, KeyError, TypeError) as e:
             print(f"Warning: Example file not found: {example}")
             continue
-    # batch = {
-    #     "audio": batch_audio,
-    #     "sampling_rate": batch_sr,
-    #     "transcript": batch_transcript
-    #     }
     
     df = pd.DataFrame({
         "audio": batch_audio, #batch["audio"],
@@ -231,74 +353,16 @@ def ami_to_df(
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
+    elif to_dataset:
+        # Convert the dataframe to dataset
+        ami_dataset = Dataset.from_pandas(df)
+        ami_dataset = ami_dataset.cast_column("audio", Audio(sampling_rate=16000))
+        # return ami_dataset
     
     print(f"Successfully processed AMI dataset!")
-    return df
+    return ami_dataset if to_dataset else df
 
-def combine_data(
-    csv_dir="../datasets",
-    dataframes=[],
-    train_val_split=True,
-    to_csv=True,
-    shuffle_ratio=0.8
-    ):
-    """
-    Load all the csv files and combine them into one dataframe
-    Return the combined dataframe and output in csv files, splitted into train and validation set
-    """
-    print("Start combining the dataframes...")
-    
-    for folder in os.listdir(args.csv_dir):
-        folder = os.path.join(args.csv_dir,folder)
-        if os.path.isdir(folder) and not folder.endswith(".ipynb_checkpoints"):
-            print(folder)
-            for file in os.listdir(folder):
-                if file.endswith(".csv"):
-                    print(f"Loading file {file}")
-                    df = pd.read_csv(os.path.join(folder,file))
-                    dataframes.append(df)
-    print("Get total of {} dataframes".format(len(dataframes)))
-    
-    try: 
-        combined_df = pd.concat(dataframes, ignore_index=True)
-        
-        #remove missing value rows
-        combined_df.dropna(inplace=True)
-        
-        #FIXME: Temporary solution to avoid mismatching, should be done in transcript_process instead
-        combined_df["transcript"] = combined_df["transcript"].apply(lambda x: x.upper() if x == "[laughter]" else x)
-        
-        #FIXME: In combined_df, drop row that have empty array
-        combined_df = combined_df[combined_df["audio"].apply(lambda x: len(x) > 0)]
-
-        # shuffle
-        combined_df = combined_df.sample(frac=1).reset_index(drop=True)
-
-        if not train_val_split:
-            print("Not splitting the dataset into train and val sets, only returning the combined dataframe")
-            if to_csv:
-                combined_df.to_csv(f"{csv_dir}/combined.csv", index=False)
-            else:
-                # return combined_df
-                return combined_df
-        else:
-            # split the dataset into train and validation set
-            train_df = combined_df[:int(len(combined_df)*shuffle_ratio)]
-            val_df = combined_df[int(len(combined_df)*shuffle_ratio):]
-
-            if to_csv:
-                os.makedirs(csv_dir, exist_ok=True)
-                # save to csv
-                train_df.to_csv(f"{csv_dir}/train.csv", index=False)
-                val_df.to_csv(f"{csv_dir}/val.csv", index=False)
-            else:
-                print("Not saving to csv, but returning the train, val dataframes")
-                # return train_df, val_df
-            return train_df, val_df
-        print("Successfully generate combined datasets from different data!!")
-    except ValueError as e:
-        print("Unable to combine the datasets: {}".format(e))
-
+#-------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     
@@ -309,19 +373,17 @@ if __name__ == "__main__":
     parser.add_argument("--to_csv", type=bool, default=True, help="Whether to save the processed data to csv or not")
     parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
     parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")
-    
+    parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the dataset or not")
 #-------------------------------------------------------------------------------------------------------------
 
     args = parser.parse_args()
     
-    
-    dataframes = []
     combined = args.do_combine
     
     if not args.skip_process:
         for data_name in args.data_names:
             if data_name == "switchboard":
-                df = switchboard_to_df(
+                df = switchboard_to_ds(
                     data_name = data_name,
                     audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
                     transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
@@ -331,7 +393,7 @@ if __name__ == "__main__":
                 )
 
             elif data_name == "vocalsound":
-                df = vocalsound_to_df(
+                df = vocalsound_to_ds(
                     data_name = data_name,
                     audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "vocalsound_data", "audio_16k"),
                     csv_dir = args.csv_dir,
@@ -339,20 +401,23 @@ if __name__ == "__main__":
                 )
 
             elif data_name == "ami":
-                df = ami_to_df(
+                df = ami_to_ds(
                     data_name = data_name,
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
                 )
+    #----------------------------End process each dataset separately--------------------------------------------
+
     if args.do_combine:
         if args.train_val_split:
-            train_df, val_df = combine_data(
+            train_df, val_df = combine_data_csv(
                 csv_dir=args.csv_dir,
+                combined_data_list=args.data_names,
                 train_val_split=args.train_val_split,
                 to_csv=args.to_csv
             )
         else:
-            combined_df = combine_data(
+            combined_df = combine_data_csv(
                 csv_dir=args.csv_dir,
                 train_val_split=args.train_val_split,
                 to_csv=args.to_csv

@@ -1,8 +1,7 @@
 import librosa
 from tqdm import tqdm
-# import torchaudio
+import numpy as np
 import soundfile as sf
-import librosa
 import os
 
 # 2. Cut audio based on transcript segments, and extend the csv file
@@ -36,8 +35,10 @@ def cut_audio_based_on_transcript_segments(
     #transcript_line format: (start_time, end_time, text)
     for start_time, end_time, text in transcript_lines:
         # if the text is empty string or None, skip
-        if not text.strip():
+        if text is None or not text.strip():
             continue
+        # if not text.strip():
+        #     continue
 
         # segmenting audio sample
         start_sample = librosa.time_to_samples(start_time, sr=sr)
@@ -50,23 +51,28 @@ def cut_audio_based_on_transcript_segments(
 
         # Cut audio segment
         audio_segment = audio[start_sample_padded:end_sample_padded]
-        
-        # Convert audio_segment to a 2D tensor:
-        # audio_segment_tensor = torch.tensor(audio_segment).unsqueeze(0)  # Add channel dimension
+
+        #check if the audio segment is empty, skip
+        if len(audio_segment) == 0:
+            continue
+
+        #convert audio segment to numpy array
+        if type(audio_segment) is not np.ndarray:
+            audio_segment = np.array(audio_segment)
 
         #save the audio segment to corresponding folder
         start_time_str=str(start_time).replace(".","")
         end_time_str=str(end_time).replace(".","")
         output_file = f"{audio_segments_directory}/{filename}_{start_time_str}_{end_time_str}.wav"
 
-        # torchaudio.save(output_file, audio_segment_tensor, sr)  # FIXME: NOT SAVE AS the tensor
         sf.write(output_file, audio_segment, sr)
 
         #append to list
         audio_file_segments.append(output_file)
-        # audio_segments.append(audio_segment)
+        audio_segments.append(audio_segment)
         transcripts_segments.append(text)
 
         
     #list of audio segments path and transcripts (list of text)
-    return audio_file_segments, transcripts_segments
+    # return audio_file_segments, transcripts_segments
+    return audio_file_segments, audio_segments, transcripts_segments
