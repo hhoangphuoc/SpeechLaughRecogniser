@@ -4,6 +4,7 @@ import librosa
 import soundfile as sf
 import pandas as pd
 import numpy as np
+import os
 
 # For dataset processing and caching--------------------------------
 from datasets.fingerprint import Hasher
@@ -15,11 +16,12 @@ from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtra
 from transformers.trainer_callback import EarlyStoppingCallback
 #import SummaryWriter
 from torch.utils.tensorboard import SummaryWriter
-
+from datasets import load_from_disk, Dataset
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 #----------------------------------------------------------
 
 from utils.preprocess import process_dataset
+from utils.audio_process import preprocess_noise
 import evaluate
 #----------------------------------------------------------
 
@@ -45,35 +47,30 @@ def SpeechLaughWhisper(args):
 
     """
     # MODEL CONFIGS
-    #----------------------------------------------------------
-    #Processor and Tokenizer
-    feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
+    
+    #Processor and Tokenizer#----------------------------------------------------------
     processor = WhisperProcessor.from_pretrained(args.model_path) # processor - combination of feature extractor and tokenizer
+    feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
     # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
     special_tokens = ["[LAUGHTER]", "[SPEECH_LAUGH]", "[VOCALIZE-NOISE]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[UM-HUM]", "[UH-HUH]", "[OH]"]
     tokenizer.add_tokens(special_tokens)
+    #-------------------------------------------------------------------------------------------
 
-    # Load the fine-tuned Whisper model
+    # Load the fine-tuned Whisper model ----------------------------------------------------------
     model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
     model.resize_token_embeddings(len(tokenizer))
-
     model.generation_config.forced_decoder_ids = None
+    #-------------------------------------------------------------------------------------------
 
-    #----------------------------------------------------------
-    #Data collator for random noise
+    #Data collator for random noise ----------------------------------------------------------
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor, 
         decoder_start_token_id=model.config.decoder_start_token_id,
         padding=True,
     )
-
     #----------------------------------------------------------
-    # @memory.cache
-    # def cached_feature_extractor(*args, **kwargs):
-    #     return feature_extractor(*args, **kwargs)
-
-    #----------------------------------------------------------
+ 
     def prepare_dataset(examples):
         """
         Batched Dataset Format
@@ -140,8 +137,6 @@ def SpeechLaughWhisper(args):
         # labels = tokenizer(examples["transcript"], return_tensors="pt").input_ids
 
         # # Create a new batch with processed data
-
-
         batch = {
             "input_features": [],
             "labels": []
@@ -166,7 +161,8 @@ def SpeechLaughWhisper(args):
             batch["input_features"].append(example["input_features"])
             batch["labels"].append(example["labels"])
         return batch
-        
+
+    #Metrics --------------------------------------------------    
     def compute_metrics(pred):
         pred_ids = pred.predictions
         label_ids = pred.label_ids
@@ -182,33 +178,51 @@ def SpeechLaughWhisper(args):
 
         return {"wer": wer}
 
-    #----------------------------------------------------------
-    train_dataset = process_dataset(args.input_file_path)
-    print("Train dataset: ", train_dataset)
-    train_dataset = train_dataset.map(
-        prepare_dataset, 
-        remove_columns=train_dataset.column_names,
-        # num_proc=2,
-        batched=True,
-        batch_size=8,
-        load_from_cache_file=True
-        )
-    # save the processed dataset
-    train_dataset.save_to_disk("./datasets/processed_dataset/train")
+    #-----------------------------------------END OF MODEL CONFIG ----------------------------------
+
+    # ---------------------------- LOAD DATASET AND PROCESSING -------------------------------------
+    processed_path = args.processed_file_path
+    train_dataset, eval_dataset = None, None
+    
+    if not os.path.exists(processed_path+"train"):
+        os.makedirs(processed_path+"train")
+        train_dataset = process_dataset(args.input_file_path)
+        print("Train dataset: ", train_dataset)
+        train_dataset = train_dataset.map(
+            prepare_dataset, 
+            remove_columns=train_dataset.column_names,
+            # num_proc=2,
+            batched=True,
+            batch_size=8,
+            load_from_cache_file=True
+            )
+        # save the processed dataset
+        train_dataset.save_to_disk(processed_path+"train")
+
+    if not os.path.exists(processed_path+"eval"):
+        os.makedirs(processed_path+"eval")
+        eval_dataset = process_dataset(args.eval_file_path)
+        print("Eval dataset: ", eval_dataset)
+        eval_dataset = eval_dataset.map(
+            prepare_dataset, 
+            remove_columns=eval_dataset.column_names,
+            # num_proc=2,
+            batched=True,
+            batch_size=8,
+            load_from_cache_file=True
+            )
+        eval_dataset.save_to_disk(processed_path+"eval")
 
     #----------------------------------------------------------
-    eval_dataset = process_dataset(args.eval_file_path)
+    train_dataset = load_from_disk(processed_path + "train")
+    print("Train dataset: ", train_dataset)
+
+    eval_dataset = load_from_disk(processed_path + "eval")
     print("Eval dataset: ", eval_dataset)
-    eval_dataset = eval_dataset.map(
-        prepare_dataset, 
-        remove_columns=eval_dataset.column_names,
-        # num_proc=2,
-        batched=True,
-        batch_size=8,
-        load_from_cache_file=True
-        )
-    eval_dataset.save_to_disk("./datasets/processed_dataset/eval")
     #----------------------------------------------------------
+
+
+    # --------------------------------------------- TRAINING -------------------------------------
 
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
@@ -218,13 +232,13 @@ def SpeechLaughWhisper(args):
         learning_rate=args.lr, #1e-5
         num_train_epochs=args.num_train_epochs, #default = 3 - change between 2 -5 based on overfitting
         warmup_steps=args.warmup_steps, #800
-        max_steps=args.max_steps, #5000
+        # max_steps=args.max_steps, #5000
         logging_dir=args.log_dir,
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
-        evaluation_strategy="steps",
+        eval_strategy="steps",
         per_device_eval_batch_size=args.batch_size,
-        dataloader_num_workers=args.num_workers, #default = 16 - can change to 24 if the GPU has less memory, now compatible with 72 cores GPU
+        dataloader_num_workers=args.num_workers, #default = 8 - can change max to 10
         logging_steps=25,
         save_steps=1000,
         eval_steps=1000,
@@ -264,21 +278,27 @@ def SpeechLaughWhisper(args):
             writer.add_scalar(f"eval/{key}", value, epoch)
     writer.close()  # Close the TensorBoard writer
 
+    # Save the model
+    model.save_pretrained(args.model_output_dir + "/model")
+    tokenizer.save_pretrained(args.model_output_dir + "/tokenizer")
+
+    #-----------------------------------------END OF TRAINING ----------------------------------
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--input_file_path", default="./datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
     parser.add_argument("--eval_file_path", default="./datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
+    parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
     parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-small", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--batch_size", default=2, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     parser.add_argument("--num_train_epochs", default=3, type=int, required=False, help="Number of training epochs")
-    parser.add_argument("--num_workers", default=16, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
+    parser.add_argument("--num_workers", default=8, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
-    parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
+    # parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
     parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
     #----------------------------------------------------------
     args = parser.parse_args()
