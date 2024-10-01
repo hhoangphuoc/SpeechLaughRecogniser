@@ -76,3 +76,34 @@ def cut_audio_based_on_transcript_segments(
     #list of audio segments path and transcripts (list of text)
     # return audio_file_segments, transcripts_segments
     return audio_file_segments, audio_segments, transcripts_segments
+
+def preprocess_noise(noise_audio, noise_sr, target_sr=16000):
+    """
+    Preprocesses the noise audio:
+        - Resamples to the target sample rate (if necessary).
+        - Normalizes the audio to the range [-1, 1].
+        - Optionally applies other preprocessing (e.g., filtering).
+
+    Args:
+        noise_audio (np.ndarray): The raw noise audio waveform.
+        target_sr (int, optional): The target sample rate. Defaults to 16000.
+
+    Returns:
+        np.ndarray: The preprocessed noise audio.
+    """
+
+    # 1. Resample to target sample rate (if needed)
+    if noise_sr != target_sr:
+        noise_audio = librosa.resample(y=noise_audio, orig_sr=noise_sr, target_sr=target_sr)
+        noise_sr = target_sr
+    if len(noise_audio.shape) > 1:
+        noise_audio = noise_audio[:,0] # use the first channel if the input is multi-channel
+    if not isinstance(noise_audio, np.ndarray):
+        noise_audio = np.array(noise_audio)
+
+    if noise_audio.dtype == 'int16':
+        noise_audio = noise_audio.astype(np.float32) / 32767  # Normalize int16 to [-1, 1]
+    else:
+        noise_audio = librosa.util.normalize(noise_audio)  # Normalize to [-1, 1]
+
+    return noise_audio

@@ -7,3 +7,4 @@ audio_segments/
 **/__pycache__/
 cache_data/
 datasets/processed_dataset/
+datasets/processed/

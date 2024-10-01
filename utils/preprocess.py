@@ -11,7 +11,7 @@ from datasets import load_dataset, Dataset, Audio
 from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
 from utils.audio_process import cut_audio_based_on_transcript_segments
 
-import utils.params as prs
+import params as prs
 
 
 # MAIN PROCESSING FUNCTIONS FOR LOADING AND PROCESSING DATASETS
