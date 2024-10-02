@@ -12,31 +12,22 @@ import os
 
 # SETS OF SPECIAL PATTERNS FOR TRANSCRIPT TOKENS:
 word_pattern = r"\b\w+\b"
-pause_pattern = r"\[silence\]"
-noise_pattern = r"\[noise\]"
-laughter_pattern = r"\[laughter\]"
-vocalise_noise_pattern = r"\[vocalize-noise\]"
+pause_pattern = r"\b\[silence\]\b" #pattern: [silence]
+noise_pattern = r"\b\[noise\]\b| \b\[voicelized-noise\]\b"
+laughter_pattern = r"\b\[laughter\]\b" #pattern: [laughter]
 filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
 speech_laugh_pattern = r"\[laughter-(\w+)\]"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
 
-partialword_pattern = r"-\b\w+\]|\b\w+-|\[\b\w+\]|\[\b\w+-|\w+\[\w+\]-"  # partial word: [word]- or w[ord]- or -[wor]d 
-
-
-
-#SETS OF SPECIAL TOKENS FOR TRANSCRIPT TOKENS:
-speech_laugh_tokens = [] #TODO: Added when it detected in the transcript
-
+# partialword_pattern = r"-\b\w+\]|\b\w+-|\[\b\w+\]|\[\b\w+-|\b\w+\[\w+\]-"  # partial word: [word]- or w[ord]- or -[wor]d 
+partialword_pattern = r"-\[\w+\]\w+|\w+\[\w+\]-"  # partial word: w[ord]- or -[wor]d
 
 #-----------------------------------------------------------------------------------------------#
 # Clean and format transcripts
 def clean_transcript(transcript):
     # TODO: Could apply GPT-4o or other LLMs to clean and format transcripts
     return transcript
-
-def get_speech_laugh_tokens():
-    return speech_laugh_tokens
 
 
 def retokenize_transcript_pattern(transcript_line):
@@ -57,37 +48,35 @@ def retokenize_transcript_pattern(transcript_line):
     #TODO: Apply clean text function to change the transcript into bare text
     # transcript_line = clean_text(transcript_line)
 
-    if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]":
+    if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]" or transcript_line.strip() == "[vocalize-noise]":
         return #ignore the line and not call this function
-    # elif match:= re.match(vocalsound_pattern, transcript_line):
-    #     #if the line only contains vocalsound
-    #     transcript_line = transcript_line.upper()
-            # new_transcript_lines.append(line)
     else:
         # transform the word in the line when it matches the pattern
         new_line = ""
         for word in transcript_line.split():
-            if re.match(noise_pattern, word) or re.match(pause_pattern, word) or re.match(vocalise_noise_pattern, word) or re.match(partialword_pattern, word):
-                # ignore words: silences, noises, vocalise-noise, disfluencies 
-                # and remove them from the transcript
+            if re.match(partialword_pattern, word):
+                # if the word is a partial word, remove the partial word
+                continue
+            elif re.match(noise_pattern, word) or re.match(pause_pattern, word):
                 continue  
             # elif re.match(filler_pattern, word):  # uh, um,...
             #     word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
-            elif match := re.match(speech_laugh_pattern, word):
-                speech_laugh_word = "[" + match.group(1) + "_speech_laugh"+"]"
-                speech_laugh_word = speech_laugh_word.upper()
-                speech_laugh_tokens.append(speech_laugh_word)
-                word = "[SPEECH_LAUGH]"# label with token [SPEECH_LAUGH]
-            elif match := re.match(laughter_pattern, word):
-                word = "[LAUGHTER]"
-            # elif match := re.match(partialword_pattern, word):
-            #     # partial word: [word]- or w[ord]- or -[wor]d
-            #     word = word.replace("-", "").replace("[", "").replace("]", "")
+
+            if re.match(speech_laugh_pattern, word):
+                # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
+                word = "[SPEECH_LAUGH]"
+            elif re.match(laughter_pattern, word):
+                # change the laughter pattern to the token
+                # word = match.group(0)
+                word = word.upper() #[LAUGHTER]
+
             else:
                 # normal word
                 word = word
             new_line += word + " "
         transcript_line = new_line.strip()
+        
+        print("Processed Transcript line:", transcript_line)
     return transcript_line
 
 #------------------------
@@ -136,7 +125,6 @@ def process_switchboard_transcript(
                 new_transcript_lines.append((start_time, end_time, text))
             else:
                 continue
-
         return new_transcript_lines
 
     except FileNotFoundError:
@@ -150,16 +138,8 @@ def process_ami_transcript(transcript_line):
     """
     # lowercase the transcript
     transcript_line = transcript_line.lower()
-    
-    #TODO: Clean the transcript with LLM
-    # transcript_line = clean_text(transcript_line)
-    # ami_pattern = r"\S+ (\d+\.\d+) (\d+\.\d+) (.*)" 
-    # match = re.match(ami_pattern, transcript_line)
-    # if match:
-        # start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
     ami_text = retokenize_transcript_pattern(transcript_line) 
-    # return start_time, end_time, text
     return ami_text
-        # return transcript
+
 
 

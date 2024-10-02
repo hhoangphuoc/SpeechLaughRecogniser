@@ -1,16 +1,11 @@
 import numpy as np
 import random
-import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 from transformers import WhisperProcessor
 from transformers.tokenization_utils_base import PaddingStrategy
-from datasets import load_dataset
 import torch
 from tqdm import tqdm
-
-import params as prs
-from utils.audio_process import preprocess_noise, add_noise
 
 # Loading Noise Datasets ------------------------------------------------------------------------------------
 # FIXME: Removing - not added noise to audio, instead it is a separate audio_batch

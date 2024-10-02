@@ -8,8 +8,8 @@ import argparse
 
 from datasets import load_dataset, Dataset, Audio
 
-from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
-from utils.audio_process import cut_audio_based_on_transcript_segments
+from transcript_process import process_switchboard_transcript, process_ami_transcript
+from audio_process import cut_audio_based_on_transcript_segments
 
 import params as prs
 
@@ -17,8 +17,7 @@ import params as prs
 # MAIN PROCESSING FUNCTIONS FOR LOADING AND PROCESSING DATASETS
 def combine_datasets(
         to_dataset=True,
-        datasets=["switchboard", "ami", "vocalsound"],
-):
+        datasets=["switchboard", "ami", "vocalsound"]):
     """
     Load all the datasets and combine them into one
     """
@@ -109,11 +108,13 @@ def combine_data_csv(
 
         #for empty transcript, only keep 1% of the row with empty transcript
         # and attach it to the combined_df
+        non_empty_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) > 0)]
         empty_transcript_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) == 0)]
         if len(empty_transcript_df) > 0:
+            print("Number of Empty transcript: ",len(empty_transcript_df))
             empty_transcript_df = empty_transcript_df.sample(frac=noise_frac).reset_index(drop=True)
-            combined_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) > 0)]
-            combined_df = pd.concat([combined_df, empty_transcript_df], ignore_index=True)
+            
+            combined_df = pd.concat([non_empty_df, empty_transcript_df], ignore_index=True)
 
 
         #FIXME: In combined_df, drop row that have empty audio path
@@ -382,11 +383,12 @@ def fsdnoisy_to_ds(
     """
     fsdnoisy_dataset = load_dataset("sps44/fsdnoisy18k", split='train', cache_dir=prs.HUGGINGFACE_DATA_PATH, streaming=True)
     for example in tqdm(fsdnoisy_dataset, desc="Processing FSDNoisy dataset..."):
-        audio_array = example["audio"]["array"]
+        audio_path = example["audio"]["path"]
+        # audio_array = example["audio"]["array"]
         sampling_rate = example["audio"]["sampling_rate"]
         transcript_line = "" #making each transcript line empty for the noise dataset
 
-        batch_audio.append(audio_array)
+        batch_audio.append(audio_path)
         batch_sr.append(sampling_rate)
         batch_transcript.append(transcript_line)
     
@@ -452,6 +454,12 @@ if __name__ == "__main__":
 
             elif data_name == "ami":
                 df = ami_to_ds(
+                    data_name = data_name,
+                    csv_dir = args.csv_dir,
+                    to_csv = args.to_csv,
+                )
+            elif data_name == "fsdnoisy":
+                df = fsdnoisy_to_ds(
                     data_name = data_name,
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
