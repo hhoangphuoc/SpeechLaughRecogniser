@@ -3,6 +3,7 @@ from tqdm import tqdm
 import numpy as np
 import soundfile as sf
 import os
+import torch
 
 # 2. Cut audio based on transcript segments, and extend the csv file
 def cut_audio_based_on_transcript_segments(
@@ -107,3 +108,21 @@ def preprocess_noise(noise_audio, noise_sr, target_sr=16000):
         noise_audio = librosa.util.normalize(noise_audio)  # Normalize to [-1, 1]
 
     return noise_audio
+
+def add_noise(audio_batch, noise_batch):
+    """
+    Add noise to the input audio batch at a controlled SNR.
+    The noise is generated from a random noise dataset.
+    """
+
+    # Mix noise with original audio at a controlled SNR (vectorized)
+    snr_db = 10  # Adjust as needed
+    snr = 10 ** (snr_db / 10)
+    signal_power = torch.mean(audio_batch**2)
+    noise_power = torch.mean(noise_batch**2)
+    scale_factor = torch.sqrt(signal_power / (snr * noise_power))
+
+    # Add noise to the entire batch using tensor operations
+    audio_batch = audio_batch + scale_factor * noise_batch
+
+    return audio_batch

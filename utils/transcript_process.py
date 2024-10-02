@@ -14,11 +14,14 @@ import os
 word_pattern = r"\b\w+\b"
 pause_pattern = r"\[silence\]"
 noise_pattern = r"\[noise\]"
-filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+|yeah|well)\b"
+laughter_pattern = r"\[laughter\]"
+vocalise_noise_pattern = r"\[vocalize-noise\]"
+filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
 speech_laugh_pattern = r"\[laughter-(\w+)\]"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
-vocalsound_pattern = r"\[\b(laughter|vocalize-noise)\b\]"
-partialword_pattern = r"-\b\w+\]|\b\w+-|\[\b\w+\]|\[\b\w+-"  # partial word: [word]- or w[ord]- or -[wor]d 
+
+
+partialword_pattern = r"-\b\w+\]|\b\w+-|\[\b\w+\]|\[\b\w+-|\w+\[\w+\]-"  # partial word: [word]- or w[ord]- or -[wor]d 
 
 
 
@@ -64,22 +67,22 @@ def retokenize_transcript_pattern(transcript_line):
         # transform the word in the line when it matches the pattern
         new_line = ""
         for word in transcript_line.split():
-            if re.match(noise_pattern, word) or re.match(pause_pattern, word):
-                continue  # ignore the noise
-            elif re.match(filler_pattern, word):  # uh, um,...
-                word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
+            if re.match(noise_pattern, word) or re.match(pause_pattern, word) or re.match(vocalise_noise_pattern, word) or re.match(partialword_pattern, word):
+                # ignore words: silences, noises, vocalise-noise, disfluencies 
+                # and remove them from the transcript
+                continue  
+            # elif re.match(filler_pattern, word):  # uh, um,...
+            #     word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
             elif match := re.match(speech_laugh_pattern, word):
                 speech_laugh_word = "[" + match.group(1) + "_speech_laugh"+"]"
                 speech_laugh_word = speech_laugh_word.upper()
                 speech_laugh_tokens.append(speech_laugh_word)
-                
                 word = "[SPEECH_LAUGH]"# label with token [SPEECH_LAUGH]
-            elif match := re.match(vocalsound_pattern, word):
-                vocalsound_token = match.group(1) # [laughter] or [vocalize-noise]
-                word = vocalsound_token.upper() # [LAUGHTER] or [VOCALIZE-NOISE]
-            elif match := re.match(partialword_pattern, word):
-                # partial word: [word]- or w[ord]- or -[wor]d
-                word = word.replace("-", "").replace("[", "").replace("]", "")
+            elif match := re.match(laughter_pattern, word):
+                word = "[LAUGHTER]"
+            # elif match := re.match(partialword_pattern, word):
+            #     # partial word: [word]- or w[ord]- or -[wor]d
+            #     word = word.replace("-", "").replace("[", "").replace("]", "")
             else:
                 # normal word
                 word = word

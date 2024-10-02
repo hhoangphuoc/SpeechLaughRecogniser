@@ -73,9 +73,11 @@ def combine_data_csv(
     csv_dir="../datasets",
     combined_data_list=[], #list of dataset names to combined
     dataframes=[],
+    noise_frac=0.01,
     train_val_split=True,
     to_csv=True,
     shuffle_ratio=0.8
+    
     ):
     """
     Load all the csv files and combine them into one dataframe
@@ -99,15 +101,22 @@ def combine_data_csv(
     print("Get total of {} dataframes".format(len(dataframes)))
     
     try: 
+
         combined_df = pd.concat(dataframes, ignore_index=True)
         
         #remove missing value rows
         combined_df.dropna(inplace=True)
-        
-        #FIXME: Temporary solution to avoid mismatching, should be done in transcript_process instead
-        # combined_df["transcript"] = combined_df["transcript"].apply(lambda x: x.upper() if x == "[laughter]" else x)
-        
-        #FIXME: In combined_df, drop row that have empty array
+
+        #for empty transcript, only keep 1% of the row with empty transcript
+        # and attach it to the combined_df
+        empty_transcript_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) == 0)]
+        if len(empty_transcript_df) > 0:
+            empty_transcript_df = empty_transcript_df.sample(frac=noise_frac).reset_index(drop=True)
+            combined_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) > 0)]
+            combined_df = pd.concat([combined_df, empty_transcript_df], ignore_index=True)
+
+
+        #FIXME: In combined_df, drop row that have empty audio path
         combined_df = combined_df[combined_df["audio"].apply(lambda x: len(x) > 0)]
 
         # shuffle
@@ -118,7 +127,6 @@ def combine_data_csv(
             if to_csv:
                 combined_df.to_csv(f"{csv_dir}/combined.csv", index=False)
             else:
-                # return combined_df
                 return combined_df
         else:
             # split the dataset into train and validation set
@@ -197,8 +205,6 @@ def switchboard_to_ds(
         # transcripts_segments: ["[silence]", "hi um yeah i'd like to.....", "..."]
 
         # batch_audio.extend(audio_segments)
-
-
         if to_dataset:
             batch_audio.extend(
                 [{"path": path, "array": segment, "sampling_rate": 16000}
@@ -362,6 +368,49 @@ def ami_to_ds(
     print(f"Successfully processed AMI dataset!")
     return ami_dataset if to_dataset else df
 
+def fsdnoisy_to_ds(
+    data_name="fsdnoisy",
+    batch_audio=[],
+    batch_sr = [],
+    batch_transcript=[],
+    csv_dir = "../datasets/",
+    to_csv = False,
+    to_dataset = False,
+):
+    """
+    Process the fsdnoisy dataset
+    """
+    fsdnoisy_dataset = load_dataset("sps44/fsdnoisy18k", split='train', cache_dir=prs.HUGGINGFACE_DATA_PATH, streaming=True)
+    for example in tqdm(fsdnoisy_dataset, desc="Processing FSDNoisy dataset..."):
+        audio_array = example["audio"]["array"]
+        sampling_rate = example["audio"]["sampling_rate"]
+        transcript_line = "" #making each transcript line empty for the noise dataset
+
+        batch_audio.append(audio_array)
+        batch_sr.append(sampling_rate)
+        batch_transcript.append(transcript_line)
+    
+    df = pd.DataFrame({
+        "audio": batch_audio, #batch["audio"],
+        "sampling_rate": batch_sr, #batch["sampling_rate"],
+        "transcript": batch_transcript, #batch["transcript"]
+    })
+
+    df = pd.DataFrame({
+        "audio": batch_audio,
+        "sampling_rate": batch_sr,
+        "transcript": batch_transcript,
+    })
+
+    if to_csv:
+        csv_path = os.path.join(csv_dir, data_name)
+        os.makedirs(csv_path, exist_ok=True)
+        output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/fsdnoisy.csv
+        df.to_csv(output_file, index=False)
+    elif to_dataset:
+        # Convert the dataframe to dataset
+        fsdnoisy_dataset = Dataset.from_pandas(df)
+        fsdnoisy_dataset = fsdnoisy_dataset.cast_column("audio", Audio(sampling_rate=16000))
 #-------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -374,6 +423,7 @@ if __name__ == "__main__":
     parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
     parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the dataset or not")
+    parser.add_argument("--noise_frac", type=float, default=0.01, help="Fraction of noise data to added to the dataset")
 #-------------------------------------------------------------------------------------------------------------
 
     args = parser.parse_args()
@@ -413,12 +463,15 @@ if __name__ == "__main__":
             train_df, val_df = combine_data_csv(
                 csv_dir=args.csv_dir,
                 combined_data_list=args.data_names,
+                noise_frac=args.noise_frac,
                 train_val_split=args.train_val_split,
+
                 to_csv=args.to_csv
             )
         else:
             combined_df = combine_data_csv(
                 csv_dir=args.csv_dir,
+                noise_frac=args.noise_frac,
                 train_val_split=args.train_val_split,
                 to_csv=args.to_csv
             )

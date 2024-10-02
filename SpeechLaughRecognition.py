@@ -53,7 +53,7 @@ def SpeechLaughWhisper(args):
     feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
     # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
-    special_tokens = ["[LAUGHTER]", "[SPEECH_LAUGH]", "[VOCALIZE-NOISE]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[UM-HUM]", "[UH-HUH]", "[OH]"]
+    special_tokens = ["[LAUGHTER]", "[SPEECH_LAUGH]"] #FIXME: Currently, only laughter and speech_laugh are used
     tokenizer.add_tokens(special_tokens)
     #-------------------------------------------------------------------------------------------
 
@@ -227,10 +227,10 @@ def SpeechLaughWhisper(args):
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
-        per_device_train_batch_size=args.batch_size, #4 - default batch size = 4, could add up to 16 based on the GPU max memory
+        per_device_train_batch_size=args.batch_size, #16 - default batch size = 16, could add up to 256 based on the GPU max memory
         gradient_accumulation_steps=args.grad_steps, #increase the batch size by accumulating gradients (add 8 per cycle), could change to 2
         learning_rate=args.lr, #1e-5
-        num_train_epochs=args.num_train_epochs, #default = 3 - change between 2 -5 based on overfitting
+        num_train_epochs=args.num_train_epochs, #default = 2 - change between 2 -5 based on overfitting
         warmup_steps=args.warmup_steps, #800
         # max_steps=args.max_steps, #5000
         logging_dir=args.log_dir,
@@ -246,6 +246,7 @@ def SpeechLaughWhisper(args):
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
+        resume_from_checkpoint=None, #change to the checkpoint path
     )
 
     writer = SummaryWriter(log_dir=args.log_dir)
@@ -260,7 +261,6 @@ def SpeechLaughWhisper(args):
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=train_dataset,
-        # eval_dataset=dataset, #TODO- create validation dataset for evaluation instead
         eval_dataset=eval_dataset,
         data_collator=speech_laugh_collator,
         compute_metrics=compute_metrics,
@@ -290,12 +290,12 @@ if __name__ == "__main__":
     parser.add_argument("--input_file_path", default="./datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
     parser.add_argument("--eval_file_path", default="./datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
-    parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
-    parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-small", type=str, required=False, help="Path to the output directory")
-    parser.add_argument("--log_dir", default="./log", type=str, required=False, help="Path to the log directory")
-    parser.add_argument("--batch_size", default=2, type=int, required=False, help="Batch size for training")
-    parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
-    parser.add_argument("--num_train_epochs", default=3, type=int, required=False, help="Number of training epochs")
+    parser.add_argument("--model_path", default="openai/whisper-large", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-large", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
+    parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
+    parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
+    parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
     parser.add_argument("--num_workers", default=8, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
     # parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
