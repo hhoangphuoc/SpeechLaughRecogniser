@@ -10,23 +10,13 @@ from tqdm import tqdm
 # Loading Noise Datasets ------------------------------------------------------------------------------------
 # FIXME: Removing - not added noise to audio, instead it is a separate audio_batch
 precomputed_fsdnoisy = []
-# if os.path.exists(prs.PRECOMPUTED_NOISE_PATH + "/precomputed_fsdnoisy.npy"):
-#     precomputed_fsdnoisy = np.load(prs.PRECOMPUTED_NOISE_PATH + "precomputed_fsdnoisy.npy", allow_pickle=True)
-# else:
-#     fsdnoisy_dataset = load_dataset("sps44/fsdnoisy18k", split='train', cache_dir=prs.HUGGINGFACE_DATA_PATH, streaming=True)
-#     for _ in tqdm(range(prs.NUM_NOISE_SEGMENTS), desc="Precomputing FSD noise"):
-#         noise_audio = next(iter(fsdnoisy_dataset))["audio"]["array"]
-#         noise_sr = next(iter(fsdnoisy_dataset))["audio"]["sampling_rate"]
-#         precomputed_fsdnoisy.append(preprocess_noise(noise_audio, noise_sr))
-#     if not os.path.exists(prs.PRECOMPUTED_NOISE_PATH):
-#         os.makedirs(prs.PRECOMPUTED_NOISE_PATH)
-#     np.save(prs.PRECOMPUTED_NOISE_PATH + "precomputed_fsdnoisy.npy", precomputed_fsdnoisy)
 # ------------------------------------------------------------------------------------------------------------
 
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: WhisperProcessor
     decoder_start_token_id: int
+    device: torch.device
     padding: Union[bool, str, PaddingStrategy] = True
     
     def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
@@ -57,6 +47,11 @@ class DataCollatorSpeechSeq2SeqWithPadding:
             return_tensors="pt",
         )
 
+        # INPUT FEATURES--------------------------------------------------------------------------------
+        batch['input_features'] = batch['input_features'].to(self.device)
+        #----------------------------------------------------------------------------------------
+
+        # LABELS--------------------------------------------------------------------------------
         label_features = [
             {"input_ids": feature["labels"][0]} 
             for feature in features]
@@ -66,10 +61,11 @@ class DataCollatorSpeechSeq2SeqWithPadding:
             padding=self.padding, 
             return_tensors="pt",
         )
+        labels_batch = labels_batch.to(self.device)
 
         # replace padding with -100 to ignore loss correctly
         labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
-
+        #----------------------------------------------------------------------------------------
 
         # ADD NOISE TO INPUT FEATURES-------------------------------------------------------------------------
     
