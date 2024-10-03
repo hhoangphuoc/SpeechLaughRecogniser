@@ -238,13 +238,14 @@ def SpeechLaughWhisper(args):
         logging_steps=25,
         save_steps=args.save_steps, #50
         save_strategy="steps",
+        save_total_limit=3, #save the last 3 checkpoints
         eval_steps=args.save_steps,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
-        # resume_from_checkpoint="./checkpoints/events.out.tfevents.1727908914.hpc-head1.623937.1", #change to the checkpoint path
-        resume_from_checkpoint=None
+        resume_from_checkpoint="./checkpoints/events.out.tfevents.1727948355.hpc-head1.1637825.1", #change to the checkpoint path
+        # resume_from_checkpoint=None
     )
 
     writer = SummaryWriter(log_dir=args.log_dir)
@@ -274,6 +275,11 @@ def SpeechLaughWhisper(args):
         metrics = trainer.evaluate()
         for key, value in metrics.items():
             writer.add_scalar(f"eval/{key}", value, epoch)
+        
+        # Save the model after each epoch
+        save_model_path = os.path.join(args.model_output_dir, f"speechlaugh_recogniser_checkpoint_epoch_{epoch}.pt")
+        trainer.save_model(save_model_path)
+
     writer.close()  # Close the TensorBoard writer
 
     # Save the model
@@ -291,7 +297,7 @@ if __name__ == "__main__":
     parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-small", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--batch_size", default=32, type=int, required=False, help="Batch size for training")
-    parser.add_argument("--grad_steps", default=4, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
+    parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
     parser.add_argument("--num_workers", default=16, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
