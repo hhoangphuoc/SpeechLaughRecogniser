@@ -13,10 +13,11 @@ import os
 # SETS OF SPECIAL PATTERNS FOR TRANSCRIPT TOKENS:
 word_pattern = r"\b\w+\b"
 pause_pattern = r"\b\[silence\]\b" #pattern: [silence]
-noise_pattern = r"\b\[noise\]\b| \b\[voicelized-noise\]\b"
-laughter_pattern = r"\b\[laughter\]\b" #pattern: [laughter]
+noise_pattern = r"\[noise\]|\[vocalized-noise\]"
+laughter_pattern = r"\[laughter\]" #pattern: [laughter]
 filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
-speech_laugh_pattern = r"\[laughter-(\w+)\]"
+# speech_laugh_pattern = r"\[laughter-(\w+)\]"
+speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
 
@@ -54,29 +55,27 @@ def retokenize_transcript_pattern(transcript_line):
         # transform the word in the line when it matches the pattern
         new_line = ""
         for word in transcript_line.split():
+            if re.match(speech_laugh_pattern, word):
+                # print("Matched speech_laugh pattern:", word)
+                # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
+                word = "[SPEECH_LAUGH]"
+            elif re.match(laughter_pattern, word):
+                # word = match.group(0)
+                # print("Matched laughter pattern:", word)
+                word = word.upper() #[LAUGHTER]
             if re.match(partialword_pattern, word):
                 # if the word is a partial word, remove the partial word
                 continue
             elif re.match(noise_pattern, word) or re.match(pause_pattern, word):
                 continue  
-            # elif re.match(filler_pattern, word):  # uh, um,...
-            #     word = "[" + word.upper() + "]"  # [UH], [UM], [MM], [YEAH],...
-
-            if re.match(speech_laugh_pattern, word):
-                # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
-                word = "[SPEECH_LAUGH]"
-            elif re.match(laughter_pattern, word):
-                # change the laughter pattern to the token
-                # word = match.group(0)
-                word = word.upper() #[LAUGHTER]
-
             else:
                 # normal word
                 word = word
+            
             new_line += word + " "
         transcript_line = new_line.strip()
         
-        print("Processed Transcript line:", transcript_line)
+        # print("Processed Transcript line:", transcript_line)
     return transcript_line
 
 #------------------------

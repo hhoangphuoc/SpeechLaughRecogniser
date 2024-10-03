@@ -8,10 +8,10 @@ import argparse
 
 from datasets import load_dataset, Dataset, Audio
 
-from transcript_process import process_switchboard_transcript, process_ami_transcript
-from audio_process import cut_audio_based_on_transcript_segments
+from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
+from utils.audio_process import cut_audio_based_on_transcript_segments
 
-import params as prs
+import utils.params as prs
 
 
 # MAIN PROCESSING FUNCTIONS FOR LOADING AND PROCESSING DATASETS

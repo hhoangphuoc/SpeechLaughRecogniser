@@ -188,7 +188,7 @@ def SpeechLaughWhisper(args):
             remove_columns=train_dataset.column_names,
             # num_proc=2,
             batched=True,
-            batch_size=8,
+            batch_size=args.batch_size,
             load_from_cache_file=True
             )
         # save the processed dataset
@@ -203,7 +203,7 @@ def SpeechLaughWhisper(args):
             remove_columns=eval_dataset.column_names,
             # num_proc=2,
             batched=True,
-            batch_size=8,
+            batch_size=args.batch_size,
             load_from_cache_file=True
             )
         eval_dataset.save_to_disk(processed_path+"eval")
@@ -241,7 +241,7 @@ def SpeechLaughWhisper(args):
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
-        resume_from_checkpoint=None, #change to the checkpoint path
+        resume_from_checkpoint="/checkpoints/events.out.tfevents.1727908914.hpc-head1.623937.1", #change to the checkpoint path
     )
 
     writer = SummaryWriter(log_dir=args.log_dir)
@@ -280,15 +280,14 @@ def SpeechLaughWhisper(args):
     #-----------------------------------------END OF TRAINING ----------------------------------
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--input_file_path", default="./datasets/train.csv", type=str, required=False, help="Path to the train.csv file")
     parser.add_argument("--eval_file_path", default="./datasets/val.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
-    parser.add_argument("--model_path", default="openai/whisper-large", type=str, required=False, help="Select pretrained model")
-    parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-large", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_output_dir", default="./vocalwhisper/vocalspeech-whisper-small", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
-    parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
+    parser.add_argument("--batch_size", default=64, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
     parser.add_argument("--num_workers", default=8, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
