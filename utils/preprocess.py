@@ -8,65 +8,10 @@ import argparse
 
 from datasets import load_dataset, Dataset, Audio
 
-from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
-from utils.audio_process import cut_audio_based_on_transcript_segments
+from transcript_process import process_switchboard_transcript, process_ami_transcript
+from audio_process import cut_audio_based_on_transcript_segments
 
-import utils.params as prs
-
-
-# MAIN PROCESSING FUNCTIONS FOR LOADING AND PROCESSING DATASETS
-def combine_datasets(
-        to_dataset=True,
-        datasets=["switchboard", "ami", "vocalsound"]):
-    """
-    Load all the datasets and combine them into one
-    """
-    switchboard_ds = switchboard_to_ds(to_dataset=True)
-    ami_ds = ami_to_ds(to_dataset=True)
-    vocalsound_ds = vocalsound_to_ds(to_dataset=True)
-    
-    #INSTEAD OF LOADING THESE DATASETS FROM SCRATCH, WE CAN USE THE HUGGINGFACE DATASET
-    # ami_ds = load_dataset("edinburghcstr/ami", "ihm", split="train+validation", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
-    # vocalsound_ds = load_dataset("flozi00/VocalSound_audio_16k", split="train", cache_dir=prs.HUGGINGFACE_DATA_PATH, download_mode="force_redownload")
-
-    # # Only choosing audio array, sample rate and transcript column for the dataset
-    # switchboard_ds = switchboard_ds.map(lambda x: {"audio": x["audio"], "sampling_rate": x["sampling_rate"], "transcript": x["transcript"]})
-    # ami_ds = ami_ds.map(lambda x: {"audio": x["audio"]["array"], "sampling_rate": x["audio"]["sampling_rate"], "transcript": x["text"]})
-    # vocalsound_ds = vocalsound_ds.map(lambda x: {"audio": x["audio"], "sampling_rate": 16000, "transcript": x["label"]})
-
-    combined_ds = Dataset.concatenate([switchboard_ds, ami_ds, vocalsound_ds])
-    return combined_ds
-
-
-def process_dataset(csv_input_path):
-    """
-    Load the dataset from the csv file and convert to HuggingFace Dataset object
-    Args:
-    - csv_input_path: path to the csv file (train.csv, eval.csv)
-    Return:
-    - train_dataset: HuggingFace Dataset object
-    """
-
-    train_df = pd.read_csv(csv_input_path)
-
-    train_df["sampling_rate"] = train_df["sampling_rate"].apply(lambda x: int(x))
-
-    # train_df = train_df[train_df["audio"].apply(lambda x: len(x) > 0)]
-
-    train_df = train_df[train_df["transcript"].apply(lambda x: len(x) > 0)]
-    
-    # # create a new column storing audio array, with path taken from the audio column
-    # train_df["array"] = train_df["audio"].apply(lambda x: librosa.load(x, sr=16000)[0])
-
-    #shuffle the dataframe
-    train_df = train_df.sample(frac=1).reset_index(drop=True)
-
-    train_dataset = Dataset.from_pandas(train_df)
-    
-    #Resample the audio_array column if it not 16kHz
-    train_dataset = train_dataset.cast_column("audio", Audio(sampling_rate=16000))
-
-    return train_dataset
+import params as prs
 
 def combine_data_csv(
     csv_dir="../datasets",
@@ -104,10 +49,10 @@ def combine_data_csv(
         combined_df = pd.concat(dataframes, ignore_index=True)
         
         #remove missing value rows
-        combined_df.dropna(inplace=True)
+        # combined_df.dropna(inplace=True)
+        combined_df['transcript'] = combined_df['transcript'].astype(str)
 
         #for empty transcript, only keep 1% of the row with empty transcript
-        # and attach it to the combined_df
         non_empty_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) > 0)]
         empty_transcript_df = combined_df[combined_df["transcript"].apply(lambda x: len(x) == 0)]
         if len(empty_transcript_df) > 0:
@@ -147,7 +92,6 @@ def combine_data_csv(
     except ValueError as e:
         print("Unable to combine the datasets: {}".format(e))
 
-    
 #-------------------------------------------------------------------------------------------------------------
 
 # PROCESSING A CORPUS TO A DATASET
@@ -198,14 +142,6 @@ def switchboard_to_ds(
                 )
             else:
                 print(f"Skipping audio file due to missing transcript: {audio_file}")
-
-        #TODO: Applied Audio Cutting and Segmenting based on transcripts_lines
-        #EXPECTED: 
-        # audio_file_segments: ["../audio_segments/sw2001A/sw2001A_0.0_0.977625.wav", "../audio_segments/sw2001A/sw2001A_0.977625_11.561375.wav", ...]
-        # audio_segments: [array(..., dtype=float32), array(..., dtype=float32), ...]
-        # transcripts_segments: ["[silence]", "hi um yeah i'd like to.....", "..."]
-
-        # batch_audio.extend(audio_segments)
         if to_dataset:
             batch_audio.extend(
                 [{"path": path, "array": segment, "sampling_rate": 16000}
@@ -222,6 +158,10 @@ def switchboard_to_ds(
         "sampling_rate": batch_sr, #batch["sampling_rate"],
         "transcript": batch_transcript, #batch["transcript"]
     })
+
+    # remove empty transcript rows
+    df.dropna(inplace=True)
+    df = df[df["transcript"].apply(lambda x: len(x) > 0)]
 
     if to_csv:
         csv_path = os.path.join(csv_dir, data_name)
@@ -391,18 +331,13 @@ def fsdnoisy_to_ds(
         batch_audio.append(audio_path)
         batch_sr.append(sampling_rate)
         batch_transcript.append(transcript_line)
-    
-    df = pd.DataFrame({
-        "audio": batch_audio, #batch["audio"],
-        "sampling_rate": batch_sr, #batch["sampling_rate"],
-        "transcript": batch_transcript, #batch["transcript"]
-    })
 
     df = pd.DataFrame({
         "audio": batch_audio,
         "sampling_rate": batch_sr,
         "transcript": batch_transcript,
     })
+    df.dropna(inplace=True)
 
     if to_csv:
         csv_path = os.path.join(csv_dir, data_name)
