@@ -2,12 +2,14 @@ import argparse
 import numpy as np
 import os
 import torch
+import multiprocessing
 
 # For Fine-tuned Model--------------------------------
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from transformers.trainer_callback import EarlyStoppingCallback
 #import SummaryWriter
 from torch.utils.tensorboard import SummaryWriter
+from torch.nn.parallel import DistributedDataParallel   #for distributed training
 from datasets import load_from_disk
 from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
@@ -23,8 +25,12 @@ This is the fine-tuning Whisper model
 for the specific task of transcribing recognizing speech laughter, fillers, 
 pauses, and other non-speech sounds in conversations.
 """
+# Initialise Multiprocessing------------------------------
+multiprocessing.set_start_method("spawn", force=True)
 
+# Load the WER metric
 metric = evaluate.load("wer")
+#----------------------------------------------------------
 
 def SpeechLaughWhisper(args):
     """
@@ -38,7 +44,7 @@ def SpeechLaughWhisper(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
     
-    #Processor and Tokenizer#----------------------------------------------------------
+    #-----------------------------Processor and Tokenizer----------------------------------------------------------
     processor = WhisperProcessor.from_pretrained(args.model_path) # processor - combination of feature extractor and tokenizer
     feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
@@ -47,20 +53,19 @@ def SpeechLaughWhisper(args):
     tokenizer.add_tokens(special_tokens)
     #-------------------------------------------------------------------------------------------
 
-    # Load the fine-tuned Whisper model ----------------------------------------------------------
+    # Pre-trained Model Loading ----------------------------------------------------------
     model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
     model.resize_token_embeddings(len(tokenizer))
     model.generation_config.forced_decoder_ids = None
-    model.to(device)
+    model.to(device) # move model to GPUs
     #-------------------------------------------------------------------------------------------
 
-    #Data collator for random noise ----------------------------------------------------------
+    #Data Collator for random noise ----------------------------------------------------------
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor, 
         decoder_start_token_id=model.config.decoder_start_token_id,
         device=device,
         padding=True,
-
     )
     #----------------------------------------------------------
  
@@ -155,6 +160,7 @@ def SpeechLaughWhisper(args):
         wer = 100 * metric.compute(predictions=pred_str, references=label_str)
 
         return {"wer": wer}
+    
     #-----------------------------------------END OF MODEL CONFIG ----------------------------------
 
     # ---------------------------- LOAD DATASET AND PROCESSING -------------------------------------
@@ -198,13 +204,20 @@ def SpeechLaughWhisper(args):
     print("Prepared Val dataset: ", eval_dataset)
 
 
-    # --------------------------------------------- TRAINING PROCESS -----------------------------------------
 
+    # --------------------------------------------- TRAINING CONFIGURATION -----------------------------------------
+    
+    # Data Parallel for distributed training
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs for training!")
+        model = DistributedDataParallel(model)
+
+    
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
-        per_device_train_batch_size=args.batch_size, #4 - default batch size = 16, could add up to 256 based on the GPU max memory
-        gradient_accumulation_steps=args.grad_steps, #increase the batch size by accumulating gradients
+        per_device_train_batch_size=args.batch_size, #8 - default batch size = 8, could add up to 256 based on the GPU max memory
+        gradient_accumulation_steps=args.grad_steps, # - default = 4 increase the batch size by accumulating gradients
         learning_rate=args.lr, #1e-5
         weight_decay=0.01,
         # num_train_epochs=args.num_train_epochs, #default = 2 - change between 2 -5 based on overfitting
@@ -218,17 +231,16 @@ def SpeechLaughWhisper(args):
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
         logging_steps=25,
-        save_steps=100000, #Making really high to save only the specified steps
+        save_steps=1000,
         save_strategy="steps",
-        save_total_limit=10, #save the last 3 checkpoints
-        eval_steps=100000,
+        save_total_limit=5, #save the last 5 checkpoints
+        eval_steps=1000,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
-        resume_from_checkpoint="./checkpoints/events.out.tfevents.1728245903.hpc-head1.3549234.1", #change to the checkpoint path
-        # resume_from_checkpoint=None,
-        push_to_hub=True,
+        resume_from_checkpoint=None,
+        # push_to_hub=True,   
     )
 
     writer = SummaryWriter(log_dir=args.log_dir)
@@ -255,7 +267,7 @@ def SpeechLaughWhisper(args):
     for step in range(training_args.max_steps):
         trainer.train()
         if step % args.save_steps == 0:
-            trainer.save_model(args.log_dir + f"model_checkpoint_step_{str(step)}.bin")
+            trainer.save_model(args.model_output_dir + f"speechlaugh_whisper_{str(step)}.bin")
             # Log metrics to TensorBoard after each epoch
             metrics = trainer.evaluate()
             for key, value in metrics.items():
@@ -264,45 +276,44 @@ def SpeechLaughWhisper(args):
             writer.add_scalar("validation_loss", trainer.state.global_step, trainer.state.eval_loss)
             writer.add_scalar("validation_wer", trainer.state.global_step, trainer.state.eval_metrics["wer"])
             writer.flush()
-        if step % 1000 == 0:
-            trainer.save_model(args.model_output_dir + f"speechlaugh_recogniser_checkpoint_{str(step)}.bin")
         if trainer.state.global_step >= training_args.max_steps:
             break
     writer.close()  # Close the TensorBoard writer
 
-    # Save the model
+    # Save the final model
     model.save_pretrained(args.model_output_dir + "model")
 
     #-----------------------------------------END OF TRAINING ------------------------------
 
     # PUSH MODEL TO HUB ----------------------------------------------------------
-    kwargs = {
-        "dataset_tags": "hhoangphuoc/switchboard",
-        "dataset": "Switchboard",
-        # "dataset_args": "config: hi, split: test",
-        "model_name": "Speech Laugh Whisper - Phuoc Ho",
-        "finetuned_from": "openai/whisper-large-v2",
-        "tasks": "automatic-speech-recognition",
-    }
-    trainer.push_to_hub(**kwargs)
-
+    # kwargs = {
+    #     "dataset_tags": "hhoangphuoc/switchboard",
+    #     "dataset": "Switchboard",
+    #     # "dataset_args": "config: hi, split: test",
+    #     "model_name": "Speech Laugh Whisper - Phuoc Ho",
+    #     "finetuned_from": "openai/whisper-large-v2",
+    #     "tasks": "automatic-speech-recognition",
+    # }
+    # trainer.push_to_hub(**kwargs)
     #-------------------------------------------------------------------------------------------
 
+
+# MAIN FUNCTION ----------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     parser.add_argument("--train_file_path", default="./datasets/train_switchboard.csv", type=str, required=False, help="Path to the train.csv file")
     parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--processed_dataset", default=False, type=bool, required=False, help="Whether or not do the prepare_dataset")
     parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
-    parser.add_argument("--model_path", default="openai/whisper-large-v2", type=str, required=False, help="Select pretrained model")
-    parser.add_argument("--model_output_dir", default="./vocalwhisper/speechlaugh-whisper-large-v2/", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_output_dir", default="./vocalwhisper/speechlaugh-whisper-small/", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
-    parser.add_argument("--batch_size", default=4, type=int, required=False, help="Batch size for training")
+    parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
     parser.add_argument("--num_workers", default=16, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
-    parser.add_argument("--save_steps", default=100, type=int, required=False, help="Number of steps to save the model")
+    parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
     parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
     parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
     #----------------------------------------------------------
@@ -311,7 +322,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     try:
-        login(token=os.getenv("HUGGINGFACE_TOKEN"))
+        # login(token=os.getenv("HUGGINGFACE_TOKEN"))
         SpeechLaughWhisper(args)
     except OSError as error:
         print(error)

@@ -1,0 +1,19 @@
+	Adding vscode 1.78.2 to your environment
+	Adding nVidia Cuda Toolkit 11.8
+	Adding NVidia NCCL v2.16 (.5-1)
+	Adding nVidia cuDNN 8.6 (.0.163)
+	Adding nVidia TensorRT 8.6 (.0.12)
+	Adding nvtop
+Date              = Wed Oct 16 11:21:30 AM CEST 2024
+Hostname          = ctit088
+Working Directory = /home/s2587130/SpeechLaughRecogniser
+Name of nodes used          : ctit088
+Gpu devices                 : 3
+Starting worker: 
+2024-10-16 12:19:38.272985: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-10-16 12:22:42.507710: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:485] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2024-10-16 12:23:35.300164: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:8454] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2024-10-16 12:23:51.035005: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1452] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2024-10-16 12:25:34.501664: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-10-16 12:43:59.532981: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
