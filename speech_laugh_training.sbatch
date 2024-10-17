@@ -11,8 +11,8 @@
 module load microsoft/vscode/1.78.2
 module load nvidia/cuda-11.8
 module load nvidia/cuda-11.8_nccl-2.16
-module load nvidia/cuda-11.x_cudnn-8.6
-module load nvidia/cuda-11.x_tensorrt-8.6
+module load nvidia/cuda-11.8_cudnn-8.6
+module load nvidia/cuda-11.8_tensorrt-8.6
 module load nvidia/nvtop
 
 #if we use laplace GPU instead
@@ -33,9 +33,20 @@ echo "Starting worker: "
 source activate .venv
 
 # Run your script with the appropriate arguments
+
+# preprocess 
+python preprocess.py \
+    --data_names switchboard \
+    --csv_paths ./datasets/combined/ \
+    --to_csv True \
+    --do_combine True \
+    --train_val_split True \
+
 python SpeechLaughRecognition.py \
-    --train_file_path ./datasets/train_switchboard.csv \
-    --eval_file_path ./datasets/val_switchboard.csv \
+    --train_file_path ./datasets/combined/train_switchboard.csv \
+    --eval_file_path ./datasets/combined/val_switchboard.csv \
+    --processed_dataset True \
+    --processed_file_path ./datasets/processed/ \
     --model_output_dir ./vocalwhisper/speechlaugh-whisper-large/ \
     --log_dir ./checkpoints \
 
