@@ -3,6 +3,7 @@ import numpy as np
 import os
 import torch
 import multiprocessing
+from dotenv import load_dotenv
 
 # For Fine-tuned Model--------------------------------
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
@@ -15,10 +16,30 @@ from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 #----------------------------------------------------------
 
-from dataset import process_dataset
+from preprocess import process_dataset
+
+# Evaluation Metrics------
+import pandas as pd
 import evaluate
-from dotenv import load_dotenv
+import jiwer
+output_transform = jiwer.Compose([
+    jiwer.RemovePunctuation(),
+    # ToLowerCase(),
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.RemoveEmptyStrings(),
+    jiwer.RemoveMultipleSpaces(),
+    jiwer.Strip(),
+    jiwer.ReduceToListOfListOfWords(),
+    jiwer.ReduceToSingleSentence()
+])
+
+# Load the WER metric
+wer_metric = evaluate.load("wer") #Word Error Rate between the hypothesis and the reference transcript
+# f1_metric = evaluate.load("f1") #F1 score between the hypothesis and the reference transcript
+# exact_match = evaluate.load("exact_match") #compare the exact match between the hypothesis and the reference transcript
+
 #----------------------------------------------------------
+
 
 """
 This is the fine-tuning Whisper model 
@@ -28,8 +49,7 @@ pauses, and other non-speech sounds in conversations.
 # Initialise Multiprocessing------------------------------
 multiprocessing.set_start_method("spawn", force=True)
 
-# Load the WER metric
-metric = evaluate.load("wer")
+
 #----------------------------------------------------------
 
 def SpeechLaughWhisper(args):
@@ -145,8 +165,10 @@ def SpeechLaughWhisper(args):
             batch["labels"].append(example["labels"])
         return batch
 
-    #Metrics --------------------------------------------------    
+    #COMPUTE METRICS --------------------------------------------------    
     def compute_metrics(pred):
+        print("Computing Metrics....")
+
         pred_ids = pred.predictions.cpu() if isinstance(pred.predictions, torch.Tensor) else pred.predictions
         label_ids = pred.label_ids.cpu() if isinstance(pred.label_ids, torch.Tensor) else pred.label_ids
 
@@ -154,12 +176,37 @@ def SpeechLaughWhisper(args):
         label_ids[label_ids == -100] = tokenizer.pad_token_id
 
         # we do not want to group tokens when computing the metrics
-        pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+        pred_transcripts = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #hypothesis transcript
+        ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #reference transcript
 
-        wer = 100 * metric.compute(predictions=pred_str, references=label_str)
 
-        return {"wer": wer}
+        # METRICS TO CALCULATE -------------------------------------------------
+        wer_metric = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        f1_metric = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        exact_match = 100 * exact_match.compute(predictions=pred_transcripts, references=ref_transcripts)
+
+        # Compare details transcript between hypothesis and reference using jiwer
+        alignments = jiwer.process_words(
+            reference=ref_transcripts, 
+            hypothesis=pred_transcripts, 
+            reference_transform=output_transform,
+            hypothesis_transform=output_transform
+            )
+        
+        #write the alignment to the text file
+        with open("alignment.txt", "w") as f:
+            report_alignment = jiwer.visualize_alignment(
+                alignments,
+                show_measures=True, 
+                skip_correct=False
+                )
+            f.write(report_alignment)
+
+        return {
+            "wer": wer_metric,
+            # "f1": f1_metric,
+            # "exact_match": exact_match
+            }
     
     #-----------------------------------------END OF MODEL CONFIG ----------------------------------
 
@@ -174,10 +221,10 @@ def SpeechLaughWhisper(args):
             train_dataset = train_dataset.map(
                 prepare_dataset, 
                 remove_columns=train_dataset.column_names,
-                # num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-                batched=True,
-                batch_size=args.batch_size,
-                load_from_cache_file=True
+                num_proc=torch.cuda.device_count(), #use all available GPUs for processing
+                # batched=True,
+                # batch_size=args.batch_size,
+                # load_from_cache_file=True
                 )
             # save the processed dataset
             train_dataset.save_to_disk(processed_path+"train")
@@ -189,10 +236,10 @@ def SpeechLaughWhisper(args):
             eval_dataset = eval_dataset.map(
                 prepare_dataset, 
                 remove_columns=eval_dataset.column_names,
-                # num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-                batched=True,
-                batch_size=args.batch_size,
-                load_from_cache_file=True
+                num_proc=torch.cuda.device_count(), #use all available GPUs for processing
+                # batched=True,
+                # batch_size=args.batch_size,
+                # load_from_cache_file=True
                 )
             eval_dataset.save_to_disk(processed_path+"eval")
     else:
@@ -202,8 +249,7 @@ def SpeechLaughWhisper(args):
     
     print("Prepared Train dataset: ", train_dataset)
     print("Prepared Val dataset: ", eval_dataset)
-
-
+    # ---------------------------- END OF LOADING DATASET -------------------------------------
 
     # --------------------------------------------- TRAINING CONFIGURATION -----------------------------------------
     
@@ -262,22 +308,43 @@ def SpeechLaughWhisper(args):
     )
 
     # --------------------------Training Loop + Logging -----------------------------
+    
+    # Create DataFrames to store the training and evaluation metrics
+    training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1", "exact_match"])
 
     # Training loop with TensorBoard logging and saving model per 1000 steps
     for step in range(training_args.max_steps):
         trainer.train()
         if step % args.save_steps == 0:
             trainer.save_model(args.model_output_dir + f"speechlaugh_whisper_{str(step)}.bin")
+            
+            metrics = trainer.evaluate() #return evaluation metrics: {"wer": wer, "f1": f1, "exact_match": exact_match}
+            
+            training_metrics = training_metrics.append({
+                "step": step,
+                "training_loss": trainer.state.loss if trainer.state.loss is not None else 0,
+                "epoch": trainer.state.epoch,
+                "validation_loss": trainer.state.eval_loss if trainer.state.eval_loss is not None else 0,
+                "wer": metrics["wer"],
+                # "f1": metrics["f1"],
+                # "exact_match": metrics["exact_match"]
+            }, ignore_index=True)
             # Log metrics to TensorBoard after each epoch
-            metrics = trainer.evaluate()
             for key, value in metrics.items():
                 writer.add_scalar(f"eval/{key}", value, step)
             writer.add_scalar("training_loss", trainer.state.global_step, trainer.state.loss)
             writer.add_scalar("validation_loss", trainer.state.global_step, trainer.state.eval_loss)
-            writer.add_scalar("validation_wer", trainer.state.global_step, trainer.state.eval_metrics["wer"])
+            writer.add_scalar("WER", trainer.state.global_step, trainer.state.eval_metrics["wer"])
+            # writer.add_scalar("F1", trainer.state.global_step, trainer.state.eval_metrics["f1"])
             writer.flush()
+            #----------------------------end of logging --------------------------------
+
         if trainer.state.global_step >= training_args.max_steps:
             break
+
+    # Save the training metrics to a CSV file
+    training_metrics.to_csv(args.model_output_dir + "training_metrics.csv", index=False)
+
     writer.close()  # Close the TensorBoard writer
 
     # Save the final model

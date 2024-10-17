@@ -8,13 +8,34 @@ import argparse
 
 from datasets import load_dataset, Dataset, Audio
 
-from transcript_process import process_switchboard_transcript, process_ami_transcript
-from audio_process import cut_audio_based_on_transcript_segments
+from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
+from utils.audio_process import cut_audio_based_on_transcript_segments
 
-import params as prs
+import utils.params as prs
+
+def process_dataset(csv_input_path):
+    """
+    Load the dataset from the csv file and convert to HuggingFace Dataset object
+    Args:
+    - csv_input_path: path to the csv file (train.csv, eval.csv)
+    Return:
+    - dataset: HuggingFace Dataset object
+    """
+
+    df = pd.read_csv(csv_input_path)
+
+    df["sampling_rate"] = df["sampling_rate"].apply(lambda x: int(x))
+    #shuffle the dataframe
+    df = train_df.sample(frac=1).reset_index(drop=True)
+    dataset = Dataset.from_pandas(df)
+    
+    #Resample the audio_array column if it not 16kHz
+    dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+
+    return dataset
 
 def combine_data_csv(
-    csv_dir="../datasets",
+    csv_dir="../datasets/combined",
     combined_data_list=[], #list of dataset names to combined
     dataframes=[],
     noise_frac=0.01,
@@ -355,7 +376,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip_process", type=bool, default=False, help="Determine to skip or run processing steps for each dataset separately")
     parser.add_argument("--data_names", nargs="+", default=["switchboard", "ami", "vocalsound"], required=False, help="List of the datasets to process")
-    parser.add_argument("--csv_dir", type=str, default="../datasets/", help="Path to the directory containing audio files")
+    parser.add_argument("--csv_dir", type=str, default="../datasets/combined/", help="Path to the directory containing audio files")
     parser.add_argument("--to_csv", type=bool, default=True, help="Whether to save the processed data to csv or not")
     parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
     parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")

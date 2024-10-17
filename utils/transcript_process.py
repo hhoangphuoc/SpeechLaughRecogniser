@@ -9,20 +9,34 @@ import re
 import os
 # import openai #for clean and format transcripts
 
+#------- SWITCHBOARD TRANSCRIPT PATTERN -----------------------------------------------------------------------------#
+switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"  # sw.. <start_time> <end_time> <text>
+#------------------------------------------------
 
-# SETS OF SPECIAL PATTERNS FOR TRANSCRIPT TOKENS:
+
+
+# SETS OF SPECIAL PATTERNS FROM ORIGINAL SWITCHBOARD TRANSCRIPT THAT NEED TO BE HANDLED ---------------------------------#
 word_pattern = r"\b\w+\b"
 pause_pattern = r"\b\[silence\]\b" #pattern: [silence]
 noise_pattern = r"\[noise\]|\[vocalized-noise\]"
 laughter_pattern = r"\[laughter\]" #pattern: [laughter]
-filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
+pronunciation_variant_pattern = r"(\w+)_1"
+asides_pattern = r"<b_aside|e_aside>" # pattern: <b_aside> or <e_aside>
+coinages_pattern = r"{(\w+)}" # pattern: {word}
 # speech_laugh_pattern = r"\[laughter-(\w+)\]"
 speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
-# vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
-
 
 # partialword_pattern = r"-\b\w+\]|\b\w+-|\[\b\w+\]|\[\b\w+-|\b\w+\[\w+\]-"  # partial word: [word]- or w[ord]- or -[wor]d 
-partialword_pattern = r"-\[\w+\]\w+|\w+\[\w+\]-"  # partial word: w[ord]- or -[wor]d
+# partialword_pattern = r"-\[\w+\]\w+|\w+\[\w+\]-"  # partial word: w[ord]- or -[wor]d
+partialword_pattern = r"-\[\w+['\w+]\]\w+|\w+\[\w+['\w+]\]-"  # partial word: w[ord]- or -[wor]d, or sh[ouldn't]- or -[shouldn't]d
+
+# TOBE CONSIDERED FOR RETOKENIZATION ------------------------
+#filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
+# vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
+
+#-----------------------------------------------------------------------------------------------#
+
+
 
 #-----------------------------------------------------------------------------------------------#
 # Clean and format transcripts
@@ -66,7 +80,11 @@ def retokenize_transcript_pattern(transcript_line):
             if re.match(partialword_pattern, word):
                 # if the word is a partial word, remove the partial word
                 continue
-            elif re.match(noise_pattern, word) or re.match(pause_pattern, word):
+            elif re.match(pronunciation_variant_pattern, word):
+                word = re.sub(r"_1", "", word)
+            elif re.match(coinages_pattern, word):
+                word = re.sub(r"{|}", "", word)    
+            elif re.match(noise_pattern, word) or re.match(pause_pattern, word) or re.match(asides_pattern, word):
                 continue  
             else:
                 # normal word
@@ -108,7 +126,7 @@ def process_switchboard_transcript(
         with open(transcript_path, 'r') as f:
             transcript_lines = f.readlines()
 
-        switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"
+        
         new_transcript_lines = []
         for line in transcript_lines:
             if not line.strip():
