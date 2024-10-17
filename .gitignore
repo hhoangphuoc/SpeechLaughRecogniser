@@ -8,4 +8,5 @@ audio_segments/
 cache_data/
 datasets/processed_dataset/
 datasets/processed/
+ref_models/pre_trained
 .env

@@ -1,18 +1,17 @@
 #!/bin/bash
 #SBATCH --job-name=speechlaugh-whisper      # Job name
 #SBATCH -c 16                     # Number of cores
-#SBATCH --gres=gpu:ampere:1                 # Request 1 GPU
+#SBATCH --gres=gpu:ampere:2                 # Request 1 GPU
 #SBATCH --mem=24G                # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
 #SBATCH --time=24:00:00              # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL    # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
 # Load modules (adjust versions as needed)
-module load microsoft/vscode/1.78.2
-module load nvidia/cuda-11.5
-module load nvidia/cuda-11.5_nccl-2.11
-module load nvidia/cuda-11.5_cudnn-8.4
-module load nvidia/cuda-11.5_tensorrt-8.4
+module purge # clean the environment before loading new modules
+module load nvidia/cuda-11.7
+module load nvidia/cuda-11.x_cudnn-8.6
+module load nvidia/cuda-11.x_tensorrt-8.6
 module load nvidia/nvtop
 
 #if we use laplace GPU instead
@@ -47,7 +46,8 @@ python SpeechLaughRecognition.py \
     --eval_file_path ./datasets/combined/val_switchboard.csv \
     --processed_dataset True \
     --processed_file_path ./datasets/processed/ \
-    --model_output_dir ./vocalwhisper/speechlaugh-whisper-large/ \
+    --model_output_dir ./vocalwhisper/speechlaugh-whisper-small/ \
     --log_dir ./checkpoints \
+    --evaluate_dir ./evaluate \
 
 

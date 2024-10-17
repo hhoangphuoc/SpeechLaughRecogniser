@@ -33,13 +33,6 @@ output_transform = jiwer.Compose([
     jiwer.ReduceToSingleSentence()
 ])
 
-# Load the WER metric
-wer_metric = evaluate.load("wer") #Word Error Rate between the hypothesis and the reference transcript
-# f1_metric = evaluate.load("f1") #F1 score between the hypothesis and the reference transcript
-# exact_match = evaluate.load("exact_match") #compare the exact match between the hypothesis and the reference transcript
-
-#----------------------------------------------------------
-
 
 """
 This is the fine-tuning Whisper model 
@@ -49,6 +42,8 @@ pauses, and other non-speech sounds in conversations.
 # Initialise Multiprocessing------------------------------
 multiprocessing.set_start_method("spawn", force=True)
 
+
+# Set the path for pre-trained model
 
 #----------------------------------------------------------
 
@@ -60,27 +55,27 @@ def SpeechLaughWhisper(args):
         df: pandas dataframe - contains all audios and transcripts
 
     """
-    # MODEL CONFIGS
+    # MODEL CONFIGS ----------------------------------------------------------
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
     
-    #-----------------------------Processor and Tokenizer----------------------------------------------------------
-    processor = WhisperProcessor.from_pretrained(args.model_path) # processor - combination of feature extractor and tokenizer
-    feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path) #feature extractor
-    tokenizer = WhisperTokenizer.from_pretrained(args.model_path) #tokenizer
+    #----------Processor and Tokenizer-----------
+    processor = WhisperProcessor.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) # processor - combination of feature extractor and tokenizer
+    feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #feature extractor
+    tokenizer = WhisperTokenizer.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #tokenizer
     # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
     special_tokens = ["[LAUGHTER]", "[SPEECH_LAUGH]"] #FIXME: Currently, only laughter and speech_laugh are used
     tokenizer.add_tokens(special_tokens)
-    #-------------------------------------------------------------------------------------------
+    #-------------------------------------------
 
-    # Pre-trained Model Loading ----------------------------------------------------------
-    model = WhisperForConditionalGeneration.from_pretrained(args.model_path)
+    # Pre-trained Model Loading ----------------
+    model = WhisperForConditionalGeneration.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir)
     model.resize_token_embeddings(len(tokenizer))
     model.generation_config.forced_decoder_ids = None
     model.to(device) # move model to GPUs
-    #-------------------------------------------------------------------------------------------
+    #--------------------------------------------
 
-    #Data Collator for random noise ----------------------------------------------------------
+    #Data Collator for random noise --------------
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor, 
         decoder_start_token_id=model.config.decoder_start_token_id,
@@ -165,7 +160,14 @@ def SpeechLaughWhisper(args):
             batch["labels"].append(example["labels"])
         return batch
 
-    #COMPUTE METRICS --------------------------------------------------    
+    
+    #COMPUTE METRICS -------------------------------------------------- 
+    # Evaluation Metrics --------------------------------------------------
+    # Load the WER metric
+    wer_metric = evaluate.load("wer", cache_dir=args.evaluate_dir) #Word Error Rate between the hypothesis and the reference transcript
+    f1_metric = evaluate.load("f1", cache_dir=args.evaluate_dir) #F1 score between the hypothesis and the reference transcript
+    exact_match_metric = evaluate.load("exact_match", cache_dir=args.evaluate_dir) #compare the exact match between the hypothesis and the reference transcript
+    #----------------------------------------------------------   
     def compute_metrics(pred):
         print("Computing Metrics....")
 
@@ -181,9 +183,9 @@ def SpeechLaughWhisper(args):
 
 
         # METRICS TO CALCULATE -------------------------------------------------
-        wer_metric = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
-        f1_metric = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
-        exact_match = 100 * exact_match.compute(predictions=pred_transcripts, references=ref_transcripts)
+        wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        exact_match = 100 * exact_match_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
 
         # Compare details transcript between hypothesis and reference using jiwer
         alignments = jiwer.process_words(
@@ -203,14 +205,14 @@ def SpeechLaughWhisper(args):
             f.write(report_alignment)
 
         return {
-            "wer": wer_metric,
-            # "f1": f1_metric,
-            # "exact_match": exact_match
+            "wer": wer,
+            "f1": f1,
+            "exact_match": exact_match
             }
     
-    #-----------------------------------------END OF MODEL CONFIG ----------------------------------
+    #-----------------------------------------------------END OF MODEL CONFIG ---------------------------------------------
 
-    # ---------------------------- LOAD DATASET AND PROCESSING -------------------------------------
+    # --------------------------------------------------- LOAD DATASET AND PROCESSING -------------------------------------
     processed_path = args.processed_file_path
     train_dataset, eval_dataset = None, None
     if args.processed_dataset:
@@ -249,7 +251,7 @@ def SpeechLaughWhisper(args):
     
     print("Prepared Train dataset: ", train_dataset)
     print("Prepared Val dataset: ", eval_dataset)
-    # ---------------------------- END OF LOADING DATASET -------------------------------------
+    # --------------------------------------------- END OF LOADING DATASET -------------------------------------
 
     # --------------------------------------------- TRAINING CONFIGURATION -----------------------------------------
     
@@ -262,7 +264,7 @@ def SpeechLaughWhisper(args):
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
-        per_device_train_batch_size=args.batch_size, #8 - default batch size = 8, could add up to 256 based on the GPU max memory
+        per_device_train_batch_size=args.batch_size, #16 - default batch size = 16, could add up to 256 based on the GPU max memory
         gradient_accumulation_steps=args.grad_steps, # - default = 4 increase the batch size by accumulating gradients
         learning_rate=args.lr, #1e-5
         weight_decay=0.01,
@@ -273,7 +275,7 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         eval_strategy="steps",
-        per_device_eval_batch_size=2,
+        per_device_eval_batch_size=8,
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
         logging_steps=25,
@@ -307,7 +309,7 @@ def SpeechLaughWhisper(args):
         callbacks=[early_stopping],
     )
 
-    # --------------------------Training Loop + Logging -----------------------------
+    # ---------------------------------------------- Training Loop + Logging ------------------------------------------
     
     # Create DataFrames to store the training and evaluation metrics
     training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1", "exact_match"])
@@ -326,8 +328,8 @@ def SpeechLaughWhisper(args):
                 "epoch": trainer.state.epoch,
                 "validation_loss": trainer.state.eval_loss if trainer.state.eval_loss is not None else 0,
                 "wer": metrics["wer"],
-                # "f1": metrics["f1"],
-                # "exact_match": metrics["exact_match"]
+                "f1": metrics["f1"],
+                "exact_match": metrics["exact_match"]
             }, ignore_index=True)
             # Log metrics to TensorBoard after each epoch
             for key, value in metrics.items():
@@ -335,9 +337,9 @@ def SpeechLaughWhisper(args):
             writer.add_scalar("training_loss", trainer.state.global_step, trainer.state.loss)
             writer.add_scalar("validation_loss", trainer.state.global_step, trainer.state.eval_loss)
             writer.add_scalar("WER", trainer.state.global_step, trainer.state.eval_metrics["wer"])
-            # writer.add_scalar("F1", trainer.state.global_step, trainer.state.eval_metrics["f1"])
+            writer.add_scalar("F1", trainer.state.global_step, trainer.state.eval_metrics["f1"])
             writer.flush()
-            #----------------------------end of logging --------------------------------
+    #----------------------------------------------- End of logging -----------------------------------------------
 
         if trainer.state.global_step >= training_args.max_steps:
             break
@@ -368,13 +370,21 @@ def SpeechLaughWhisper(args):
 # MAIN FUNCTION ----------------------------------------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
+    
+    # Data Configs
     parser.add_argument("--train_file_path", default="./datasets/train_switchboard.csv", type=str, required=False, help="Path to the train.csv file")
     parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
     parser.add_argument("--processed_dataset", default=False, type=bool, required=False, help="Whether or not do the prepare_dataset")
     parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
+    
+    # Model Configs
     parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--pretrained_model_dir", default="./ref_models/pre_trained/", type=str, required=False, help="Name of the model")
     parser.add_argument("--model_output_dir", default="./vocalwhisper/speechlaugh-whisper-small/", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
+    parser.add_argument("--evaluate_dir", default="./evaluate", type=str, required=False, help="Path to the evaluation directory")
+
+    # Training Configs
     parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
@@ -383,13 +393,13 @@ if __name__ == "__main__":
     parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
     parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
     parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
-    #----------------------------------------------------------
+    #------------------------------------------------------------------------------
     args = parser.parse_args()
 
     load_dotenv()
 
     try:
-        # login(token=os.getenv("HUGGINGFACE_TOKEN"))
+        login(token=os.getenv("HUGGINGFACE_TOKEN"))
         SpeechLaughWhisper(args)
     except OSError as error:
         print(error)
