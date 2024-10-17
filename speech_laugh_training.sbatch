@@ -9,10 +9,10 @@
 
 # Load modules (adjust versions as needed)
 module load microsoft/vscode/1.78.2
-module load nvidia/cuda-11.8
-module load nvidia/cuda-11.8_nccl-2.16
-module load nvidia/cuda-11.8_cudnn-8.6
-module load nvidia/cuda-11.8_tensorrt-8.6
+module load nvidia/cuda-11.5
+module load nvidia/cuda-11.5_nccl-2.11
+module load nvidia/cuda-11.5_cudnn-8.4
+module load nvidia/cuda-11.5_tensorrt-8.4
 module load nvidia/nvtop
 
 #if we use laplace GPU instead
@@ -34,13 +34,13 @@ source activate .venv
 
 # Run your script with the appropriate arguments
 
-# preprocess 
-python preprocess.py \
-    --data_names switchboard \
-    --csv_paths ./datasets/combined/ \
-    --to_csv True \
-    --do_combine True \
-    --train_val_split True \
+# If preprocess 
+# python preprocess.py \
+#     --data_names switchboard \
+#     --csv_dir ./datasets/combined/ \
+#     --to_csv True \
+#     --do_combine True \
+#     --train_val_split True \
 
 python SpeechLaughRecognition.py \
     --train_file_path ./datasets/combined/train_switchboard.csv \
