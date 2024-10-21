@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=evaluate-whisper      # Job name
-#SBATCH -c 16                     # Number of cores
+#SBATCH --job-name=evaluate-whisper         # Job name
+#SBATCH -c 16                               # Number of cores
 #SBATCH --gres=gpu:ampere:1                 # Request 1 GPU
-#SBATCH --time=24:00:00              # Set a walltime limit
-#SBATCH --mail-type=BEGIN,END,FAIL    # Email status changes
+#SBATCH --time=24:00:00                     # Set a walltime limit
+#SBATCH --mail-type=BEGIN,END,FAIL          # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
 # Load modules (adjust versions as needed)
@@ -29,13 +29,13 @@ source activate .venv
 
 # Evaluate whisper-small
 python evaluate_whisper.py \
-    --csv_file ./datasets/combined/val_switchboard.csv \n
-    --model_path openai/whisper-small \n
-    --output_file ./alignment_transcripts/alignment_whisper_small \n
+    --csv_file ./datasets/combined/val_switchboard.csv \
+    --model_path openai/whisper-small \
+    --output_file ./alignment_transcripts/alignment_whisper_small \
 
 # Evaluate whisper-large
 python evaluate_whisper.py \
-    --csv_file ./datasets/combined/val_switchboard.csv \n
-    --model_path openai/whisper-large \n
-    --output_file ./alignment_transcripts/alignment_whisper_large \n
+    --csv_file ./datasets/combined/val_switchboard.csv \
+    --model_path openai/whisper-large \
+    --output_file ./alignment_transcripts/alignment_whisper_large \
 
