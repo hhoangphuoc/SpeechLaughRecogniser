@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=evaluate-whisper         # Job name
 #SBATCH -c 16                               # Number of cores
+#SBATCH --mem=16G                           # Request 16GB memory
 #SBATCH --gres=gpu:ampere:1                 # Request 1 GPU
 #SBATCH --time=24:00:00                     # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL          # Email status changes
@@ -30,12 +31,12 @@ source activate .venv
 # Evaluate whisper-small
 python evaluate_whisper.py \
     --csv_file ./datasets/combined/val_switchboard.csv \
-    --model_path openai/whisper-small \
-    --output_file ./alignment_transcripts/alignment_whisper_small \
+    --model_name openai/whisper-small \
+    --output_file ./alignment_transcripts/alignment_whisper_small.txt \
 
 # Evaluate whisper-large
 python evaluate_whisper.py \
     --csv_file ./datasets/combined/val_switchboard.csv \
-    --model_path openai/whisper-large \
-    --output_file ./alignment_transcripts/alignment_whisper_large \
+    --model_name openai/whisper-large \
+    --output_file ./alignment_transcripts/alignment_whisper_large.txt \
 

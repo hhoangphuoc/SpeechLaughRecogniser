@@ -5,6 +5,7 @@ import jiwer
 import argparse
 import torch
 import os
+import librosa
 
 # Processing output for evaluation
 output_transform = jiwer.Compose([
@@ -39,7 +40,7 @@ def evaluate_whisper(
 
     df = pd.read_csv(csv_file) # Load the dataset
 
-    wer_metric = evaluate.load("wer", cache_dir=evaluate_dir)# Load the WER metric
+    # wer_metric = evaluate.load("wer", cache_dir=evaluate_dir)# Load the WER metric
 
     # check GPU availability    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,15 +53,19 @@ def evaluate_whisper(
     with open(output_file, "w") as f:
         f.write(f"Evaluate model - {model_name} \n\n")
         for index, row in df.iterrows():
-            audio_path = row['audio']
+            audio_path = row['audio'] # Audio path
+
+            audio, sr = librosa.load(path=audio_path, sr=16000) # Load the audio
+
             reference_transcript = row['transcript'] # Reference transcript
 
             # Load and preprocess the audio
-            audio = processor.feature_extractor(raw_speech=audio_path, return_tensors="pt").input_features
+            audio = processor.feature_extractor(raw_speech=audio, sampling_rate=sr,return_tensors="pt").input_features
             audio = audio.to(device) # Move audio data to GPUs
+            attention_mask = torch.ones(audio.shape, device=audio.device) # Attention mask
 
             # Generate the predicted transcript
-            predicted_ids = model.generate(audio)
+            predicted_ids = model.generate(inputs=audio, attention_mask=attention_mask,language="en")
             predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0] # Hypothesis Transcript
 
             # Visualise alignment with Jiwer
@@ -73,7 +78,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate the Whisper model on Switchboard dataset.")
     parser.add_argument("--csv_file", type=str, required=True, default="./datasets/combined/val_switchboard.csv", help="Path to the CSV file containing audio paths and transcript.")
     parser.add_argument("--model_name", type=str, default="openai/whisper-small", help="Name of the Whisper model to use.")
-    parser.add_argument("--output_file", type=str, default="./alignment_transcripts/alignment_whisper_small", help="File to write the alignment transcripts.")
+    parser.add_argument("--output_file", type=str, default="./alignment_transcripts/alignment_whisper_small.txt", help="File to write the alignment transcripts.")
 
     args = parser.parse_args()
 
