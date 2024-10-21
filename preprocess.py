@@ -26,7 +26,7 @@ def process_dataset(csv_input_path):
 
     df["sampling_rate"] = df["sampling_rate"].apply(lambda x: int(x))
     #shuffle the dataframe
-    df = train_df.sample(frac=1).reset_index(drop=True)
+    df = df.sample(frac=1).reset_index(drop=True)
     dataset = Dataset.from_pandas(df)
     
     #Resample the audio_array column if it not 16kHz
