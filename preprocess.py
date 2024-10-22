@@ -23,7 +23,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 #--------------------------------------------------
 def split_dataset(
         dataset, 
-        split_ratio=0.9):
+        split_ratio=0.9,
+        split="train" # only get the train set
+    ):
     """
     Split the dataset into train and validation set
     Args:
@@ -37,7 +39,13 @@ def split_dataset(
     switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=True)
     train_switchboard = switchboard["train"]
     test_switchboard = switchboard["test"]
-    return train_switchboard, test_switchboard 
+
+    if split == "train":
+        return train_switchboard
+    elif split == "test":
+        return test_switchboard
+    else:
+        return train_switchboard, test_switchboard 
 
 #--------------------------------------------------
 # PROCESS A CSV FILE TO A HUGGINGFACE DATASET
