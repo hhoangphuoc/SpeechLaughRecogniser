@@ -10,6 +10,7 @@ def cut_audio_based_on_transcript_segments(
     audio_path, #path to original audio to be segmented
     transcript_lines, #list of tuples: (start_time, end_time, text)
     padding_time=0.2, #seconds
+    sample_rate=16000,
     data_name="switchboard",
     audio_segments_directory=""):
     """
@@ -17,13 +18,17 @@ def cut_audio_based_on_transcript_segments(
     and only apply for the dataset which have the transcripts: switchboard, ami
     after segmenting the audio, store the new audio segments in seperate folders
     and align it with the transcripts, in the csv file
+
+    NOTES: Sample rate need to make sure to be the same =16kHz during segmentations
     """ 
     # load audio
-    audio, sr = librosa.load(audio_path)
+    audio, orig_sr = librosa.load(audio_path)
 
     #resample audio to 16kHz
-    if sr != 16000:
-        audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000)
+    if orig_sr != sample_rate:
+        audio = librosa.resample(y=audio, orig_sr=orig_sr, target_sr=sample_rate)
+    else:
+        sample_rate = orig_sr
 
     filename = os.path.basename(audio_path).split(".")[0] #sw02001A
     #Extract timestamps from transcript_lines
@@ -39,15 +44,18 @@ def cut_audio_based_on_transcript_segments(
         print(f"Cut audio {filename} segment:({start_time} - {end_time}) with text: {text}")
         if text is None or not text.strip():
             continue
-        # if not text.strip():
-        #     continue
 
+        #FIXME: to ensure, rechecking if the text is [silence] or [noise], or silence, or noise, we skip
+        if text.strip() == "[silence]" or text.strip() == "[noise]" or text.strip() == "[vocalized-noise]":
+            continue
+
+        # FIXME: KEEP IN MIND THE SAMPLE RATE
         # segmenting audio sample
-        start_sample = librosa.time_to_samples(start_time, sr=sr)
-        end_sample = librosa.time_to_samples(end_time, sr=sr)
+        start_sample = librosa.time_to_samples(start_time, sr=sample_rate)
+        end_sample = librosa.time_to_samples(end_time, sr=sample_rate)
         
         # Calculate padding samples and add these to start and end
-        padding_samples = int(padding_time * sr)
+        padding_samples = int(padding_time * sample_rate)
         start_sample_padded = max(0, start_sample - padding_samples)
         end_sample_padded = min(len(audio), end_sample + padding_samples)
 
@@ -67,7 +75,7 @@ def cut_audio_based_on_transcript_segments(
         end_time_str=str(end_time).replace(".","")
         output_file = f"{audio_segments_directory}/{filename}_{start_time_str}_{end_time_str}.wav"
 
-        sf.write(output_file, audio_segment, sr)
+        sf.write(output_file, audio_segment, sample_rate)
 
         #append to list
         audio_file_segments.append(output_file)

@@ -428,7 +428,7 @@ if __name__ == "__main__":
                     data_name = data_name,
                     audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
                     transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
-                    audio_segment_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments"),
+                    audio_segment_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "segments"),
                     csv_dir = args.csv_dir,
                     to_dataset=args.to_dataset,
                     to_csv = args.to_csv

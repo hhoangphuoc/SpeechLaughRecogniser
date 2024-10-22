@@ -31,6 +31,6 @@ source activate .venv
 # preprocess
 python preprocess.py \
     --data_names switchboard \
-    --csv_dir ./datasets/processed_dataset/ \
+    --csv_dir ./datasets/processed/ \
     --to_dataset True \
     --to_csv False \
