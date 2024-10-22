@@ -1,6 +1,7 @@
 import pandas as pd
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import evaluate
+import datasets
 import jiwer
 import argparse
 import torch
@@ -9,13 +10,11 @@ import librosa
 
 # Processing output for evaluation
 output_transform = jiwer.Compose([
-    jiwer.RemovePunctuation(), #remove punctuation
     jiwer.ExpandCommonEnglishContractions(), # can't -> cannot, it's -> it is
     jiwer.RemoveEmptyStrings(), # remove empty strings
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(), 
-    # jiwer.ReduceToListOfListOfWords(),
-    # jiwer.ReduceToSingleSentence()
+
 ])
 
 def evaluate_whisper(
@@ -55,17 +54,20 @@ def evaluate_whisper(
         for index, row in df.iterrows():
             audio_path = row['audio'] # Audio path
 
-            audio, sr = librosa.load(path=audio_path, sr=16000) # Load the audio
+            audio, sr = librosa.load(audio_path) # Load the audio
+
+            if sr != 16000:
+                audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000) # Resample the audio to 16kHz
 
             reference_transcript = row['transcript'] # Reference transcript
 
             # Load and preprocess the audio
-            audio = processor.feature_extractor(raw_speech=audio, sampling_rate=sr,return_tensors="pt").input_features
+            audio = processor.feature_extractor(raw_speech=audio, sampling_rate=16000,return_tensors="pt").input_features
             audio = audio.to(device) # Move audio data to GPUs
             attention_mask = torch.ones(audio.shape, device=audio.device) # Attention mask
 
             # Generate the predicted transcript
-            predicted_ids = model.generate(inputs=audio, attention_mask=attention_mask,language="en")
+            predicted_ids = model.generate(inputs=audio, attention_mask=attention_mask)
             predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0] # Hypothesis Transcript
 
             # Visualise alignment with Jiwer

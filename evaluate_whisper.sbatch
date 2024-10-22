@@ -35,8 +35,8 @@ python evaluate_whisper.py \
     --output_file ./alignment_transcripts/alignment_whisper_small.txt \
 
 # Evaluate whisper-large
-python evaluate_whisper.py \
-    --csv_file ./datasets/combined/val_switchboard.csv \
-    --model_name openai/whisper-large \
-    --output_file ./alignment_transcripts/alignment_whisper_large.txt \
+# python evaluate_whisper.py \
+#     --csv_file ./datasets/combined/val_switchboard.csv \
+#     --model_name openai/whisper-large \
+#     --output_file ./alignment_transcripts/alignment_whisper_large.txt \
 

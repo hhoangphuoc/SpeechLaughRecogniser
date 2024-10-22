@@ -7,13 +7,12 @@
 
 import re
 import os
+import jiwer
 # import openai #for clean and format transcripts
 
 #------- SWITCHBOARD TRANSCRIPT PATTERN -----------------------------------------------------------------------------#
 switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"  # sw.. <start_time> <end_time> <text>
-#------------------------------------------------
-
-
+#-------------------------------------------------------------------------------------------------------------------#
 
 # SETS OF SPECIAL PATTERNS FROM ORIGINAL SWITCHBOARD TRANSCRIPT THAT NEED TO BE HANDLED ---------------------------------#
 word_pattern = r"\b\w+\b"
@@ -35,15 +34,33 @@ partialword_pattern = r"-\[\w+['\w+]\]\w+|\w+\[\w+['\w+]\]-"  # partial word: w[
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
 #-----------------------------------------------------------------------------------------------#
+transcript_processing_composer = jiwer.Compose([
+    jiwer.RemoveSpecificWords(['[silence]', '[noise]', '[vocalized-noise]', '<b_aside>', '<e_aside>']),
+    jiwer.RemovePunctuation(),
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.RemoveMultipleSpaces(),
+    jiwer.Strip(),
+    jiwer.RemoveEmptyStrings(),
+    jiwer.ToLowerCase(),
+    # after to lower case, uppercase the word [laughter]
+    jiwer.SubstituteWords({
+        '[laughter]': '[LAUGHTER]',
+    })
+])
+
+#--------------------------------
+# Clean and format the transcript sentence with Jiwer Compose
+#--------------------------------
+def clean_transcript_sentence(sentence):
+    """
+    Clean and format the transcript text using Jiwer Componse
+    """
+    return transcript_processing_composer(sentence)
 
 
-
-#-----------------------------------------------------------------------------------------------#
-# Clean and format transcripts
-def clean_transcript(transcript):
-    # TODO: Could apply GPT-4o or other LLMs to clean and format transcripts
-    return transcript
-
+#--------------------------------
+# Retokenize the transcript line based on the given pattern
+#--------------------------------
 
 def retokenize_transcript_pattern(transcript_line):
     """
@@ -52,48 +69,40 @@ def retokenize_transcript_pattern(transcript_line):
     - Remove the line that has only "[silence]" or "[noise]"
     - Uppercase the line that only contains vocalsound
     - For the word in the line that matches filler, speech_laugh, noise:
-        - Ignore the noise
-        - Uppercase the filler
+
+        - Remove the partial word
         - Replace the speech_laugh with the corresponding token
+        - Remove the pronunciation variant
+        - Remove the coinages
+        - Keep the normal word
+
+    Args:
+        transcript_line (str): A original line of transcript text.
+
+    Returns:
+        text (str): A retokenized line of transcript text, processed based on the given rules
     """
     #initially, lowercase the entire line
     transcript_line = transcript_line.lower()
-    #if the line only contains "[silence]" or "[noise]", ignore the line and not call this function
 
-    #TODO: Apply clean text function to change the transcript into bare text
-    # transcript_line = clean_text(transcript_line)
-
-    if transcript_line.strip() == "[silence]" or transcript_line.strip() == "[noise]" or transcript_line.strip() == "[vocalize-noise]":
-        return #ignore the line and not call this function
-    else:
-        # transform the word in the line when it matches the pattern
-        new_line = ""
-        for word in transcript_line.split():
-            if re.match(speech_laugh_pattern, word):
-                # print("Matched speech_laugh pattern:", word)
-                # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
-                word = "[SPEECH_LAUGH]"
-            elif re.match(laughter_pattern, word):
-                # word = match.group(0)
-                # print("Matched laughter pattern:", word)
-                word = word.upper() #[LAUGHTER]
-            if re.match(partialword_pattern, word):
-                # if the word is a partial word, remove the partial word
-                continue
-            elif re.match(pronunciation_variant_pattern, word):
-                word = re.sub(r"_1", "", word)
-            elif re.match(coinages_pattern, word):
-                word = re.sub(r"{|}", "", word)    
-            elif re.match(noise_pattern, word) or re.match(pause_pattern, word) or re.match(asides_pattern, word):
-                continue  
-            else:
-                # normal word
-                word = word
-            
-            new_line += word + " "
-        transcript_line = new_line.strip()
+    new_line = ""
+    for word in transcript_line.split():
+        if re.match(partialword_pattern, word):
+            # if the word is a partial word, remove the partial word
+            continue
+        elif re.match(speech_laugh_pattern, word):
+            # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
+            word = "[SPEECH_LAUGH]"
+        elif re.match(pronunciation_variant_pattern, word):
+            word = re.sub(r"_1", "", word)
+        elif re.match(coinages_pattern, word):
+            word = re.sub(r"{|}", "", word)    
+        else:
+            # normal word
+            word = word
         
-        # print("Processed Transcript line:", transcript_line)
+        new_line += word + " "
+        transcript_line = new_line.strip()
     return transcript_line
 
 #------------------------
@@ -101,9 +110,31 @@ def retokenize_transcript_pattern(transcript_line):
 #------------------------
 def process_switchboard_transcript(
         audio_file, 
-        transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts'):
+        transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts'
+        ):
     """
     Processes a Switchboard transcript file.
+    The transcript file is expected to be in the format:
+    sw02001A 0.000 0.500 sentence
+    The transcript was processed in following steps:
+    1. Read the transcript file. (specified by sw{file_prefix}{speaker}-ms98-a-trans.text)
+    2. Find the sentence pattern in the transcript file: extract the start_time, end_time, and text.
+    3. Preprocess the transcript lines with Jiwer Compose, including: 
+        - remove [silence], [noise], [vocalized-noise], <b_aside>, <e_aside>
+        - remove puctuation (, . ! ?)
+        - expand common English contractions (e.g., "I'm" -> "I am")
+        - remove multiple spaces
+        - strip the line
+        - remove empty strings
+        - lowercase the line
+        - substitute [laughter] with [LAUGHTER]
+    4. Process each line of the transcript sentence and process more specific patterns, including:
+        - Remove the partial word
+        - Replace the speech_laugh with [SPEECH_LAUGH]
+        - Remove the pronunciation variant
+        - Remove the coinages
+        - Keep the normal word
+        This function calling the retokenize_transcript_pattern().
 
     Args:
         audio_file (str): Name of the audio file (e.g., 'sw02001A.wav').
@@ -122,32 +153,53 @@ def process_switchboard_transcript(
     transcript_file = f"sw{file_prefix}{speaker}-ms98-a-trans.text"
     transcript_path = os.path.join(transcript_dir, subfolder1, subfolder2, transcript_file)
 
+    print(f"Processing transcript: {transcript_path}")
+    #FIXME: REMOVE ONCE THE TRANSCRIPTS ARE MATCH PERFECTLY ----------
+    transcript_lines_debug = os.path.abspath("../debug/switchboard_transcripts_debug.txt")
+    #-----------------------------------------------------------------
     try:
         with open(transcript_path, 'r') as f:
+# 1. Read the transcript file
             transcript_lines = f.readlines()
+            new_transcript_lines = []
+            # with open(transcript_lines_debug, 'a') as f2:
+            #     f2.write(f"Transcript file: {transcript_path}\n")
+            #     f2.write(f"Transcript lines:\n")
+            #     count_line = 0
+            for line in transcript_lines:
+                if not line.strip():
+                    continue #skip the empty line
 
-        
-        new_transcript_lines = []
-        for line in transcript_lines:
-            if not line.strip():
-                continue #skip the line
+# 2. Match the sentence pattern in the transcript file and extract the start_time, end_time, and text
+
+                match = re.match(switchboard_pattern, line)  # sw.. <start_time> <end_time> <text>
+                if match:
+                    start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
+
+# 3. processing the sentence by Jiwer Compose 
+                    # text = text.strip()
+                    # if text == "[silence]" or text == "[noise]" or text == "[vocalized-noise]":
+                    #     continue #ignore the line and not call this function
+                    # else: 
+
+                    text = clean_transcript_sentence(text)
+
+# 4. Retokenize the sentence based on the specific patterns
+
+                    retokenize_text = retokenize_transcript_pattern(text) # return the retokenized text (either removed or replaced)
+                    # f2.write(f"Retokenized Text: {retokenize_text}\n")
+                    # f2.write(f"({start_time},{end_time},{retokenize_text})\n")
+                    new_transcript_lines.append((start_time, end_time, retokenize_text))
             
-            match = re.match(switchboard_pattern, line)  # sw.. <start_time> <end_time> <text>
-            if match:
-                start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
-                text = retokenize_transcript_pattern(text)
-                
-                ##TODO: apply clean_transcript if needed
-                #text = clean_transcript(text)
-                new_transcript_lines.append((start_time, end_time, text))
-            else:
-                continue
-        return new_transcript_lines
-
+            # f2.write("\n\n")
+            return new_transcript_lines
     except FileNotFoundError:
         print(f"Warning: Transcript file not found: {transcript_path}")
         return None
 
+#--------------------------------
+# Process the AMI dataset transcript
+#--------------------------------
 def process_ami_transcript(transcript_line):
     """
     Process the transcript of AMI dataset

@@ -5,15 +5,44 @@ import numpy as np
 import librosa
 import os
 import argparse
+import torch
 
-from datasets import load_dataset, Dataset, Audio
+from datasets import load_dataset, Dataset, DatasetDict, Audio
 
 from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
 from utils.audio_process import cut_audio_based_on_transcript_segments
 
 import utils.params as prs
 
-def process_dataset(csv_input_path):
+
+# Set the device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+#--------------------------------------------------
+# SPLIT THE HUGGINGFACE DATASET INTO TRAIN AND TEST SET
+#--------------------------------------------------
+def split_dataset(
+        dataset, 
+        split_ratio=0.9):
+    """
+    Split the dataset into train and validation set
+    Args:
+    - dataset: HuggingFace Dataset object
+    - split_ratio: ratio of the train set
+    Return:
+    - train_dataset: HuggingFace Dataset object
+    - test_dataset: HuggingFace Dataset object
+    """
+    switchboard = DatasetDict()
+    switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=True)
+    train_switchboard = switchboard["train"]
+    test_switchboard = switchboard["test"]
+    return train_switchboard, test_switchboard 
+
+#--------------------------------------------------
+# PROCESS A CSV FILE TO A HUGGINGFACE DATASET
+#--------------------------------------------------
+def csv_to_dataset(csv_input_path):
     """
     Load the dataset from the csv file and convert to HuggingFace Dataset object
     Args:
@@ -113,10 +142,10 @@ def combine_data_csv(
     except ValueError as e:
         print("Unable to combine the datasets: {}".format(e))
 
-#-------------------------------------------------------------------------------------------------------------
 
-# PROCESSING A CORPUS TO A DATASET
-
+#--------------------------------------------------
+# PROCESSING A CORPUS TO A DATASET / CSV FILE
+#--------------------------------------------------
 def switchboard_to_ds(
     data_name="switchboard", #also implement for AMI, VocalSound, LibriSpeech, ...
     audio_dir='/switchboard_data/switchboard/audio_wav', 
@@ -157,42 +186,43 @@ def switchboard_to_ds(
                 audio_file_segments, audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
                 audio_path, 
                 transcript_lines,
-                padding_time=0.3,
+                padding_time=0.2,
                 data_name=data_name,
                 audio_segments_directory=audio_segment_dir,
                 )
             else:
                 print(f"Skipping audio file due to missing transcript: {audio_file}")
-        if to_dataset:
-            batch_audio.extend(
-                [{"path": path, "array": segment, "sampling_rate": 16000}
-                 for path, segment in zip(audio_file_segments, audio_segments)
-                 ])
-        else:
+                continue
+            
+            # Append to the batch for each audio file
             batch_audio.extend(audio_file_segments)
             batch_sr.extend([16000]*len(audio_file_segments))
-        batch_transcript.extend(transcripts_segments)
-    print(f"Successfully combined audio and transcript and added to batch")
-    
+            batch_transcript.extend(transcripts_segments)
+
+    print(f"Successfully combined audio and transcript segments for [{data_name}] data")
+    print(f"Start creating dataset...")
     df = pd.DataFrame({
         "audio": batch_audio, #batch["audio"],
         "sampling_rate": batch_sr, #batch["sampling_rate"],
         "transcript": batch_transcript, #batch["transcript"]
     })
 
-    # remove empty transcript rows
-    df.dropna(inplace=True)
-    df = df[df["transcript"].apply(lambda x: len(x) > 0)]
 
+    if to_dataset:
+        print(f"Saving {data_name} to HuggingFace Dataset on disk...")
+        switchboard_dataset = Dataset.from_pandas(df)
+        switchboard_dataset = switchboard_dataset.cast_column("audio", Audio(sampling_rate=16000))
+
+        # Save the dataset to disk
+        switchboard_dataset.save_to_disk(
+            dataset_path=f"{csv_dir}/{data_name}_dataset",
+            num_proc=8 # working on CPU so try num_proc=8 for 8 cores
+        )
     if to_csv:
         csv_path = os.path.join(csv_dir, data_name)
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
-    elif to_dataset:
-        # Convert the dataframe to dataset
-        switchboard_dataset = Dataset.from_pandas(df)
-        switchboard_dataset = switchboard_dataset.cast_column("audio", Audio(sampling_rate=16000))
 
     return switchboard_dataset if to_dataset else df
 def vocalsound_to_ds(
@@ -376,12 +406,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip_process", type=bool, default=False, help="Determine to skip or run processing steps for each dataset separately")
     parser.add_argument("--data_names", nargs="+", default=["switchboard", "ami", "vocalsound"], required=False, help="List of the datasets to process")
-    parser.add_argument("--csv_dir", type=str, default="../datasets/combined/", help="Path to the directory containing audio files")
-    parser.add_argument("--to_csv", type=bool, default=True, help="Whether to save the processed data to csv or not")
-    parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
-    parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")
+    
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the dataset or not")
+    
+    parser.add_argument("--csv_dir", type=str, default="../datasets/combined/", help="Path to the directory containing audio files")
+    parser.add_argument("--to_csv", type=bool, default=False, help="Whether to save the processed data to csv or not")
+    parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
     parser.add_argument("--noise_frac", type=float, default=0.01, help="Fraction of noise data to added to the dataset")
+    parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")
+    
 #-------------------------------------------------------------------------------------------------------------
 
     args = parser.parse_args()
@@ -397,9 +430,9 @@ if __name__ == "__main__":
                     transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
                     audio_segment_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments"),
                     csv_dir = args.csv_dir,
+                    to_dataset=args.to_dataset,
                     to_csv = args.to_csv
                 )
-
             elif data_name == "vocalsound":
                 df = vocalsound_to_ds(
                     data_name = data_name,
@@ -407,7 +440,6 @@ if __name__ == "__main__":
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
                 )
-
             elif data_name == "ami":
                 df = ami_to_ds(
                     data_name = data_name,
@@ -422,8 +454,13 @@ if __name__ == "__main__":
                 )
     #----------------------------End process each dataset separately--------------------------------------------
 
+    #--------------------------------------------
+    # PROCESS COMBINED DATASETS WITH CSV FILES
+    #--------------------------------------------
     if args.do_combine:
+        print("Combining csv files together...")
         if args.train_val_split:
+            print("Spliting into train and val csv files for these data...")
             train_df, val_df = combine_data_csv(
                 csv_dir=args.csv_dir,
                 combined_data_list=args.data_names,
@@ -433,11 +470,10 @@ if __name__ == "__main__":
                 to_csv=args.to_csv
             )
         else:
+            print("Not splitting. Combining these data into one csv file...")
             combined_df = combine_data_csv(
                 csv_dir=args.csv_dir,
                 noise_frac=args.noise_frac,
                 train_val_split=args.train_val_split,
                 to_csv=args.to_csv
             )
-    else:
-        print("Not combining any datasets, only separate csv file provides")

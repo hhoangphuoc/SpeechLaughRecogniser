@@ -16,7 +16,7 @@ from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 #----------------------------------------------------------
 
-from preprocess import process_dataset
+from preprocess import process_csv_to_dataset, split_dataset
 
 # Evaluation Metrics------
 import pandas as pd
@@ -136,9 +136,15 @@ def SpeechLaughWhisper(args):
         }
         for i in range(len(examples)):
             example = {}
-
+            
+            # process each audio
             example_audio = examples["audio"][i]
+            if example_audio is None:
+                continue
+
             example_transcript = examples["transcript"][i]
+            if example_transcript is None:
+                continue
 
             audio = example_audio["array"] 
             if type(audio) is not np.ndarray:
@@ -216,34 +222,52 @@ def SpeechLaughWhisper(args):
     processed_path = args.processed_file_path
     train_dataset, eval_dataset = None, None
     if args.processed_dataset:
+        # Process Train dataset ------------------------------------------------
         if not os.path.exists(processed_path+"train"):
             os.makedirs(processed_path +"train", exist_ok=True)
-            train_dataset = process_dataset(args.train_file_path)
-            print("Train dataset to process: ", train_dataset)
-            train_dataset = train_dataset.map(
-                prepare_dataset, 
-                remove_columns=train_dataset.column_names,
-                num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-                # batched=True,
-                # batch_size=args.batch_size,
-                # load_from_cache_file=True
-                )
-            # save the processed dataset
-            train_dataset.save_to_disk(processed_path+"train")
-            
+        
+        train_dataset = load_from_disk(processed_path + "train")
+        # if train_dataset is None:
+        #     print("Train dataset is None. Process it again...")
+
+        #     train_dataset = process_dataset(args.train_file_path)
+        #     print("Train dataset to process: ", train_dataset)
+        #     train_dataset = train_dataset.map(
+        #         prepare_dataset, 
+        #         remove_columns=train_dataset.column_names,
+        #         num_proc=torch.cuda.device_count(), #use all available GPUs for processing
+        #         batched=True,
+        #         batch_size=8,
+        #         load_from_cache_file=True
+        #         )
+        #     # save the processed dataset
+        #     train_dataset.save_to_disk(
+        #         processed_path+"train",
+        #         num_proc=torch.cuda.device_count()
+        #         )
+        
+        # Process Eval dataset ------------------------------------------------
         if not os.path.exists(processed_path+"eval"):
             os.makedirs(processed_path + "eval", exist_ok=True)
+        
+        # eval_dataset = load_from_disk(processed_path + "eval")
+        if eval_dataset is None:
+            print("Eval dataset is None. Process it again...")
             eval_dataset = process_dataset(args.eval_file_path)
+
             print("Eval dataset to process: ", eval_dataset)
             eval_dataset = eval_dataset.map(
                 prepare_dataset, 
                 remove_columns=eval_dataset.column_names,
                 num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-                # batched=True,
-                # batch_size=args.batch_size,
-                # load_from_cache_file=True
+                batched=True,
+                batch_size=4,
+                load_from_cache_file=True
                 )
-            eval_dataset.save_to_disk(processed_path+"eval")
+            eval_dataset.save_to_disk(
+                processed_path+"eval",
+                num_proc=torch.cuda.device_count()
+                )
     else:
         print("Loading processed dataset from disk....")
         train_dataset = load_from_disk(processed_path + "train")
@@ -399,7 +423,7 @@ if __name__ == "__main__":
     load_dotenv()
 
     try:
-        login(token=os.getenv("HUGGINGFACE_TOKEN"))
+        # login(token=os.getenv("HUGGINGFACE_TOKEN"))
         SpeechLaughWhisper(args)
     except OSError as error:
         print(error)

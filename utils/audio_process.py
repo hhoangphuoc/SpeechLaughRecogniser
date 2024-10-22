@@ -36,6 +36,7 @@ def cut_audio_based_on_transcript_segments(
     #transcript_line format: (start_time, end_time, text)
     for start_time, end_time, text in transcript_lines:
         # if the text is empty string or None, skip
+        print(f"Cut audio {filename} segment:({start_time} - {end_time}) with text: {text}")
         if text is None or not text.strip():
             continue
         # if not text.strip():
