@@ -32,7 +32,7 @@ source activate .venv
 python evaluate_whisper.py \
     --dataset_path ./datasets/processed/switchboard_dataset\
     --model_name openai/whisper-small \
-    --output_file ./alignment_transcripts/alignment_small.txt \
+    --output_file ./alignment_transcripts/alignment_whisper_small.txt \
 
 # Evaluate whisper-large
 # python evaluate_whisper.py \

@@ -8,5 +8,6 @@ audio_segments/
 cache_data/
 datasets/processed_dataset/
 datasets/processed/
+datasets/switchboard/
 ref_models/pre_trained
 .env
