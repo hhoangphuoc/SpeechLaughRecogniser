@@ -24,13 +24,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def split_dataset(
         dataset, 
         split_ratio=0.9,
-        split="train" # only get the train set
+        split="both" # get both train and test set
     ):
     """
     Split the dataset into train and validation set
     Args:
     - dataset: HuggingFace Dataset object
     - split_ratio: ratio of the train set
+    - split: "train" or "test" or "both" to return both train and test set
     Return:
     - train_dataset: HuggingFace Dataset object
     - test_dataset: HuggingFace Dataset object
@@ -45,6 +46,7 @@ def split_dataset(
     elif split == "test":
         return test_switchboard
     else:
+        print(f"Split = {split}. Returning both train and test set...")
         return train_switchboard, test_switchboard 
 
 #--------------------------------------------------

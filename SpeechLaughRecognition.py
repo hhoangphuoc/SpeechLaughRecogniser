@@ -16,21 +16,19 @@ from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 #----------------------------------------------------------
 
-from preprocess import process_csv_to_dataset, split_dataset
+from preprocess import switchboard_to_ds, split_dataset, process_csv_to_dataset
+import utils.params as prs
 
 # Evaluation Metrics------
 import pandas as pd
 import evaluate
 import jiwer
 output_transform = jiwer.Compose([
-    jiwer.RemovePunctuation(),
-    # ToLowerCase(),
+    # jiwer.RemovePunctuation(),
     jiwer.ExpandCommonEnglishContractions(),
     jiwer.RemoveEmptyStrings(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
-    jiwer.ReduceToListOfListOfWords(),
-    jiwer.ReduceToSingleSentence()
 ])
 
 
@@ -159,8 +157,8 @@ def SpeechLaughWhisper(args):
             input_features = feature_extractor(audio, sampling_rate=sampling_rate, return_tensors="pt").input_features[0].to(device)
             labels = tokenizer(example_transcript, return_tensors="pt").input_ids.to(device)
 
-            example["input_features"] = input_features.cpu().numpy()
-            example["labels"] = labels.cpu()
+            example["input_features"] = input_features.cpu().numpy() #move back to CPU for storing
+            example["labels"] = labels.cpu() #move back to CPU for storing
 
             batch["input_features"].append(example["input_features"])
             batch["labels"].append(example["labels"])
@@ -184,25 +182,29 @@ def SpeechLaughWhisper(args):
         label_ids[label_ids == -100] = tokenizer.pad_token_id
 
         # we do not want to group tokens when computing the metrics
-        pred_transcripts = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #hypothesis transcript
-        ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #reference transcript
+        pred_transcripts = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #HYP transcript
+        ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #REF transcript
 
+        # Transform the transcripts so that they are in the correct format
+        # when computing the metrics
+        pred_transcripts = output_transform(pred_transcripts)
+        ref_transcripts = output_transform(ref_transcripts)
 
         # METRICS TO CALCULATE -------------------------------------------------
         wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
         f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
         exact_match = 100 * exact_match_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
 
-        # Compare details transcript between hypothesis and reference using jiwer
+        # Visualise the alignment between the HYP and REF transcript
         alignments = jiwer.process_words(
             reference=ref_transcripts, 
             hypothesis=pred_transcripts, 
             reference_transform=output_transform,
             hypothesis_transform=output_transform
-            )
+        )
         
         #write the alignment to the text file
-        with open("alignment.txt", "w") as f:
+        with open("alignment_transcripts/alignment_speechlaugh_whisper.txt", "w") as f:
             report_alignment = jiwer.visualize_alignment(
                 alignments,
                 show_measures=True, 
@@ -218,67 +220,50 @@ def SpeechLaughWhisper(args):
     
     #-----------------------------------------------------END OF MODEL CONFIG ---------------------------------------------
 
-    # --------------------------------------------------- LOAD DATASET AND PROCESSING -------------------------------------
-    processed_path = args.processed_file_path
-    train_dataset, eval_dataset = None, None
-    if args.processed_dataset:
-        # Process Train dataset ------------------------------------------------
-        if not os.path.exists(processed_path+"train"):
-            os.makedirs(processed_path +"train", exist_ok=True)
-        
-        train_dataset = load_from_disk(processed_path + "train")
-        # if train_dataset is None:
-        #     print("Train dataset is None. Process it again...")
-
-        #     train_dataset = process_dataset(args.train_file_path)
-        #     print("Train dataset to process: ", train_dataset)
-        #     train_dataset = train_dataset.map(
-        #         prepare_dataset, 
-        #         remove_columns=train_dataset.column_names,
-        #         num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-        #         batched=True,
-        #         batch_size=8,
-        #         load_from_cache_file=True
-        #         )
-        #     # save the processed dataset
-        #     train_dataset.save_to_disk(
-        #         processed_path+"train",
-        #         num_proc=torch.cuda.device_count()
-        #         )
-        
-        # Process Eval dataset ------------------------------------------------
-        if not os.path.exists(processed_path+"eval"):
-            os.makedirs(processed_path + "eval", exist_ok=True)
-        
-        # eval_dataset = load_from_disk(processed_path + "eval")
-        if eval_dataset is None:
-            print("Eval dataset is None. Process it again...")
-            eval_dataset = process_dataset(args.eval_file_path)
-
-            print("Eval dataset to process: ", eval_dataset)
-            eval_dataset = eval_dataset.map(
-                prepare_dataset, 
-                remove_columns=eval_dataset.column_names,
-                num_proc=torch.cuda.device_count(), #use all available GPUs for processing
-                batched=True,
-                batch_size=4,
-                load_from_cache_file=True
-                )
-            eval_dataset.save_to_disk(
-                processed_path+"eval",
-                num_proc=torch.cuda.device_count()
-                )
-    else:
-        print("Loading processed dataset from disk....")
-        train_dataset = load_from_disk(processed_path + "train")
-        eval_dataset = load_from_disk(processed_path + "eval")
+    # --------------------------------------------------------------------------------------------
+    #                           LOAD DATASET AND PROCESSING 
+    # --------------------------------------------------------------------------------------------
+    if args.processed_as_dataset:
+        # Load the dataset
+        print("Loading the dataset as HuggingFace Dataset...")
+        switchboard_dataset = load_from_disk(args.processed_file_path)
+        # Split the dataset into train and validation
+        train_dataset, test_dataset = split_dataset(switchboard_dataset, split_ratio=0.9, split="both")
+    # else:
+    #     # Load the dataset from csv file
+    #     print("Loading the dataset from CSV file...")
+    #     train_dataset = process_csv_to_dataset(args.train_file_path)
+    #     eval_dataset = process_csv_to_dataset(args.eval_file_path)
+    print("Dataset Loaded....\n")
+    print(f"Train Dataset: {train_dataset}")
+    print(f"Validation Dataset: {test_dataset}")
+    print("------------------------------------------------------")
     
-    print("Prepared Train dataset: ", train_dataset)
-    print("Prepared Val dataset: ", eval_dataset)
-    # --------------------------------------------- END OF LOADING DATASET -------------------------------------
+    #--------------------------------------------------------
+    #               PREPARE DATASET 
+    #--------------------------------------------------------
+    train_dataset = train_dataset.map(
+        prepare_dataset,
+        batched=True,
+        batch_size=16,
+        num_proc= torch.cuda.device_count(),
+        remove_columns=train_dataset.column_names,
+        desc="Preparing Training Dataset",
+    )
+    test_dataset = test_dataset.map(
+        prepare_dataset,
+        batched=True,
+        batch_size= 4,
+        num_proc= torch.cuda.device_count(),
+        remove_columns=test_dataset.column_names,
+        desc="Preparing Validation Dataset",
+    )
+    # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
-    # --------------------------------------------- TRAINING CONFIGURATION -----------------------------------------
-    
+
+    # ---------------------------------------------------------
+    #  TRAINING CONFIGURATION 
+    # ---------------------------------------------------------
     # Data Parallel for distributed training
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs for training!")
@@ -299,7 +284,7 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         eval_strategy="steps",
-        per_device_eval_batch_size=8,
+        per_device_eval_batch_size=4,
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
         logging_steps=25,
@@ -327,14 +312,16 @@ def SpeechLaughWhisper(args):
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
+        eval_dataset=test_dataset,
         data_collator=speech_laugh_collator,
         compute_metrics=compute_metrics,
         callbacks=[early_stopping],
     )
 
-    # ---------------------------------------------- Training Loop + Logging ------------------------------------------
-    
+
+    #----------------------------------------------------------------------
+    #                           TRAINING 
+    #----------------------------------------------------------------------
     # Create DataFrames to store the training and evaluation metrics
     training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1", "exact_match"])
 
@@ -363,7 +350,7 @@ def SpeechLaughWhisper(args):
             writer.add_scalar("WER", trainer.state.global_step, trainer.state.eval_metrics["wer"])
             writer.add_scalar("F1", trainer.state.global_step, trainer.state.eval_metrics["f1"])
             writer.flush()
-    #----------------------------------------------- End of logging -----------------------------------------------
+            #---------- end of logging -------------------------
 
         if trainer.state.global_step >= training_args.max_steps:
             break
@@ -375,8 +362,8 @@ def SpeechLaughWhisper(args):
 
     # Save the final model
     model.save_pretrained(args.model_output_dir + "model")
+    #-----------------------------------------end of training ------------------------------
 
-    #-----------------------------------------END OF TRAINING ------------------------------
 
     # PUSH MODEL TO HUB ----------------------------------------------------------
     # kwargs = {
@@ -396,11 +383,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Speech Laugh Recognition")
     
     # Data Configs
-    parser.add_argument("--train_file_path", default="./datasets/train_switchboard.csv", type=str, required=False, help="Path to the train.csv file")
-    parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
-    parser.add_argument("--processed_dataset", default=False, type=bool, required=False, help="Whether or not do the prepare_dataset")
+    parser.add_argument("--processed_as_dataset", default=False, type=bool, required=False, help="Whether or not process as Huggingface dataset")
     parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
     
+    #FIXME: IF LOAD FROM CSV FILE, NEED THESE FILE PATH ----------------------------------
+    parser.add_argument("--train_file_path", default="./datasets/train_switchboard.csv", type=str, required=False, help="Path to the train.csv file")
+    parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
+    #-------------------------------------------------------------------------------------
+
+
     # Model Configs
     parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--pretrained_model_dir", default="./ref_models/pre_trained/", type=str, required=False, help="Name of the model")

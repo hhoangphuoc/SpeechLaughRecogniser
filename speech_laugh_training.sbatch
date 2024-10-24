@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=speechlaugh-whisper      # Job name
-#SBATCH -c 16                     # Number of cores
-#SBATCH --gres=gpu:ampere:2                 # Request 1 GPU
-#SBATCH --mem=24G                # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
-#SBATCH --time=24:00:00              # Set a walltime limit
-#SBATCH --mail-type=BEGIN,END,FAIL    # Email status changes
+#SBATCH --job-name=speechlaugh-whisper-small-token        # Job name
+#SBATCH -c 16                                       # Number of cores
+#SBATCH --gres=gpu:ampere:1                         # Request 1 GPU
+#SBATCH --mem=24G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
+#SBATCH --time=24:00:00                             # Set a walltime limit
+#SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
 # Load modules (adjust versions as needed)
@@ -33,19 +33,9 @@ source activate .venv
 
 # Run your script with the appropriate arguments
 
-# If preprocess 
-# python preprocess.py \
-#     --data_names switchboard \
-#     --csv_dir ./datasets/combined/ \
-#     --to_csv True \
-#     --do_combine True \
-#     --train_val_split True \
-
 python SpeechLaughRecognition.py \
-    --train_file_path ./datasets/combined/train_switchboard.csv \
-    --eval_file_path ./datasets/combined/val_switchboard.csv \
-    --processed_dataset True \
-    --processed_file_path ./datasets/processed/ \
+    --processed_as_dataset True \
+    --processed_file_path ./datasets/switchboard/token_speechlaugh \
     --model_output_dir ./vocalwhisper/speechlaugh-whisper-small/ \
     --log_dir ./checkpoints \
     --evaluate_dir ./evaluate \
