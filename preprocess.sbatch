@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=preprocess_switchboard         # Job name
-#SBATCH -c 16                               # Number of cores
-#SBATCH --mem=6G                           # Request 6GB memory
-#SBATCH --gres=gpu:ampere:1                 # Request 1 GPU
-#SBATCH --time=5:00:00                     # Set a walltime limit
-#SBATCH --mail-type=BEGIN,END,FAIL          # Email status changes
+#SBATCH --job-name=preprocess_swb_token_speechlaugh         # Job name
+#SBATCH -c 16                                               # Number of cores
+#SBATCH --mem=6G                                            # Request 6GB memory
+#SBATCH --gres=gpu:ampere:1                                 # Request 1 GPU
+#SBATCH --time=5:00:00                                      # Set a walltime limit
+#SBATCH --mail-type=BEGIN,END,FAIL                          # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
 # Load modules (adjust versions as needed)
@@ -28,9 +28,24 @@ source activate .venv
 
 # Run your script with the appropriate arguments
 
-# preprocess
+#---------------------------------------------#
+# PREPROCESS WITH SPEECH_LAUGH TOKENIZATION
+#---------------------------------------------#
+# for token [SPEECH_LAUGH]
+# python preprocess.py \
+#     --data_names switchboard \
+#     --csv_dir ./datasets/switchboard/ \
+#     --to_dataset True \
+#     --to_csv True \
+#     --tokenize_speechlaugh True \
+#---------------------------------------------#
+
+#---------------------------------------------#
+# PREPROCESS WITH LAUGHING WORD TOKENIZATION
+#---------------------------------------------#
+# for token 'word' in [laughter-word]
 python preprocess.py \
     --data_names switchboard \
-    --csv_dir ./datasets/processed/ \
+    --csv_dir ./datasets/switchboard/word_speechlaugh \
     --to_dataset True \
-    --to_csv False \
+    --to_csv True \

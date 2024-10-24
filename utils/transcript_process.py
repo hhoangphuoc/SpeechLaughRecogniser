@@ -17,26 +17,33 @@ switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"  # sw.. <start_time> <
 # SETS OF SPECIAL PATTERNS FROM ORIGINAL SWITCHBOARD TRANSCRIPT THAT NEED TO BE HANDLED ---------------------------------#
 word_pattern = r"\b\w+\b"
 silence_pattern = r"\b\[silence\]\b" #pattern: [silence]
-noise_pattern = r"\[noise\]|\[vocalized-noise\]|vocalizednoise"
+noise_pattern = r"\[noise\]|\[vocalized-noise\]"
+asides_pattern = r"<\w+_aside>" # pattern: <b_aside> or <e_aside>
 
-pronunciation_variant_pattern = r"(\w+)_1"
-asides_pattern = r"\<b_aside\>|\<e_aside\>" # pattern: <b_aside> or <e_aside>
-coinages_pattern = r"{(\w+)}" # pattern: {word}
+pronunciation_variant_pattern = r"(\w+)_1" # pattern: word_1
+# coinages_pattern = r"{(\w+)}" # pattern: {word}
+coinages_pattern = r'\{(\w+(?:-\w+)*)\}' # pattern: {brother-in-laws}
+
+# partialword_pattern = r"-w+\[\w+['\w+\-]\]\w+|\w+\[\w+['\w+\-]\]w+-"  # partial word: w[ord]- or -[wor]d, or -sh[ouldn't], or [shouldn't]d-
+# partialword_pattern = r"-w+\[\w+['\w-]+\]w+|\w+\[\w+['\w-]+\]w+-"
+# partialword_pattern = r"-\w+\[\w+['\w-]+\]\w+|\b\w+\[\w+['\w-]+\]-"
+partialword_pattern = r"\b\w*(?:\[\w+'?\w*\])?-|-\[\w+'?\w*\]\w*\b"
 
 laughter_pattern = r"\[laughter\]" #pattern: [laughter]
 speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 
-# partialword_pattern = r"-w+\[\w+['\w+\-]\]\w+|\w+\[\w+['\w+\-]\]w+-"  # partial word: w[ord]- or -[wor]d, or -sh[ouldn't], or [shouldn't]d-
-partialword_pattern = r"-w+\[\w+['\w-]+\]w+|\w+\[\w+['\w-]+\]w+-" 
+
 
 # TOBE CONSIDERED FOR RETOKENIZATION ------------------------
 #filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
 
 #-----------------------------------------------------------------------------------------------#
+# SUBTITUTE THE PARTIAL WORDS WITH REGEX PATTERNS
 transcript_processing_composer = jiwer.Compose([
     # jiwer.RemovePunctuation(), # FIXME: NOT USING THIS TO REMOVE PUNCTUATION BECAUSE IT ALSO REMOVE - AND ' WHICH ARE IMPORTANT FOR RETOKENIZATION
     jiwer.ExpandCommonEnglishContractions(),
+    # jiwer.SubstituteRegexes(substitution_patterns),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
     jiwer.RemoveEmptyStrings(),
@@ -57,7 +64,10 @@ def clean_transcript_sentence(sentence):
 # Retokenize the transcript line based on the given pattern
 #--------------------------------
 
-def retokenize_transcript_pattern(transcript_line):
+def retokenize_transcript_pattern(
+        transcript_line,
+        tokenize_speechlaugh = False,
+        ):
     """
     Retokenize the transcript line based on the given pattern.
     The rules are:
@@ -66,7 +76,8 @@ def retokenize_transcript_pattern(transcript_line):
     - For the word in the line that matches filler, speech_laugh, noise:
 
         - Remove the partial word
-        - Replace the speech_laugh with the corresponding token
+        - Replace the speech_laugh with the corresponding token:
+            - [SPEECH_LAUGH] if tokenize_speechlaugh is True, otherwise the laughing word
         - Remove the pronunciation variant
         - Remove the coinages
         - Keep the normal word
@@ -80,28 +91,37 @@ def retokenize_transcript_pattern(transcript_line):
 
     new_line = ""
     for word in transcript_line.split():
-        if re.match(partialword_pattern, word):
-            # if the word is a partial word, remove the partial word
+        if re.match(noise_pattern, word):
+            # remove if [noise], [vocalized-noise]
             continue
-        elif re.match(noise_pattern, word) or re.match(asides_pattern, word):
-            # if the word is [noise], [vocalized-noise] or <b_aside> <e_aside>, removed
-            continue
-        elif re.match(speech_laugh_pattern, word):
+        elif match := re.match(speech_laugh_pattern, word):
             # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
-            word = "[SPEECH_LAUGH]"
+            word = "[SPEECH_LAUGH]" if tokenize_speechlaugh else match.group(1).upper()
         elif re.match(laughter_pattern, word):
             # if the word is [laughter], change it to the token [LAUGHTER]
             word = "[LAUGHTER]"
+        elif match := re.match(coinages_pattern, word):
+            replace_pattern = match.group(1).replace("-", " ")
+            word = re.sub(coinages_pattern,replace_pattern, word) # {brother-in-laws} -> brother in laws
         elif re.match(pronunciation_variant_pattern, word):
             word = re.sub(r"_1", "", word)
-        elif re.match(coinages_pattern, word):
-            word = re.sub(r"{|}", "", word)    
+        elif re.match(asides_pattern, word):
+            word = re.sub(asides_pattern, "", word) # remove the <b_aside>, <e_aside>
         else:
-            # normal word
-            word = word
+            word = word # normal word
+        
+        # in the end, remove if it is a partial word
+        word = re.sub(partialword_pattern, "", word)
         
         new_line += word + " "
-        transcript_line = new_line.strip()
+        # transcript_line = new_line.strip()
+    # finally extent the english, remove multiple spaces and strip
+    transcript_line = jiwer.Compose([
+        jiwer.ExpandCommonEnglishContractions(),
+        jiwer.RemoveMultipleSpaces(),
+        jiwer.Strip(),
+    ])(new_line)
+
     return transcript_line
 
 #------------------------
@@ -109,8 +129,9 @@ def retokenize_transcript_pattern(transcript_line):
 #------------------------
 def process_switchboard_transcript(
         audio_file, 
-        transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts'
-        ):
+        transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts',
+        tokenize_speechlaugh = False
+    ):
     """
     Processes a Switchboard transcript file.
     The transcript file is expected to be in the format:
@@ -157,23 +178,21 @@ def process_switchboard_transcript(
     print(f"Processing transcript: {transcript_path}")
     try:
         with open(transcript_path, 'r') as f:
+
 # 1. Read the transcript file
             transcript_lines = f.readlines()
             new_transcript_lines = []
-            # with open(transcript_lines_debug, 'a') as f2:
-            #     f2.write(f"Transcript file: {transcript_path}\n")
-            #     f2.write(f"Transcript lines:\n")
-            #     count_line = 0
             for line in transcript_lines:
                 if not line.strip():
                     continue #skip the empty line
+
 # 2. Match the sentence pattern in the transcript file and extract the start_time, end_time, and text
 
                 match = re.match(switchboard_pattern, line)  # sw.. <start_time> <end_time> <text>
                 if match:
                     start_time, end_time, text = float(match.group(1)), float(match.group(2)), match.group(3)
 
-# 3. processing the sentence by Jiwer Compose 
+# 3. Processing the sentence by Jiwer Compose 
                     text = text.strip()
                     if text == "[silence]" or text == "[noise]" or text=="[vocalized-noise]": 
                         # if the sentence only contains [silence] or [noise], skip
@@ -183,7 +202,10 @@ def process_switchboard_transcript(
 
 # 4. Retokenize the sentence based on the specific patterns
 
-                    retokenize_text = retokenize_transcript_pattern(text) # return the retokenized text (either removed or replaced)
+                    retokenize_text = retokenize_transcript_pattern(
+                        text,
+                        tokenize_speechlaugh=tokenize_speechlaugh
+                    ) # return the retokenized text (either removed or replaced)
                     new_transcript_lines.append((start_time, end_time, retokenize_text))
             return new_transcript_lines
     except FileNotFoundError:

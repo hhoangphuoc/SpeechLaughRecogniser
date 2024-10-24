@@ -143,8 +143,7 @@ def combine_data_csv(
                 train_df.to_csv(f"{csv_dir}/train_{combined_data_list[0]}.csv", index=False)
                 val_df.to_csv(f"{csv_dir}/val_{combined_data_list[0]}.csv", index=False)
             else:
-                print("Not saving to csv, but returning the train, val dataframes")
-                # return train_df, val_df
+                print("Not saving to csv")
             return train_df, val_df
         print("Successfully generate combined datasets from different data!!")
     except ValueError as e:
@@ -165,6 +164,7 @@ def switchboard_to_ds(
     csv_dir = "../datasets/",
     to_csv = False,
     to_dataset = False,
+    tokenize_speechlaugh = False,
 ):
     """
     Combines audio files and their corresponding transcripts into
@@ -183,12 +183,15 @@ def switchboard_to_ds(
         - OR df (pd.DataFrame): Dataframe containing the audio and transcript data
     """
 
+    print(f"Flags: --to_csv: {to_csv}; --to_dataset: {to_dataset}; --tokenize_speechlaugh: {tokenize_speechlaugh}")
+
     for audio_file in tqdm(os.listdir(audio_dir), desc="Processing Switchboard dataset..."):
         if audio_file.endswith(".wav"):
             audio_path = os.path.join(audio_dir, audio_file) #audio_wav/sw02001A.wav
             transcript_lines = process_switchboard_transcript(
                 audio_file,
-                transcript_dir=transcript_dir
+                transcript_dir=transcript_dir,
+                tokenize_speechlaugh=tokenize_speechlaugh
                 ) #produce the transcript lines for each corresponding audio
             if transcript_lines is not None:
                 audio_file_segments, audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
@@ -359,7 +362,8 @@ def ami_to_ds(
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
-    elif to_dataset:
+
+    if to_dataset:
         # Convert the dataframe to dataset
         ami_dataset = Dataset.from_pandas(df)
         ami_dataset = ami_dataset.cast_column("audio", Audio(sampling_rate=16000))
@@ -403,7 +407,7 @@ def fsdnoisy_to_ds(
         os.makedirs(csv_path, exist_ok=True)
         output_file = os.path.join(csv_path, f"{data_name}.csv") #../datasets/fsdnoisy.csv
         df.to_csv(output_file, index=False)
-    elif to_dataset:
+    if to_dataset:
         # Convert the dataframe to dataset
         fsdnoisy_dataset = Dataset.from_pandas(df)
         fsdnoisy_dataset = fsdnoisy_dataset.cast_column("audio", Audio(sampling_rate=16000))
@@ -417,10 +421,16 @@ if __name__ == "__main__":
     
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the dataset or not")
     
-    parser.add_argument("--csv_dir", type=str, default="../datasets/combined/", help="Path to the directory containing audio files")
+    parser.add_argument("--csv_dir", type=str, default="../datasets/switchboard/", help="Path to the directory containing audio files")
     parser.add_argument("--to_csv", type=bool, default=False, help="Whether to save the processed data to csv or not")
+
+    # ARGUMENTS FOR SPECIAL PROCESSING
+    parser.add_argument("--tokenize_speechlaugh", type=bool, default=False, help="Decide whether to tokenize to [SPEECH_LAUGH] or not")
+    parser.add_argument("--noise_frac", type=float, default=0.01, help="Fraction of noise data to mix with original data") #FOR TRAINING
+
+    # ARGUMENTS FOR COMBINING DATASETS
     parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
-    parser.add_argument("--noise_frac", type=float, default=0.01, help="Fraction of noise data to added to the dataset")
+    
     parser.add_argument("--train_val_split", type=bool, default=False, help="Decide whether not want to split the data")
     
 #-------------------------------------------------------------------------------------------------------------
@@ -428,19 +438,36 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     combined = args.do_combine
+    data_dir = args.csv_dir
+    tokenized = args.tokenize_speechlaugh
     
     if not args.skip_process:
         for data_name in args.data_names:
+
             if data_name == "switchboard":
+                audio_segment_dir = os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments")
+  
+                if tokenized:
+                    print("Processing Switchboard with tokenized [SPEECH_LAUGH]...")
+                    audio_segment_dir = os.path.join(audio_segment_dir,"token_speechlaugh")
+                    data_dir = os.path.join(data_dir, "token_speechlaugh")
+                else:
+                    print("Processing Switchboard with laughing word...")
+                    audio_segment_dir = os.path.join(audio_segment_dir,"word_speechlaugh")
+                    data_dir = os.path.join(data_dir, "word_speechlaugh")
+
+                print(f"Process with: \n -Audio segment directory: {audio_segment_dir} \n -Data directory: {data_dir}\n")
                 df = switchboard_to_ds(
                     data_name = data_name,
                     audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
                     transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
-                    audio_segment_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "segments"),
-                    csv_dir = args.csv_dir,
+                    audio_segment_dir=audio_segment_dir,
+                    csv_dir = data_dir,
                     to_dataset=args.to_dataset,
-                    to_csv = args.to_csv
+                    to_csv = args.to_csv,
+                    tokenize_speechlaugh=args.tokenize_speechlaugh,
                 )
+            #----------------------------------------------end of switchboard process-------------------------------------------------
             elif data_name == "vocalsound":
                 df = vocalsound_to_ds(
                     data_name = data_name,
