@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=evaluate-whisper         # Job name
-#SBATCH -c 16                               # Number of cores
-#SBATCH --mem=6G                           # Request 6GB memory
-#SBATCH --gres=gpu:ampere:1                 # Request 1 GPU
-#SBATCH --time=5:00:00                     # Set a walltime limit
-#SBATCH --mail-type=BEGIN,END,FAIL          # Email status changes
-#SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
+#SBATCH --job-name=evaluate-whisper_token_speechlaugh           # Job name
+#SBATCH -c 16                                                   # Number of cores
+#SBATCH --mem=8G                                                # Request 8GB memory
+#SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
+#SBATCH --time=5:00:00                                          # Set a walltime limit
+#SBATCH --mail-type=BEGIN,END,FAIL                              # Email status changes
+#SBATCH --mail-user=hohoangphuoc@student.utwente.nl             # Your email address
 
 # Load modules (adjust versions as needed)
 module purge # clean the environment before loading new modules
@@ -26,17 +26,26 @@ echo "Starting worker: "
 # Activate your environment (if applicable)
 source activate .venv
 
-# Run your script with the appropriate arguments
 
-# Evaluate whisper-small
+# EVALUATE WHISPER SMALL WITH -----------------------
+# token_speechlaugh alignment
+# i.e. [laughter-word] -> [SPEECH_LAUGH]
+#------------------------------------------------------
 python evaluate_whisper.py \
-    --dataset_path ./datasets/processed/switchboard_dataset\
+    --dataset_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset\
     --model_name openai/whisper-small \
-    --output_file ./alignment_transcripts/alignment_whisper_small.txt \
+    --output_file ./alignment_transcripts/whisper_small_token_speechlaugh.txt \
+#------------------------------------------------------
 
-# Evaluate whisper-large
+
+
+# EVALUATE WHISPER SMALL WITH -----------------------
+# word_speechlaugh alignment
+# i.e. [laughter-word] -> WORD
+#------------------------------------------------------
 # python evaluate_whisper.py \
-#     --csv_file ./datasets/combined/val_switchboard.csv \
-#     --model_name openai/whisper-large \
-#     --output_file ./alignment_transcripts/alignment_whisper_large.txt \
+#     --dataset_path ./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset\
+#     --model_name openai/whisper-small \
+#     --output_file ./alignment_transcripts/whisper_small_word_speechlaugh.txt \
 
+#------------------------------------------------------
