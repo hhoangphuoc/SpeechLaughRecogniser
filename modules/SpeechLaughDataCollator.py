@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Union
 from transformers import WhisperProcessor
 from transformers.tokenization_utils_base import PaddingStrategy
 import torch
+from torch.nn.utils.rnn import pad_sequence # using pad_sequence to pad labels
 from tqdm import tqdm
 
 # Loading Noise Datasets ------------------------------------------------------------------------------------
@@ -37,56 +38,50 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         """
         # split inputs and labels since they have to be of different lengths and need different padding methods
         model_input_name = self.processor.model_input_names[0]
+        
+        # REMARKS: NO NEED TO CHANGE TO TENSOR, AS IT'S ALREADY IN TENSOR FORMAT
         input_features = [
             {"input_features": feature[model_input_name]} 
             for feature in features]
-        #padding batch[input_features] 
         batch = self.processor.feature_extractor.pad(
             input_features, 
             padding=self.padding, 
             return_tensors="pt",
-        )
-
-        # INPUT FEATURES--------------------------------------------------------------------------------
-        batch['input_features'] = batch['input_features'].to(self.device)
-        #----------------------------------------------------------------------------------------
+        ) #padding input_features
 
         # LABELS--------------------------------------------------------------------------------
-        label_features = [
-            {"input_ids": feature["labels"][0]} 
-            for feature in features]
-        #Padding batch[labels]
-        labels_batch = self.processor.tokenizer.pad(
-            label_features, 
-            padding=self.padding, 
-            return_tensors="pt",
-        )
-        labels_batch = labels_batch.to(self.device)
-
-        # replace padding with -100 to ignore loss correctly
-        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
-        #----------------------------------------------------------------------------------------
-
-        # ADD NOISE TO INPUT FEATURES-------------------------------------------------------------------------
-    
-        # if random.random() < 0.5:
-        #     # add noise to the audio
-        #     # instead of adding noise to each tensor in the batch, basically add noise to the whole batch together
-        #     audio_batch = batch["input_features"]
-        #     noise_audio = self.get_random_noise(audio_batch.shape)
-
-        #     batch["input_features"] = add_noise(audio_batch, noise_audio)
-        #---------------------------------------------------------------------------------------------------
-
-        # MATCHING THE LABELS--------------------------------------------------------------------------------
-        # if bos token is appended in previous tokenization step,
-        # cut bos token here as it's append later anyways
-        if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
-            labels = labels[:, 1:]
+        # label_features = [
+        #     {"input_ids": feature["labels"][0]} 
+        #     for feature in features]
+        # #Padding batch[labels]
+        # labels_batch = self.processor.tokenizer.pad(
+        #     label_features, # Only padding with input_ids
+        #     padding=self.padding, 
+        #     return_tensors="pt",
+        # )
+        # # replace padding with -100 to ignore loss correctly
+        # labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
         
-        batch["labels"] = labels
-        #---------------------------------------------------------------------------------------------------
+        # OTHER APPROACH: Padding labels using pad_sequence (FIXME) -----------------------------------
+        labels = [feature["labels"] for feature in features]
+        labels = pad_sequence(labels, batch_first=True, padding_value=self.processor.tokenizer.pad_token_id)
 
+        # TODO: CHECK IF PADDING -100 IS CORRECT
+        labels = labels.masked_fill(labels.ne(self.processor.tokenizer.pad_token_id), -100) # only padding when not equal between 2 tensors (torch.ne)
+        
+        if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
+            labels = labels[:, 1:] # remove the first token (CLS) from labels
+        
+        batch["labels"] = labels 
+        #---------------------------------------------------------------------------------------------------
+        
+        # Move batch to GPU after all padding
+        # batch = {k: v.to(self.device) for k, v in batch.items()}
+        batch = {
+            "input_features": batch["input_features"].to(self.device),
+            "labels": batch["labels"].to(self.device),
+        }
+        
         return batch
     def get_random_noise(self, target_shape):
         """

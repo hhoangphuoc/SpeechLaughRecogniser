@@ -16,7 +16,7 @@ from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 #----------------------------------------------------------
 
-from preprocess import switchboard_to_ds, split_dataset, process_csv_to_dataset
+from preprocess import split_dataset
 import utils.params as prs
 
 # Evaluation Metrics------
@@ -39,7 +39,9 @@ pauses, and other non-speech sounds in conversations.
 """
 # Initialise Multiprocessing------------------------------
 multiprocessing.set_start_method("spawn", force=True)
-
+num_processors = multiprocessing.cpu_count()
+print("Number of CPUs: ", num_processors)
+#----------------------------------------------------------
 
 # Set the path for pre-trained model
 
@@ -83,6 +85,9 @@ def SpeechLaughWhisper(args):
     #----------------------------------------------------------
  
     def prepare_dataset(examples):
+        # ---------------------------------------------------------------------------------
+        # NOTES: IN THIS PREPARE_DATASET, THE BATCH IS COMPUTED AND STORED IN CPU
+        #---------------------------------------------------------------------------------
         """
         Batched Dataset Format
         Examples:  {'audio': [
@@ -132,36 +137,32 @@ def SpeechLaughWhisper(args):
             "input_features": [],
             "labels": []
         }
-        for i in range(len(examples)):
-            example = {}
-            
-            # process each audio
-            example_audio = examples["audio"][i]
-            if example_audio is None:
-                continue
+        with torch.no_grad(): #disable gradient computation when processing the data
+            for i in range(len(examples)):
+                example = {}
+                
+                # process each audio
+                example_audio = examples["audio"][i]
+                if example_audio is None:
+                    continue
 
-            example_transcript = examples["transcript"][i]
-            if example_transcript is None:
-                continue
+                example_transcript = examples["transcript"][i]
+                if example_transcript is None:
+                    continue
 
-            audio = example_audio["array"] 
-            if type(audio) is not np.ndarray:
-                audio = np.array(audio)
-            if audio.ndim > 1:
-                audio = audio.squeeze()
-            
-            sampling_rate = example_audio["sampling_rate"]
+                audio = example_audio["array"] 
+                if type(audio) is not np.ndarray:
+                    audio = np.array(audio)
+                if audio.ndim > 1:
+                    audio = audio.squeeze()
+                
+                sampling_rate = example_audio["sampling_rate"]
+                # TODO: Should we move audio extraction to the device? and move it back to CPU after processing
+                example["input_features"] = feature_extractor(audio, sampling_rate=sampling_rate, return_tensors="pt").input_features[0].cpu().numpy()
+                example["labels"] = tokenizer(example_transcript, return_tensors="pt").input_ids.cpu().numpy()
 
-            # example["input_features"] = feature_extractor(audio, sampling_rate=sampling_rate, return_tensors="pt").input_features[0].numpy()
-            # example["labels"] = tokenizer(example_transcript, return_tensors="pt").input_ids
-            input_features = feature_extractor(audio, sampling_rate=sampling_rate, return_tensors="pt").input_features[0].to(device)
-            labels = tokenizer(example_transcript, return_tensors="pt").input_ids.to(device)
-
-            example["input_features"] = input_features.cpu().numpy() #move back to CPU for storing
-            example["labels"] = labels.cpu() #move back to CPU for storing
-
-            batch["input_features"].append(example["input_features"])
-            batch["labels"].append(example["labels"])
+                batch["input_features"].append(example["input_features"])
+                batch["labels"].append(example["labels"])
         return batch
 
     
@@ -246,16 +247,19 @@ def SpeechLaughWhisper(args):
         prepare_dataset,
         batched=True,
         batch_size=16,
-        num_proc= torch.cuda.device_count(),
+        num_proc=8, #num_processors=16
         remove_columns=train_dataset.column_names,
+        load_from_cache_file=False,
         desc="Preparing Training Dataset",
     )
     test_dataset = test_dataset.map(
         prepare_dataset,
         batched=True,
         batch_size= 4,
-        num_proc= torch.cuda.device_count(),
+        # num_proc= torch.cuda.device_count(),
+        num_proc=8,
         remove_columns=test_dataset.column_names,
+        load_from_cache_file=False,
         desc="Preparing Validation Dataset",
     )
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------

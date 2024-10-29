@@ -35,7 +35,7 @@ source activate .venv
 
 python SpeechLaughRecognition.py \
     --processed_as_dataset True \
-    --processed_file_path ./datasets/switchboard/token_speechlaugh \
+    --processed_file_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset \
     --model_output_dir ./vocalwhisper/speechlaugh-whisper-small/ \
     --log_dir ./checkpoints \
     --evaluate_dir ./evaluate \
