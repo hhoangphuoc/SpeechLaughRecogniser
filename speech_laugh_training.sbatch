@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=speechlaugh-whisper-small-token        # Job name
-#SBATCH -c 16                                       # Number of cores
-#SBATCH --gres=gpu:ampere:1                         # Request 1 GPU
-#SBATCH --mem=24G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
-#SBATCH --time=24:00:00                             # Set a walltime limit
+#SBATCH -c 32                                       # Number of cores
+#SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
+#SBATCH --mem=64G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
+#SBATCH --time=48:00:00                             # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
@@ -36,7 +36,7 @@ source activate .venv
 python SpeechLaughRecognition.py \
     --processed_as_dataset True \
     --processed_file_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset \
-    --model_output_dir ./vocalwhisper/speechlaugh-whisper-small/ \
+    --model_output_dir ./vocalwhisper/speechlaugh-whisper-small-subset-10/ \
     --log_dir ./checkpoints \
     --evaluate_dir ./evaluate \
 

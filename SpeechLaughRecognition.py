@@ -3,7 +3,10 @@ import numpy as np
 import os
 import torch
 import multiprocessing
+import gc
+import psutil
 from dotenv import load_dotenv
+import time
 
 # For Fine-tuned Model--------------------------------
 from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
@@ -39,8 +42,6 @@ pauses, and other non-speech sounds in conversations.
 """
 # Initialise Multiprocessing------------------------------
 multiprocessing.set_start_method("spawn", force=True)
-num_processors = multiprocessing.cpu_count()
-print("Number of CPUs: ", num_processors)
 #----------------------------------------------------------
 
 # Set the path for pre-trained model
@@ -137,32 +138,58 @@ def SpeechLaughWhisper(args):
             "input_features": [],
             "labels": []
         }
-        with torch.no_grad(): #disable gradient computation when processing the data
-            for i in range(len(examples)):
-                example = {}
-                
-                # process each audio
+        # chunk_size = 32 # FIXME: Processing in chunks to reduce memory usage
+        with torch.no_grad():  # disable gradient computation when processing the data
+            # Pre-allocate the audio arrays for entire batch
+            # audio_arrays = [
+            #     np.array(audio["array"]).squeeze()
+            #     for audio in examples["audio"]
+            #     if audio is not None
+            # ]
+            # for i in range(0, len(audio_arrays), chunk_size):
+                # if i % (chunk_size * 2) == 0:
+                #     memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
+                #     print(f"Memory usage at chunk {i}: {memory:.2f} MB")
+                #     gc.collect()  # Force garbage collection
+            #     # example_audio = examples["audio"][i:i+chunk_size]
+            #     # example_transcript = examples["transcript"][i:i+chunk_size]
+            #     example_audio = audio_arrays[i:i+chunk_size]
+            #     example_transcript = examples["transcript"][i:i+chunk_size]
+
+            #     if example_audio is None or example_transcript is None:
+            #         continue
+            for i in range(len(examples["audio"])):
                 example_audio = examples["audio"][i]
-                if example_audio is None:
-                    continue
-
                 example_transcript = examples["transcript"][i]
-                if example_transcript is None:
+
+                if example_audio is None or example_transcript is None:
                     continue
-
-                audio = example_audio["array"] 
-                if type(audio) is not np.ndarray:
-                    audio = np.array(audio)
-                if audio.ndim > 1:
-                    audio = audio.squeeze()
+            
+                audio = np.array(example_audio["array"]).squeeze()
                 
-                sampling_rate = example_audio["sampling_rate"]
-                # TODO: Should we move audio extraction to the device? and move it back to CPU after processing
-                example["input_features"] = feature_extractor(audio, sampling_rate=sampling_rate, return_tensors="pt").input_features[0].cpu().numpy()
-                example["labels"] = tokenizer(example_transcript, return_tensors="pt").input_ids.cpu().numpy()
+                # sampling_rate = example_audio["sampling_rate"]
 
-                batch["input_features"].append(example["input_features"])
-                batch["labels"].append(example["labels"])
+                # Calculate the input features - FIXME: NOT USING GPUs due to inefficiency
+                try:
+                    input_features = feature_extractor( 
+                        audio,
+                        sampling_rate=16000,
+                        return_tensors="pt",
+                        padding=True,
+                    ).input_features
+            
+                    labels = tokenizer(
+                        example_transcript, 
+                        return_tensors="pt",
+                        padding=True,
+                        truncation=True,
+                    ).input_ids
+
+                    batch["input_features"].extend(input_features.numpy())
+                    batch["labels"].extend(labels.numpy())
+                except Exception as e:
+                    print(f"Error in processing example {i}: {e}")
+                    continue
         return batch
 
     
@@ -178,6 +205,14 @@ def SpeechLaughWhisper(args):
 
         pred_ids = pred.predictions.cpu() if isinstance(pred.predictions, torch.Tensor) else pred.predictions
         label_ids = pred.label_ids.cpu() if isinstance(pred.label_ids, torch.Tensor) else pred.label_ids
+
+        # FIXME: IF NEEDED: Ensure the proper shape is produced before decoding
+        # if pred_ids.dim() == 3:
+        #     pred_ids = pred_ids.argmax(axis=-1)
+
+        # pred_ids = pred_ids.reshape(-1, pred_ids.shape[-1])
+        # label_ids = label_ids.reshape(-1, label_ids.shape[-1])
+        #-----------------------------------------------------------------------
 
         # replace -100 with the pad_token_id
         label_ids[label_ids == -100] = tokenizer.pad_token_id
@@ -229,12 +264,12 @@ def SpeechLaughWhisper(args):
         print("Loading the dataset as HuggingFace Dataset...")
         switchboard_dataset = load_from_disk(args.processed_file_path)
         # Split the dataset into train and validation
-        train_dataset, test_dataset = split_dataset(switchboard_dataset, split_ratio=0.9, split="both")
-    # else:
-    #     # Load the dataset from csv file
-    #     print("Loading the dataset from CSV file...")
-    #     train_dataset = process_csv_to_dataset(args.train_file_path)
-    #     eval_dataset = process_csv_to_dataset(args.eval_file_path)
+        train_dataset, test_dataset = split_dataset(
+            switchboard_dataset, 
+            subset_ratio=0.1, #TODO: Given subset ration < 1 to get smaller dataset for testing
+            split_ratio=0.9, 
+            split="both"
+        )
     print("Dataset Loaded....\n")
     print(f"Train Dataset: {train_dataset}")
     print(f"Validation Dataset: {test_dataset}")
@@ -247,19 +282,18 @@ def SpeechLaughWhisper(args):
         prepare_dataset,
         batched=True,
         batch_size=16,
-        num_proc=8, #num_processors=16
         remove_columns=train_dataset.column_names,
-        load_from_cache_file=False,
+        # load_from_cache_file=False,
+        load_from_cache_file=True,
         desc="Preparing Training Dataset",
     )
     test_dataset = test_dataset.map(
         prepare_dataset,
         batched=True,
         batch_size= 4,
-        # num_proc= torch.cuda.device_count(),
-        num_proc=8,
         remove_columns=test_dataset.column_names,
-        load_from_cache_file=False,
+        # load_from_cache_file=False,
+        load_from_cache_file=True,
         desc="Preparing Validation Dataset",
     )
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
@@ -291,6 +325,7 @@ def SpeechLaughWhisper(args):
         per_device_eval_batch_size=4,
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
+        # dataloader_prefetch_factor=2, #FIXME: added for better GPU utilisation-
         logging_steps=25,
         save_steps=1000,
         save_strategy="steps",
@@ -419,7 +454,9 @@ if __name__ == "__main__":
 
     try:
         # login(token=os.getenv("HUGGINGFACE_TOKEN"))
+        start_time = time.time()
         SpeechLaughWhisper(args)
+        print(f"Total Processing time: {time.time() - start_time:.2f} seconds")
     except OSError as error:
         print(error)
 

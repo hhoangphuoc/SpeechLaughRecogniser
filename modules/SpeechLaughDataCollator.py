@@ -20,7 +20,59 @@ class DataCollatorSpeechSeq2SeqWithPadding:
     device: torch.device
     padding: Union[bool, str, PaddingStrategy] = True
     
-    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    # FIXME: TRY USING THIS IF CURRENT ONE IS NOT WORKING --------------------------------
+    # def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    #     # Get max length for padding
+    #     max_length = max([feat["input_features"].shape[0] for feat in features])
+        
+    #     # Pad input features
+    #     padded_inputs = []
+    #     for feat in features:
+    #         current_feat = feat["input_features"]
+    #         if isinstance(current_feat, list):
+    #             current_feat = torch.tensor(current_feat)
+            
+    #         # Calculate padding needed
+    #         pad_length = max_length - current_feat.shape[0]
+    #         if pad_length > 0:
+    #             # Pad along the time dimension (dim=0)
+    #             padding = torch.zeros((pad_length, current_feat.shape[1]))
+    #             current_feat = torch.cat([current_feat, padding], dim=0)
+            
+    #         padded_inputs.append(current_feat)
+        
+    #     # Stack all padded inputs
+    #     input_features = torch.stack(padded_inputs)
+        
+    #     # Handle labels
+    #     labels_list = [feat["labels"] for feat in features]
+    #     labels = pad_sequence(
+    #         [torch.tensor(label) for label in labels_list],
+    #         batch_first=True,
+    #         padding_value=self.processor.tokenizer.pad_token_id
+    #     )
+        
+    #     # Create attention mask for labels
+    #     labels_attention_mask = (labels != self.processor.tokenizer.pad_token_id)
+        
+    #     # Replace padding with -100 for loss calculation
+    #     labels = labels.masked_fill(~labels_attention_mask, -100)
+        
+    #     # Remove decoder_start_token_id if present
+    #     if labels.size(1) > 0 and (labels[:, 0] == self.decoder_start_token_id).all():
+    #         labels = labels[:, 1:]
+        
+    #     # Move everything to device
+    #     batch = {
+    #         "input_features": input_features.to(self.device),
+    #         "labels": labels.to(self.device)
+    #     }
+        
+    #     return batch
+    #-------------------------------------------------------
+
+    def __call__(self, 
+                 features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
         """
         Features format:
         [
@@ -38,11 +90,23 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         """
         # split inputs and labels since they have to be of different lengths and need different padding methods
         model_input_name = self.processor.model_input_names[0]
-        
+        if not features:
+            return None
         # REMARKS: NO NEED TO CHANGE TO TENSOR, AS IT'S ALREADY IN TENSOR FORMAT
-        input_features = [
-            {"input_features": feature[model_input_name]} 
-            for feature in features]
+
+        #input_features in tensor format (batch_size, time_steps, feature_dim)
+        # input_features = [
+        #     {"input_features": feature[model_input_name]} 
+        #     for feature in features]
+        input_features = []
+        for feature in tqdm(features, desc="Padding input_features..."):
+            current_features = feature[model_input_name]
+            if isinstance(current_features, list):
+                current_features = torch.tensor(current_features) #convert list to tensor if not already
+            if current_features.ndim == 2:
+                current_features = current_features.unsqueeze(0)
+            input_features.append({"input_features": current_features})
+        
         batch = self.processor.feature_extractor.pad(
             input_features, 
             padding=self.padding, 
@@ -50,33 +114,33 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         ) #padding input_features
 
         # LABELS--------------------------------------------------------------------------------
-        # label_features = [
-        #     {"input_ids": feature["labels"][0]} 
-        #     for feature in features]
-        # #Padding batch[labels]
-        # labels_batch = self.processor.tokenizer.pad(
-        #     label_features, # Only padding with input_ids
-        #     padding=self.padding, 
-        #     return_tensors="pt",
-        # )
-        # # replace padding with -100 to ignore loss correctly
-        # labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
-        
-        # OTHER APPROACH: Padding labels using pad_sequence (FIXME) -----------------------------------
-        labels = [feature["labels"] for feature in features]
-        labels = pad_sequence(labels, batch_first=True, padding_value=self.processor.tokenizer.pad_token_id)
+        label_features = []
+        for feature in tqdm(features, desc="Padding labels..."):
+            label = feature["labels"]
 
-        # TODO: CHECK IF PADDING -100 IS CORRECT
-        labels = labels.masked_fill(labels.ne(self.processor.tokenizer.pad_token_id), -100) # only padding when not equal between 2 tensors (torch.ne)
+            if isinstance(label, list):
+                label = torch.tensor(label) #convert list to tensor if not already
+            if label.ndim == 1:
+                label = label.unsqueeze(0)
+            label_features.append({"input_ids": label})
         
-        if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
-            labels = labels[:, 1:] # remove the first token (CLS) from labels
+        labels_batch = self.processor.tokenizer.pad(
+            label_features, # Only padding with input_ids
+            padding=self.padding, 
+            return_tensors="pt",
+        )
+        # replace padding with -100 to ignore loss correctly
+        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+            
+        # Now check first token
+        if labels.size(1) > 0 and (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
+            labels = labels[:, 1:]  # remove the first token
         
         batch["labels"] = labels 
         #---------------------------------------------------------------------------------------------------
         
-        # Move batch to GPU after all padding
-        # batch = {k: v.to(self.device) for k, v in batch.items()}
+        # Move batch to GPU after all padding is done
+        print("Finished Data Collator for padding, moving to GPU for training...")
         batch = {
             "input_features": batch["input_features"].to(self.device),
             "labels": batch["labels"].to(self.device),
