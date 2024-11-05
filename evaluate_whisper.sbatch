@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=evaluate-whisper_token_speechlaugh           # Job name
+#SBATCH --job-name=evaluate-whisper_only_laughing_words          # Job name
 #SBATCH -c 16                                                   # Number of cores
 #SBATCH --mem=8G                                                # Request 8GB memory
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -32,9 +32,10 @@ source activate .venv
 # i.e. [laughter-word] -> [SPEECH_LAUGH]
 #------------------------------------------------------
 python evaluate_whisper.py \
-    --dataset_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset\
+    --source_dataset_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset\
+    --target_dataset_path ./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset\
     --model_name openai/whisper-small \
-    --output_file ./alignment_transcripts/whisper_small_token_speechlaugh.txt \
+    --output_file ./alignment_transcripts/whisper_small_only_laughing_words.txt \
 #------------------------------------------------------
 
 
