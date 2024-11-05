@@ -188,16 +188,12 @@ def evaluate_whisper(
     print(f"Filtered Laughing Words Dataset: \n{laughing_words_dataset}")
     print(f"Example of Laughing Words Dataset: \n{laughing_words_dataset[0]}")
 
-    # test_dataset = split_dataset(dataset, split_ratio=0.9, split="test")
-    # print(f"Test dataset: \n{test_dataset}")
-
-    # # Split the laughing word dataset for testing
-    # laughing_words_test_dataset = split_dataset(laughing_words_dataset, split_ratio=0.9, split="test")
-    # print(f"Laughing Words Test Dataset: \n{laughing_words_test_dataset}")
-
     wers = []
     ious = []
     f1s = []
+
+    total_laugh_words = 0
+    total_matched_laugh_words = 0
 
     with open(output_file, "w") as f:
         f.write(f"Evaluate model - {model_name} --------------- \n\n")
@@ -225,8 +221,18 @@ def evaluate_whisper(
                 print(f"Skipping empty or invalid reference transcript for {audio_pathname}")
                 print(f"REF skipped: {reference_transcript}")
                 continue
+
+            laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper())
+            current_laugh_words = len(laugh_words)
+            total_laugh_words += current_laugh_words
+
             reference_transcript = jiwer.ToLowerCase()(reference_transcript)
             f.write(f"REF: {reference_transcript} \n")
+            f.write(f"SPEECH LAUGH WORDS: {', '.join(laugh_words)} \n")
+
+
+
+
 
             #---------------------------------------------------------------------------------------------------
             #                                       HYP Transcript                                             #
@@ -245,7 +251,20 @@ def evaluate_whisper(
                 continue 
             
             predicted_transcript = alignment_transformation(predicted_transcript)
+            
+            # Count the number of matched laugh words ------------------------------------------------------------
+            predicted_words = predicted_transcript.split()
+            matched_laugh_words = sum(
+                sum(1 for match_word in predicted_words if match_word == laugh_word)
+                for laugh_word in laugh_words
+            )
+            total_matched_laugh_words += matched_laugh_words
+            #--------------------------------------------------------------------------------------------
+
             f.write(f"HYP: {predicted_transcript} \n")
+            f.write(f"Matched Laugh Words: {matched_laugh_words}/{current_laugh_words} \n")
+
+
             #--------------------------------
             #   VISUALIZE THE ALIGNMENT
             #--------------------------------
@@ -270,11 +289,24 @@ def evaluate_whisper(
             f.write(jiwer.visualize_alignment(alignment, show_measures=True, skip_correct=False) + "\n")
             f.write("-----------------------------------------------------------------------------\n\n")
         
+        #----------------------------------------------
+        #   METRICS SUMMARY
+        #---------------------------------------------
+        f.write("-------------------------------------------------- \n")
+        f.write("Laughing Words Summary: \n")
+        f.write(f"Total Laughing Words in REF: {total_laugh_words} \n")
+        f.write(f"Total Matched Laugh Words in HYP: {total_matched_laugh_words} \n")
+
+        speech_laugh_accuracy = total_matched_laugh_words / total_laugh_words if total_laugh_words > 0 else 0
+        f.write(f"Speech Laugh Accuracy: {speech_laugh_accuracy:.4f} \n")
+        f.write("-------------------------------------------------- \n\n")
+
         f.write("Metrics Summary: \n")
         f.write(f"Average WER: {np.mean(wers)} \n")
         f.write(f"Average IOU: {np.mean(ious)} \n")
         f.write(f"Average F1: {np.mean(f1s)} \n")
-        
+        f.write("-------------------------------------------------- \n")
+
 
 if __name__ == "__main__":
     # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
