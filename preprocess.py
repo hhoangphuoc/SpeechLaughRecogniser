@@ -42,7 +42,7 @@ def filter_and_match_datasets(source_token_dataset, target_word_dataset):
         - laughing_words_dataset: HuggingFace dataset containing transcript with laughing words
     """
     # Filter rows containing laugh markers
-    laugh_filter = lambda x: '[SPEECH_LAUGH]' in x['transcript'] #or '[LAUGHTER]' in x['transcript']
+    laugh_filter = lambda x: '[SPEECH_LAUGH]' in x['transcript'] or '[LAUGHTER]' in x['transcript']
     laugh_dataset = source_token_dataset.filter(laugh_filter)
     
     # Extract filenames from laugh dataset audio paths

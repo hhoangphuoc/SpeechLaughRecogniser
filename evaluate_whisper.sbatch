@@ -35,7 +35,7 @@ python evaluate_whisper.py \
     --source_dataset_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset\
     --target_dataset_path ./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset\
     --model_name openai/whisper-small \
-    --output_file ./alignment_transcripts/whisper_small_speechlaugh_summary.txt \
+    --output_file ./alignment_transcripts/whisper_small_only_laughing_tokens_summary.txt \
 #------------------------------------------------------
 
 

@@ -117,7 +117,14 @@ def calculate_f1(ref_sentence, hyp_sentence):
 
 
 
+
 #-----------------------------------------------------------------------------------
+def evaluate_laughter_words(dataset):
+    pass
+def evaluate_laughter_tokens(dataset):
+    pass
+
+
 
 #--------------------------------------------------
 # EVALUATE WHISPER
@@ -173,8 +180,8 @@ def evaluate_whisper(
     #--------------------------------------
     #       LOAD DATASET
     #--------------------------------------
-    token_dataset = load_from_disk(source_dataset_path) # dataset with [SPEECH_LAUGH] token
-    word_dataset = load_from_disk(target_dataset_path) # dataset with laughing words
+    token_dataset = load_from_disk(source_dataset_path) # dataset with [SPEECH_LAUGH] and [LAUGHTER] tokens
+    word_dataset = load_from_disk(target_dataset_path) # dataset with laughing words (in UPPERCASE)
     print(f"Loaded Token Dataset: \n{token_dataset}")
     print(f"Loaded Word Dataset: \n{word_dataset}")
 
@@ -195,9 +202,17 @@ def evaluate_whisper(
     total_laugh_words = 0
     total_matched_laugh_words = 0
 
+    special_tokens = ["[SPEECH_LAUGH]", "[LAUGHTER]"]
+
     with open(output_file, "w") as f:
         f.write(f"Evaluate model - {model_name} --------------- \n\n")
-        for row in laughing_words_dataset:
+
+        # for row in laughing_words_dataset:
+        for row in laughter_dataset:
+        #----------------------------------------------------------------
+        # NOW PROCESSING THE DATASET THAT CONTAINS [SPEECH_LAUGH] AND [LAUGHTER] TOKENS
+        #----------------------------------------------------------------
+
             audio_pathname = row['audio']['path'].split("/")[-1]
             f.write(f"Audio Segment: {audio_pathname} \n\n")
             audio_name = audio_pathname.split(".")[0] # Get the audio name excluding the .wav extension
@@ -221,18 +236,14 @@ def evaluate_whisper(
                 print(f"Skipping empty or invalid reference transcript for {audio_pathname}")
                 print(f"REF skipped: {reference_transcript}")
                 continue
-
-            laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper())
+            
+            # laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word not in special_tokens)
+            laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word in special_tokens)
             current_laugh_words = len(laugh_words)
             total_laugh_words += current_laugh_words
 
             reference_transcript = jiwer.ToLowerCase()(reference_transcript)
             f.write(f"REF: {reference_transcript} \n")
-            f.write(f"SPEECH LAUGH WORDS: {', '.join(laugh_words)} \n")
-
-
-
-
 
             #---------------------------------------------------------------------------------------------------
             #                                       HYP Transcript                                             #
@@ -261,8 +272,10 @@ def evaluate_whisper(
             total_matched_laugh_words += matched_laugh_words
             #--------------------------------------------------------------------------------------------
 
-            f.write(f"HYP: {predicted_transcript} \n")
-            f.write(f"Matched Laugh Words: {matched_laugh_words}/{current_laugh_words} \n")
+            f.write(f"HYP: {predicted_transcript} \n\n")
+
+            f.write(f"SPEECH LAUGH WORDS: [{', '.join(laugh_words)} ] \n")
+            f.write(f"Matched Laugh Words: {matched_laugh_words}/{current_laugh_words} \n\n")
 
 
             #--------------------------------
@@ -285,7 +298,7 @@ def evaluate_whisper(
             wers.append(wer) 
             f1s.append(f1)
 
-            f.write(f"---------- Detailed Alignment: ------------ \n")
+            f.write(f"------------------------- Detailed Alignment- ------------------------------ \n")
             f.write(jiwer.visualize_alignment(alignment, show_measures=True, skip_correct=False) + "\n")
             f.write("-----------------------------------------------------------------------------\n\n")
         
