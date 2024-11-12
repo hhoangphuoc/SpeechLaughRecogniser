@@ -40,11 +40,11 @@ This is the fine-tuning Whisper model
 for the specific task of transcribing recognizing speech laughter, fillers, 
 pauses, and other non-speech sounds in conversations.
 """
+
 # Initialise Multiprocessing------------------------------
 multiprocessing.set_start_method("spawn", force=True)
 #----------------------------------------------------------
 
-# Set the path for pre-trained model
 
 #----------------------------------------------------------
 
@@ -80,11 +80,11 @@ def SpeechLaughWhisper(args):
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor, 
         decoder_start_token_id=model.config.decoder_start_token_id,
-        device=device,
-        padding=True,
+        device=device
     )
     #----------------------------------------------------------
- 
+    
+    # Prepare Dataset with Batch_size > 1
     def prepare_dataset(examples):
         # ---------------------------------------------------------------------------------
         # NOTES: IN THIS PREPARE_DATASET, THE BATCH IS COMPUTED AND STORED IN CPU
@@ -138,67 +138,74 @@ def SpeechLaughWhisper(args):
             "input_features": [],
             "labels": []
         }
-        # chunk_size = 32 # FIXME: Processing in chunks to reduce memory usage
+
         with torch.no_grad():  # disable gradient computation when processing the data
-            # Pre-allocate the audio arrays for entire batch
-            # audio_arrays = [
-            #     np.array(audio["array"]).squeeze()
-            #     for audio in examples["audio"]
-            #     if audio is not None
-            # ]
-            # for i in range(0, len(audio_arrays), chunk_size):
-                # if i % (chunk_size * 2) == 0:
-                #     memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
-                #     print(f"Memory usage at chunk {i}: {memory:.2f} MB")
-                #     gc.collect()  # Force garbage collection
-            #     # example_audio = examples["audio"][i:i+chunk_size]
-            #     # example_transcript = examples["transcript"][i:i+chunk_size]
-            #     example_audio = audio_arrays[i:i+chunk_size]
-            #     example_transcript = examples["transcript"][i:i+chunk_size]
-
-            #     if example_audio is None or example_transcript is None:
-            #         continue
             for i in range(len(examples["audio"])):
-                example_audio = examples["audio"][i]
-                example_transcript = examples["transcript"][i]
-
-                if example_audio is None or example_transcript is None:
-                    continue
-            
-                audio = np.array(example_audio["array"]).squeeze()
-                
-                # sampling_rate = example_audio["sampling_rate"]
-
-                # Calculate the input features - FIXME: NOT USING GPUs due to inefficiency
                 try:
+                    example_audio = examples["audio"][i]
+                    example_transcript = examples["transcript"][i]
+
+                    if example_audio is None or example_transcript is None:
+                        continue
+                
+                    audio_array = np.array(example_audio["array"]).squeeze()
+                
+                    # remove the batch dimension such that the input_features is a 2D array:
+                    # (time_steps, n_mels)
                     input_features = feature_extractor( 
-                        audio,
-                        sampling_rate=16000,
+                        raw_speech=audio_array,
+                        sampling_rate=example_audio["sampling_rate"],
                         return_tensors="pt",
-                        padding=True,
-                    ).input_features
+                    ).input_features[0]
             
                     labels = tokenizer(
                         example_transcript, 
                         return_tensors="pt",
-                        padding=True,
-                        truncation=True,
-                    ).input_ids
+                    ).input_ids[0]
 
-                    batch["input_features"].extend(input_features.numpy())
-                    batch["labels"].extend(labels.numpy())
+                    batch["input_features"].extend(input_features)
+                    batch["labels"].extend(labels)
+                    # batch["input_features"].append(input_features)
+                    return batch
                 except Exception as e:
                     print(f"Error in processing example {i}: {e}")
                     continue
-        return batch
 
-    
+    # # Prepare Dataset with Batch_size = 1
+    # def prepare_dataset(batch):
+    #     try:
+    #         audio = batch["audio"]
+    #         transcript = batch["transcript"]
+
+    #         # Input Features: (batch_size, time_steps, n_mels) in which
+    #         # - time_step = number of frames in the audio
+    #         # -n_mels = number of mel bins
+    #         batch["input_features"] = feature_extractor(
+    #             raw_speech=audio["array"],
+    #             sampling_rate=audio["sampling_rate"],
+    #             return_tensors="pt",
+    #             padding=False
+    #         ).input_features[0] # Remove batch dimension (time_steps, n_mels)
+
+    #         # Labels: (batch_size, sequence_length) in which
+    #         # - sequence_length = number of tokens in the transcript
+    #         batch["labels"] = tokenizer(
+    #             transcript,
+    #             return_tensors="pt",
+    #             padding=False
+    #         ).input_ids[0] # Remove batch dimension (sequence_length)
+
+    #         return batch
+    #     except Exception as e:
+    #         print(f"Error in processing batch: {e}")
+    #         raise
+        
     #COMPUTE METRICS -------------------------------------------------- 
     # Evaluation Metrics --------------------------------------------------
     # Load the WER metric
     wer_metric = evaluate.load("wer", cache_dir=args.evaluate_dir) #Word Error Rate between the hypothesis and the reference transcript
     f1_metric = evaluate.load("f1", cache_dir=args.evaluate_dir) #F1 score between the hypothesis and the reference transcript
-    exact_match_metric = evaluate.load("exact_match", cache_dir=args.evaluate_dir) #compare the exact match between the hypothesis and the reference transcript
+    # exact_match_metric = evaluate.load("exact_match", cache_dir=args.evaluate_dir) #compare the exact match between the hypothesis and the reference transcript
     #----------------------------------------------------------   
     def compute_metrics(pred):
         print("Computing Metrics....")
@@ -229,14 +236,11 @@ def SpeechLaughWhisper(args):
         # METRICS TO CALCULATE -------------------------------------------------
         wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
         f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
-        exact_match = 100 * exact_match_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
 
         # Visualise the alignment between the HYP and REF transcript
         alignments = jiwer.process_words(
             reference=ref_transcripts, 
-            hypothesis=pred_transcripts, 
-            reference_transform=output_transform,
-            hypothesis_transform=output_transform
+            hypothesis=pred_transcripts
         )
         
         #write the alignment to the text file
@@ -251,7 +255,6 @@ def SpeechLaughWhisper(args):
         return {
             "wer": wer,
             "f1": f1,
-            "exact_match": exact_match
             }
     
     #-----------------------------------------------------END OF MODEL CONFIG ---------------------------------------------
@@ -280,21 +283,19 @@ def SpeechLaughWhisper(args):
     #--------------------------------------------------------
     train_dataset = train_dataset.map(
         prepare_dataset,
-        batched=True,
-        batch_size=16,
         remove_columns=train_dataset.column_names,
-        # load_from_cache_file=False,
         load_from_cache_file=True,
         desc="Preparing Training Dataset",
+        batched=True,
+        batch_size=16,
     )
     test_dataset = test_dataset.map(
         prepare_dataset,
-        batched=True,
-        batch_size= 4,
         remove_columns=test_dataset.column_names,
-        # load_from_cache_file=False,
         load_from_cache_file=True,
         desc="Preparing Validation Dataset",
+        batched=True,
+        batch_size=8,
     )
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
@@ -322,10 +323,10 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         eval_strategy="steps",
-        per_device_eval_batch_size=4,
+        per_device_eval_batch_size=8,
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
-        # dataloader_prefetch_factor=2, #FIXME: added for better GPU utilisation-
+        remove_unused_columns=True,
         logging_steps=25,
         save_steps=1000,
         save_strategy="steps",
@@ -358,14 +359,27 @@ def SpeechLaughWhisper(args):
     )
 
 
+    #--------------------------------------
+    #               MONITOR GPU MEMORY
+    #--------------------------------------
+    def monitor_memory():
+        if torch.cuda.is_available():
+            print(f"GPU Memory: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
+        process = psutil.Process()
+        print(f"RAM Memory: {process.memory_info().rss / 1024**2:.2f} MB")
+    #--------------------------------------
+
+
     #----------------------------------------------------------------------
     #                           TRAINING 
     #----------------------------------------------------------------------
     # Create DataFrames to store the training and evaluation metrics
-    training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1", "exact_match"])
+    training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1"])
 
     # Training loop with TensorBoard logging and saving model per 1000 steps
     for step in range(training_args.max_steps):
+        if step % 100 == 0:
+            monitor_memory()
         trainer.train()
         if step % args.save_steps == 0:
             trainer.save_model(args.model_output_dir + f"speechlaugh_whisper_{str(step)}.bin")
@@ -379,7 +393,6 @@ def SpeechLaughWhisper(args):
                 "validation_loss": trainer.state.eval_loss if trainer.state.eval_loss is not None else 0,
                 "wer": metrics["wer"],
                 "f1": metrics["f1"],
-                "exact_match": metrics["exact_match"]
             }, ignore_index=True)
             # Log metrics to TensorBoard after each epoch
             for key, value in metrics.items():
@@ -430,7 +443,6 @@ if __name__ == "__main__":
     parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
     #-------------------------------------------------------------------------------------
 
-
     # Model Configs
     parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--pretrained_model_dir", default="./ref_models/pre_trained/", type=str, required=False, help="Name of the model")
@@ -440,9 +452,9 @@ if __name__ == "__main__":
 
     # Training Configs
     parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
-    parser.add_argument("--grad_steps", default=2, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
+    parser.add_argument("--grad_steps", default=1, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
-    parser.add_argument("--num_workers", default=16, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
+    parser.add_argument("--num_workers", default=4, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
     parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
     parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
