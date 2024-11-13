@@ -47,9 +47,8 @@ def transform_number_to_word(sentence):
     return re.sub(pattern, lambda match: number_words[match.group(0)] + " ", sentence).strip()
 
 
-
 #----------------------
-# METRICS
+# METRICS FUNCTIONS
 #----------------------
 # wer_metric = evaluate.load("wer") #WER
 
@@ -116,7 +115,115 @@ def calculate_f1(ref_sentence, hyp_sentence):
     return f1
 
 
+#-----------------------------------------------------------------------------------
+# TRACK LAUGH WORD ALIGNMENTS
+# FIXME - Is that a better way to track?
+#-----------------------------------------------------------------------------------
+def track_laugh_word_alignments(reference, hypothesis, alignment):
+    """
+    Track the alignment status of laughing words (in uppercase) between reference and hypothesis.
+    
+    Args:
+        reference (str): Original reference transcript with uppercase laugh words
+        hypothesis (str): Predicted transcript
+        alignment: JiWER alignment object
+        
+    Returns:
+        dict: Statistics about laugh word alignments including hits, substitutions, deletions
+    """
+    # Split reference into words while preserving case
+    ref_words = reference.split()
+    hyp_words = hypothesis.split()
+    
+    # Find indices of laugh words (uppercase words)
+    laugh_word_indices = {
+        i: word.lower() 
+        for i, word in enumerate(ref_words) 
+        if word.isupper()
+    }
 
+    # Initialize tracking dictionaries
+    laugh_word_stats = {
+        'hits': [],        # Correct alignments
+        'substitutions': [],  # Wrong word at aligned position
+        'deletions': [],   # Laugh word was deleted
+        'total': len(laugh_word_indices)
+    }
+
+        # Helper function to extract word from alignment output
+    def get_word(aligned_word):
+        if isinstance(aligned_word, str):
+            return aligned_word
+        elif isinstance(aligned_word, list) and len(aligned_word) > 0:
+            return aligned_word[0]
+        else:
+            return '*'
+    
+    # Get alignment information from JiWER output
+    # ref_aligned = alignment.references
+    # hyp_aligned = alignment.hypotheses
+    ref_aligned = [get_word(word) for word in alignment.references]
+    hyp_aligned = [get_word(word) for word in alignment.hypotheses]
+    
+    # Track current position in reference and hypothesis
+    ref_pos = 0
+    aligned_pos = 0
+    ref_map = {}
+    
+    for word in ref_aligned:
+        if word != '*':  # Skip insertions
+            ref_map[ref_pos] = aligned_pos
+            ref_pos += 1
+        aligned_pos += 1
+    for ref_pos, laugh_word in laugh_word_indices.items():
+        if ref_pos not in ref_map:
+            # Words was deleted
+            laugh_word_stats['deletions'].append({
+                'word': laugh_word,
+                'ref_pos': ref_pos
+            })
+            continue
+        
+        aligned_pos = ref_map[ref_pos]
+
+        if aligned_pos < len(hyp_aligned):
+            hyp_word = hyp_aligned[aligned_pos]
+
+            if hyp_word == "*":
+                # Word was deleted
+                laugh_word_stats['deletions'].append({
+                    'word': laugh_word,
+                    'ref_pos': ref_pos
+                })
+
+            elif hyp_word.lower() == laugh_word:
+                # Mark a HITs match in laughter words
+                laugh_word_stats['hits'].append({
+                    'word': laugh_word,
+                    'ref_pos': ref_pos,
+                    'hyp_pos': aligned_pos
+                })
+            else:
+                # Mark a SUBSTITUTION
+                laugh_word_stats['substitutions'].append({
+                    'ref_word': laugh_word,
+                    'hyp_word': hyp_word,
+                    'ref_pos': ref_pos,
+                    'hyp_pos': aligned_pos
+                })
+        else:
+            # Word was deleted
+            laugh_word_stats['deletions'].append({
+                'word': laugh_word,
+                'ref_pos': ref_pos
+            })
+    
+    # Calculate statistics
+    laugh_word_stats['hit_rate'] = len(laugh_word_stats['hits']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
+    laugh_word_stats['substitution_rate'] = len(laugh_word_stats['substitutions']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
+    laugh_word_stats['deletion_rate'] = len(laugh_word_stats['deletions']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
+    
+    return laugh_word_stats
 
 #-----------------------------------------------------------------------------------
 def evaluate_laughter_words(dataset):
@@ -135,7 +242,8 @@ def evaluate_whisper(
         model_name="openai/whisper-small",
         pretrained_model_dir="./ref_models/pre_trained",
         evaluate_dir="./evaluate",
-        output_file="./alignment_transcripts/whisper_small_only_laughing_words.txt"
+        output_file="./alignment_transcripts/whisper_small_only_laughing_words.txt",
+        dataset_type="word" # type of dataset to evaluate: "word" or "token"
         ):
     """
     Evaluates the Whisper model on a dataset provided in HuggingFace Dataset / CSV file 
@@ -170,6 +278,8 @@ def evaluate_whisper(
     # check GPU availability    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    evaluate_dataset = None
+
     #---------------------------------------
     # LOAD PRETRAINED WHISPER MODEL + PROCESSOR
     #---------------------------------------
@@ -195,9 +305,18 @@ def evaluate_whisper(
     print(f"Filtered Laughing Words Dataset: \n{laughing_words_dataset}")
     print(f"Example of Laughing Words Dataset: \n{laughing_words_dataset[0]}")
 
+
+    if dataset_type == "word":
+        evaluate_dataset = laughing_words_dataset
+    elif dataset_type == "token":
+        evaluate_dataset = laughter_dataset
+    else:
+        raise ValueError(f"Invalid dataset type: {dataset_type}. Please specify 'word' or 'token'.")
+
+    # ----------------------------------- MAIN EVALUATION PROCESS -----------------------------------
     wers = []
-    ious = []
-    f1s = []
+    # ious = []
+    # f1s = []
 
     total_laugh_words = 0
     total_matched_laugh_words = 0
@@ -208,7 +327,7 @@ def evaluate_whisper(
         f.write(f"Evaluate model - {model_name} --------------- \n\n")
 
         # for row in laughing_words_dataset:
-        for row in laughter_dataset:
+        for row in evaluate_dataset:
         #----------------------------------------------------------------
         # NOW PROCESSING THE DATASET THAT CONTAINS [SPEECH_LAUGH] AND [LAUGHTER] TOKENS
         #----------------------------------------------------------------
@@ -238,7 +357,11 @@ def evaluate_whisper(
                 continue
             
             # laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word not in special_tokens)
-            laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word in special_tokens)
+            if dataset_type == "word":
+                laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word not in special_tokens) #any UPPERCASE words that not [SPEECH_LAUGH] or [LAUGHTER]
+            elif dataset_type == "token":
+                laugh_words = set(word.lower() for word in reference_transcript.split() if word in special_tokens)
+            
             current_laugh_words = len(laugh_words)
             total_laugh_words += current_laugh_words
 
@@ -272,7 +395,8 @@ def evaluate_whisper(
             total_matched_laugh_words += matched_laugh_words
             #--------------------------------------------------------------------------------------------
 
-            f.write(f"HYP: {predicted_transcript} \n\n")
+            f.write(f"HYP: {predicted_transcript} \n")
+            f.write("-----------------------------------\n")
 
             f.write(f"SPEECH LAUGH WORDS: [{', '.join(laugh_words)} ] \n")
             f.write(f"Matched Laugh Words: {matched_laugh_words}/{current_laugh_words} \n\n")
@@ -287,26 +411,53 @@ def evaluate_whisper(
             )
             # Calculate the metrics
             wer = alignment.wer
-            iou = calculate_iou(reference_transcript, predicted_transcript)
-            f1 = calculate_f1(reference_transcript, predicted_transcript)
+            wers.append(wer)
 
-            f.write(f"IOU: {iou} \n")
-            f.write(f"F1: {f1} \n")
+            # -----------------------------------------------------------------------------------
+            # TRACK LAUGH WORD ALIGNMENTS
+            # -----------------------------------------------------------------------------------
+            laugh_word_stats = track_laugh_word_alignments(
+                reference=row['transcript'], #ORIGINAL WITH UPPERCASE LAUGH WORDS instead of Lowercase ones
+                hypothesis=predicted_transcript, 
+                alignment=alignment
+            )
+            f.write("\n --------- Laugh Word Alignment Details -------- \n")
+            f.write(f"Total Laugh Words: {laugh_word_stats['total']} \n")
 
-            # Append the metrics to the list
-            ious.append(iou)
-            wers.append(wer) 
-            f1s.append(f1)
+            # -----------------------------------------------------------------------------------
+            # WRITE ALIGNMENT OPERATIONS IF ANY (HITS, SUBSTITUTIONS, DELETIONS)
+            # -----------------------------------------------------------------------------------
+            if laugh_word_stats['hits']:
+                f.write("\nCorrect alignments:\n")
+                for hit in laugh_word_stats['hits']:
+                    f.write(f"- {hit['word']} (ref pos: {hit['ref_pos']}, hyp pos: {hit['hyp_pos']})\n")
+            
+            if laugh_word_stats['substitutions']:
+                f.write("\nSubstitutions:\n")
+                for sub in laugh_word_stats['substitutions']:
+                    f.write(f"- {sub['ref_word']} by {sub['hyp_word']} (ref pos: {sub['ref_pos']}, hyp pos: {sub['hyp_pos']})\n")
+            
+            if laugh_word_stats['deletions']:
+                f.write("\nDeletions:\n")
+                for deletion in laugh_word_stats['deletions']:
+                    f.write(f"- {deletion['word']} (ref pos: {deletion['ref_pos']})\n")
+            
+            f.write("Rate Summary: ------------- \n")
+            f.write(f"\nHit rate: {laugh_word_stats['hit_rate']:.2%}\n")
+            f.write(f"Substitution rate: {laugh_word_stats['substitution_rate']:.2%}\n")
+            f.write(f"Deletion rate: {laugh_word_stats['deletion_rate']:.2%} \n")
+            f.write("----------------------------\n\n")
 
-            f.write(f"------------------------- Detailed Alignment- ------------------------------ \n")
+
+            f.write(f"------- Detailed Alignment ---------- \n")
             f.write(jiwer.visualize_alignment(alignment, show_measures=True, skip_correct=False) + "\n")
-            f.write("-----------------------------------------------------------------------------\n\n")
+            f.write("______________________________________________________________________________________________________________________\n\n")
         
+
         #----------------------------------------------
         #   METRICS SUMMARY
         #---------------------------------------------
-        f.write("-------------------------------------------------- \n")
-        f.write("Laughing Words Summary: \n")
+        f.write("--------------------- Laughing Words Summary ---------------------\n")
         f.write(f"Total Laughing Words in REF: {total_laugh_words} \n")
         f.write(f"Total Matched Laugh Words in HYP: {total_matched_laugh_words} \n")
 
@@ -314,10 +465,10 @@ def evaluate_whisper(
         f.write(f"Speech Laugh Accuracy: {speech_laugh_accuracy:.4f} \n")
         f.write("-------------------------------------------------- \n\n")
 
-        f.write("Metrics Summary: \n")
+        f.write("--------------------- Metrics Summary ---------------------\n")
         f.write(f"Average WER: {np.mean(wers)} \n")
-        f.write(f"Average IOU: {np.mean(ious)} \n")
-        f.write(f"Average F1: {np.mean(f1s)} \n")
+        # f.write(f"Average IOU: {np.mean(ious)} \n")
+        # f.write(f"Average F1: {np.mean(f1s)} \n")
         f.write("-------------------------------------------------- \n")
 
 

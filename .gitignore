@@ -9,5 +9,5 @@ cache_data/
 datasets/processed_dataset/
 datasets/processed/
 datasets/switchboard/
-ref_models/pre_trained
+ref_models/
 .env

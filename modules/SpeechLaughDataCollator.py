@@ -1,3 +1,4 @@
+from matplotlib.pylab import pareto
 import numpy as np
 import random
 from dataclasses import dataclass
@@ -14,12 +15,12 @@ class DataCollatorSpeechSeq2SeqWithPadding:
     processor: WhisperProcessor
     decoder_start_token_id: int
     device: torch.device
-    padding: Union[bool, str, PaddingStrategy] = "longest"
-    # max_length_input: int = 480000 # 30 seconds @ 16kHz
-    # max_length_labels: int = 448 # Whisper's max sequence length
+    padding: Union[bool, str, PaddingStrategy] = True
 
-    def __call__(self, 
-                 features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    def __call__(
+            self, 
+            features: List[Dict[str, Union[List[int], torch.Tensor]]]
+        ) -> Dict[str, torch.Tensor]:
         """
         Features format:
         [
@@ -38,50 +39,56 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         if not features:
             return None
         try:
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            #input_features in tensor format (batch_size, time_steps, feature_dim)
+            print("Starting Data Collator ------------------------------")
+
+            # Get max length of input features and labels
+            max_input_length = max([feature["input_features"].shape[0] for feature in features])
+            max_label_length = max([feature["labels"].shape[0] for feature in features])
+
+            max_input_length = (max_input_length + 7) // 8 * 8 # make divisible by 8
+            max_label_length = (max_label_length + 7) // 8 * 8 # make divisible by 8
+
+            print(f"Max input features length: {max_input_length} \n")
+            print(f"Max labels length: {max_label_length} \n")
+
+            #--------------------------------------------------------------------------------
+            # Verify input types and shapes
+            for i, feat in enumerate(features):
+                assert isinstance(feat["input_features"], torch.Tensor), \
+                    f"Feature {i}: input_features is {type(feat['input_features'])}, expected torch.Tensor"
+                assert isinstance(feat["labels"], torch.Tensor), \
+                    f"Feature {i}: labels is {type(feat['labels'])}, expected torch.Tensor"
+                # assert feat["input_features"].size(-1) == 80, \
+                #     f"Feature {i}: Expected 80 mel features, got {feat['input_features'].size(-1)}"
+
+            
+            #--------------------------------------------------------------------------------
+
+            #input_features in tensor format (time_steps, feature_dim)
             input_features = [
                 {"input_features": feature["input_features"]} 
                 for feature in features]
             
-            #-------------- -----------------------------------------
-            # # Handle input features - FIXME- FUNCTION TO HANDLE INPUT FEATURES, INCASE ABOVE DOESNT WORK
-            # input_features = []
-            # for feature in tqdm(features, desc="Processing features..."):
-            #     feat = feature["input_features"]
-            #     if isinstance(feat, (list, np.ndarray)):
-            #         feat = torch.tensor(feat)
-            #     input_features.append({"input_features": feat})
-            # #-------------------------------------------------------
 
             batch = self.processor.feature_extractor.pad(
                 input_features, 
+                padding=True,
+                max_length=max_input_length,
+                pad_to_multiple_of=8, # set tensor format divisible by 8
                 return_tensors="pt",
-                padding=self.padding,
-                # max_length=self.max_length_input, #FIXME - Change to max_length if doesnt work
-                truncation=True,
             ) 
 
-            # LABELS--------------------------------------------------------------------------------
-            # # Handle labels - FIXME- FUNCTION TO HANDLE LABELS, INCASE IT DOESNT WORK
-            # label_features = []
-            # for feature in tqdm(features, desc="Processing labels..."):
-            #     label = feature["labels"]
-            #     if isinstance(label, (list, np.ndarray)):
-            #         label = torch.tensor(label)
-            #     label_features.append({"input_ids": label})
             #--------------------------------------------------------------------------------
-
-            label_features = [{"input_ids": feature["labels"]} for feature in features]
-
-            #--------------------------------------------------------------------------------
+            label_features = [
+                {"input_ids": feature["labels"]} 
+                for feature in features
+            ]
             
             labels_batch = self.processor.tokenizer.pad(
                 label_features,
-                padding=self.padding,
-                # max_length=self.max_length_labels,
-                truncation=True,
+                padding=True,
+                max_length=max_label_length,
+                pad_to_multiple_of=8, # match tensor format that divisible by 8
                 return_tensors="pt",
             )
             # replace padding with -100 to ignore loss correctly
@@ -94,21 +101,39 @@ class DataCollatorSpeechSeq2SeqWithPadding:
             batch["labels"] = labels 
             #---------------------------------------------------------------------------------------------------
             
+            # Verify final shapes
+            print("\nBatch shapes after padding:")
+            print(f"Input features: {batch['input_features'].shape} (batch_size, time_steps, n_mels)")
+            print(f"Labels: {batch['labels'].shape} (batch_size, sequence_length) \n")  
+            #---------------------------------------------------------------------------------------------------
+
+
             # # Move batch to GPU after all padding is done
-            # print("Finished Data Collator for padding, moving to GPU for training...")
+
+            # batch = {
+            #     "input_features": batch["input_features"].to(
+            #         self.device, 
+            #         non_blocking=True), #FIXME - non_blocking for faster transfer
+            #     "labels": batch["labels"].to(
+            #         self.device, 
+            #         non_blocking=True),
+            # }
             batch = {
-                "input_features": batch["input_features"].to(
-                    self.device, 
-                    non_blocking=True), #FIXME - non_blocking for faster transfer
-                "labels": batch["labels"].to(
-                    self.device, 
-                    non_blocking=True),
+                k : v.to(self.device, non_blocking=True)
+                for k, v in batch.items()
             }
+
             print("Finished Data Collator!, moving to GPU for training")
             return batch
         
         except Exception as e:
             print(f"Error in DataCollator: {e}")
+            print("\nDetailed feature information:")
+            for i, feat in enumerate(features):
+                print(f"\nFeature {i}:")
+                for k, v in feat.items():
+                    print(f"  {k}: shape={v.shape if isinstance(v, torch.Tensor) else 'N/A'}, "
+                        f"type={type(v)}")
             raise
 
         finally:

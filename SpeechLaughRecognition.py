@@ -138,38 +138,55 @@ def SpeechLaughWhisper(args):
             "input_features": [],
             "labels": []
         }
-
+        success_examples = 0
+        total_examples = len(examples["audio"])
         with torch.no_grad():  # disable gradient computation when processing the data
-            for i in range(len(examples["audio"])):
+            for i in range(total_examples):
                 try:
                     example_audio = examples["audio"][i]
                     example_transcript = examples["transcript"][i]
 
                     if example_audio is None or example_transcript is None:
+                        print(f"Error in processing example {i}: None audio or transcript")
                         continue
                 
-                    audio_array = np.array(example_audio["array"]).squeeze()
                 
                     # remove the batch dimension such that the input_features is a 2D array:
-                    # (time_steps, n_mels)
+                    # (n_mels, time_steps)
                     input_features = feature_extractor( 
-                        raw_speech=audio_array,
+                        raw_speech=example_audio["array"],
                         sampling_rate=example_audio["sampling_rate"],
+                        padding=True,
                         return_tensors="pt",
-                    ).input_features[0]
-            
+                    ).input_features#(batch_size, n_mels, time_steps) - remove batch dimension
+                    
+                    input_features = input_features.squeeze(0) #(n_mels, time_steps)
+                    # Add shape debugging
+                    print(f"Example {i} - Input features shape before processing: {input_features.shape}")
+                    
+                    # # Ensure correct shape
+                    # assert input_features.size(0) == 80, f"Expected 80 mel features, got {input_features.size(0)}"
+                    # assert input_features.dim() == 2, f"Expected 2D tensor, got {input_features.dim()}D"
+                
+                    #---------LABELS ----------------------------------------
                     labels = tokenizer(
                         example_transcript, 
+                        padding=True,
                         return_tensors="pt",
-                    ).input_ids[0]
+                    ).input_ids.squeeze(0) #(sequence_length) - remove batch dimension
 
-                    batch["input_features"].extend(input_features)
-                    batch["labels"].extend(labels)
-                    # batch["input_features"].append(input_features)
-                    return batch
+                    batch["input_features"].append(input_features)
+                    batch["labels"].append(labels)
+                    success_examples += 1
+
                 except Exception as e:
                     print(f"Error in processing example {i}: {e}")
                     continue
+        print(f"Successfully processed {success_examples} out of {total_examples} examples")
+        if success_examples == 0:
+            raise ValueError("No examples were successfully processed!")
+
+        return batch
 
     # # Prepare Dataset with Batch_size = 1
     # def prepare_dataset(batch):
@@ -194,8 +211,12 @@ def SpeechLaughWhisper(args):
     #             return_tensors="pt",
     #             padding=False
     #         ).input_ids[0] # Remove batch dimension (sequence_length)
-
+            
+    #         # Verify mel features dimension
+    #         # assert batch["input_features"].size(-1) == 80, f"Expected 80 mel features, got {batch['input_features'].size(-1)}"
+            
     #         return batch
+        
     #     except Exception as e:
     #         print(f"Error in processing batch: {e}")
     #         raise
@@ -297,6 +318,15 @@ def SpeechLaughWhisper(args):
         batched=True,
         batch_size=8,
     )
+
+    # Verify dataset size
+    print(f"Processed training dataset size: {len(train_dataset)}")
+    if len(train_dataset) == 0:
+        raise ValueError("Training dataset is empty after processing!")
+
+# Also verify the dataset format
+    print("Dataset features:", train_dataset.features)
+    print("First example:", train_dataset[0])
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
 
@@ -312,31 +342,42 @@ def SpeechLaughWhisper(args):
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
+
+        #Training Configs--------------------------------
         per_device_train_batch_size=args.batch_size, #16 - default batch size = 16, could add up to 256 based on the GPU max memory
         gradient_accumulation_steps=args.grad_steps, # - default = 4 increase the batch size by accumulating gradients
         learning_rate=args.lr, #1e-5
         weight_decay=0.01,
-        # num_train_epochs=args.num_train_epochs, #default = 2 - change between 2 -5 based on overfitting
         max_steps=args.max_steps, #default = 5000 - change based on the number of epochs
         warmup_steps=args.warmup_steps, #800
         logging_dir=args.log_dir,
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
-        eval_strategy="steps",
-        per_device_eval_batch_size=8,
+        #-----------------------------------------------------
+
+        # Dataloader Configs--------------------------------
         dataloader_num_workers=args.num_workers, #default = 16 - can change max to 32
         dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
-        remove_unused_columns=True,
+        dataloader_persistent_workers=True, #keep the workers alive for multiple training loops
+        dataloader_prefetch_factor=2, #number of batches to prefetch from the dataloader
+        dataloader_drop_last=True, #drop the last incomplete batch
+        #-----------------------------------------------------
+        remove_unused_columns=False,
         logging_steps=25,
         save_steps=1000,
         save_strategy="steps",
         save_total_limit=5, #save the last 5 checkpoints
+
+        # Evaluation Configs--------------------------------
+        eval_strategy="steps",
+        per_device_eval_batch_size=8,
         eval_steps=1000,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
         resume_from_checkpoint=None,
+        #-----------------------------------------------------
         # push_to_hub=True,   
     )
 
@@ -367,6 +408,12 @@ def SpeechLaughWhisper(args):
             print(f"GPU Memory: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
         process = psutil.Process()
         print(f"RAM Memory: {process.memory_info().rss / 1024**2:.2f} MB")
+
+    def cleanup_workers():
+        """Cleanup function for workers"""
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
     #--------------------------------------
 
 
@@ -380,7 +427,15 @@ def SpeechLaughWhisper(args):
     for step in range(training_args.max_steps):
         if step % 100 == 0:
             monitor_memory()
-        trainer.train()
+        try:
+            trainer.train()
+        except Exception as e:
+            print(f"Error in training: {e}")
+            cleanup_workers()
+            raise
+        finally:
+            cleanup_workers()
+
         if step % args.save_steps == 0:
             trainer.save_model(args.model_output_dir + f"speechlaugh_whisper_{str(step)}.bin")
             
@@ -454,7 +509,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=16, type=int, required=False, help="Batch size for training")
     parser.add_argument("--grad_steps", default=1, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
     # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
-    parser.add_argument("--num_workers", default=4, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
+    parser.add_argument("--num_workers", default=2, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
     parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
     parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
     parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
