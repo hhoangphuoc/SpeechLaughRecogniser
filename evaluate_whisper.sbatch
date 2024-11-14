@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=evaluate-whisper_only_laughing_words          # Job name
+#SBATCH --job-name=evaluate-whisper__words_token_hits_miss_counts          # Job name
 #SBATCH -c 16                                                   # Number of cores
 #SBATCH --mem=8G                                                # Request 8GB memory
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -35,7 +35,7 @@ python evaluate_whisper.py \
     --source_dataset_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset\
     --target_dataset_path ./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset\
     --model_name openai/whisper-small \
-    --output_file ./alignment_transcripts/whisper_small_only_laughing_tokens_summary.txt \
+    --output_file ./alignment_transcripts/whisper_small_laughing_word_hit_miss_summary_fixed.txt \
 #------------------------------------------------------
 
 
