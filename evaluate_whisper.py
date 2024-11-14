@@ -625,7 +625,7 @@ def evaluate_whisper(
             #===============================================================================================================================
             #                       WRITE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
             #===============================================================================================================================
-            f.write("\n ================================================== Laugh Word Alignment Details ======================================================== \n")
+            f.write("\n========================================== Laugh Word Alignment Details ============================================= \n")
 
             f.write(f"Total Laugh Words: {laugh_stats['total_laugh_words']} \n")
             f.write(f"Total Laughter Tokens: {laugh_stats['total_laughter_tokens']} \n")
