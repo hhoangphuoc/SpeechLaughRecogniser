@@ -6,8 +6,6 @@ audio_segments/
 **/.ipynb_checkpoints/
 **/__pycache__/
 cache_data/
-datasets/processed_dataset/
-datasets/processed/
-datasets/switchboard/
+datasets/
 ref_models/
 .env

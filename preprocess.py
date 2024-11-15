@@ -19,8 +19,9 @@ import utils.params as prs
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-#--------------------------------------------------
-# FILTER AND MATCH DATASETS
+#==========================================================================
+#                           FILTER AND MATCH DATASETS
+#==========================================================================
 #--------------------------------------------------
 def filter_and_match_datasets(source_token_dataset, target_word_dataset):
     """
@@ -74,9 +75,9 @@ def filter_speech_laugh_words(dataset):
     return speech_laugh_dataset
 
 
-#--------------------------------------------------
-# SPLIT THE HUGGINGFACE DATASET INTO TRAIN AND TEST SET
-#--------------------------------------------------
+#==========================================================================
+#           SPLIT THE HUGGINGFACE DATASET INTO TRAIN AND TEST SET
+#==========================================================================
 def split_dataset(
         dataset,
         subset_ratio=1.0, # only take a subset of the dataset
@@ -115,9 +116,9 @@ def split_dataset(
         print(f"Split = {split}. Returning both train and test set...")
         return train_switchboard, test_switchboard 
 
-#--------------------------------------------------
-# PROCESS A CSV FILE TO A HUGGINGFACE DATASET
-#--------------------------------------------------
+#===================================================================
+#           PROCESS A CSV FILE TO A HUGGINGFACE DATASET
+#===================================================================
 def csv_to_dataset(csv_input_path):
     """
     Load the dataset from the csv file and convert to HuggingFace Dataset object
@@ -218,12 +219,12 @@ def combine_data_csv(
         print("Unable to combine the datasets: {}".format(e))
 
 
-#--------------------------------------------------
-# PROCESSING A CORPUS TO A DATASET / CSV FILE
-#--------------------------------------------------
+#===================================================================
+#           PROCESSING A CORPUS TO A DATASET / CSV FILE
+#===================================================================
 def switchboard_to_ds(
     data_name="switchboard", #also implement for AMI, VocalSound, LibriSpeech, ...
-    audio_dir='/switchboard_data/switchboard/audio_wav', 
+    audio_dir='/switchboard_data/switchboard/audio_wav', #FIXME - This ./switchboard_data is GLOBALLY: ~deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/...
     transcript_dir='/switchboard_data/switchboard/audio_wav',
     audio_segment_dir='/switchboard_data/audio_segments',
     batch_audio=[],
@@ -265,7 +266,7 @@ def switchboard_to_ds(
                 audio_file_segments, audio_segments, transcripts_segments = cut_audio_based_on_transcript_segments(
                 audio_path, 
                 transcript_lines,
-                padding_time=0.2,
+                padding_time=0.005, #seconds~ 5ms padded both sides
                 data_name=data_name,
                 audio_segments_directory=audio_segment_dir,
                 )
@@ -479,7 +480,7 @@ def fsdnoisy_to_ds(
         # Convert the dataframe to dataset
         fsdnoisy_dataset = Dataset.from_pandas(df)
         fsdnoisy_dataset = fsdnoisy_dataset.cast_column("audio", Audio(sampling_rate=16000))
-#-------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
     
@@ -488,13 +489,14 @@ if __name__ == "__main__":
     parser.add_argument("--data_names", nargs="+", default=["switchboard", "ami", "vocalsound"], required=False, help="List of the datasets to process")
     
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the dataset or not")
-    
+    parser.add_argument("--global_data_dir", type=str, default="/deepstore/datasets/hmi/speechlaugh-corpus/", help="Path to the directory containing original data")
     parser.add_argument("--csv_dir", type=str, default="../datasets/switchboard/", help="Path to the directory containing audio files")
     parser.add_argument("--to_csv", type=bool, default=False, help="Whether to save the processed data to csv or not")
 
     # ARGUMENTS FOR SPECIAL PROCESSING
     parser.add_argument("--tokenize_speechlaugh", type=bool, default=False, help="Decide whether to tokenize to [SPEECH_LAUGH] or not")
     parser.add_argument("--noise_frac", type=float, default=0.01, help="Fraction of noise data to mix with original data") #FOR TRAINING
+    
 
     # ARGUMENTS FOR COMBINING DATASETS
     parser.add_argument("--do_combine", type=bool, default=False, help="Determined if you want to combined different datasets into the same file")
@@ -507,13 +509,15 @@ if __name__ == "__main__":
     
     combined = args.do_combine
     data_dir = args.csv_dir
+    global_data_dir = args.global_data_dir #/deepstore/datasets/hmi/speechlaugh-corpus/
     tokenized = args.tokenize_speechlaugh
     
     if not args.skip_process:
         for data_name in args.data_names:
 
             if data_name == "switchboard":
-                audio_segment_dir = os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments")
+                # audio_segment_dir = os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "audio_segments")
+                audio_segment_dir = os.path.join(global_data_dir, "switchboard_data", "short_padded_segments") #FIXME: Change back to audio_segments
   
                 if tokenized:
                     print("Processing Switchboard with tokenized [SPEECH_LAUGH]...")
@@ -527,8 +531,8 @@ if __name__ == "__main__":
                 print(f"Process with: \n -Audio segment directory: {audio_segment_dir} \n -Data directory: {data_dir}\n")
                 df = switchboard_to_ds(
                     data_name = data_name,
-                    audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","audio_wav"),
-                    transcript_dir=os.path.join(prs.GLOBAL_DATA_PATH, "switchboard_data", "switchboard","transcripts"),
+                    audio_dir=os.path.join(global_data_dir, "switchboard_data", "switchboard","audio_wav"),
+                    transcript_dir=os.path.join(global_data_dir, "switchboard_data", "switchboard","transcripts"),
                     audio_segment_dir=audio_segment_dir,
                     csv_dir = data_dir,
                     to_dataset=args.to_dataset,
@@ -539,7 +543,7 @@ if __name__ == "__main__":
             elif data_name == "vocalsound":
                 df = vocalsound_to_ds(
                     data_name = data_name,
-                    audio_dir=os.path.join(prs.GLOBAL_DATA_PATH, "vocalsound_data", "audio_16k"),
+                    audio_dir=os.path.join(global_data_dir, "vocalsound_data", "audio_16k"),
                     csv_dir = args.csv_dir,
                     to_csv = args.to_csv,
                 )

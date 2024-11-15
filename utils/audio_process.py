@@ -9,7 +9,7 @@ import torch
 def cut_audio_based_on_transcript_segments(
     audio_path, #path to original audio to be segmented
     transcript_lines, #list of tuples: (start_time, end_time, text)
-    padding_time=0.2, #seconds
+    padding_time=0.005, #seconds~ 5ms # BE CAREFUL WITH THIS PARAMETER (Before 0.2s is too large)
     sample_rate=16000,
     data_name="switchboard",
     audio_segments_directory=""):
@@ -45,11 +45,11 @@ def cut_audio_based_on_transcript_segments(
         if text is None or not text.strip():
             continue
 
-        #FIXME: to ensure, rechecking if the text is [silence] or [noise], or silence, or noise, we skip
+        #if the text is [silence] or [noise], or silence, or noise, we skip
         if text.strip() == "[silence]" or text.strip() == "[noise]" or text.strip() == "[vocalized-noise]":
             continue
 
-        # FIXME: KEEP IN MIND THE SAMPLE RATE
+        # KEEP IN MIND THE SAMPLE RATE
         # segmenting audio sample
         start_sample = librosa.time_to_samples(start_time, sr=sample_rate)
         end_sample = librosa.time_to_samples(end_time, sr=sample_rate)
@@ -82,9 +82,6 @@ def cut_audio_based_on_transcript_segments(
         audio_segments.append(audio_segment)
         transcripts_segments.append(text)
 
-        
-    #list of audio segments path and transcripts (list of text)
-    # return audio_file_segments, transcripts_segments
     return audio_file_segments, audio_segments, transcripts_segments
 
 def preprocess_noise(noise_audio, noise_sr, target_sr=16000):
