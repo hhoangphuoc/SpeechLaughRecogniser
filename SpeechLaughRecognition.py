@@ -17,6 +17,7 @@ from torch.nn.parallel import DistributedDataParallel   #for distributed trainin
 from datasets import load_from_disk
 from huggingface_hub import login
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
+from modules.TrainerCallbacks import MemoryCallback, MetricsCallback
 #----------------------------------------------------------
 
 from preprocess import split_dataset
@@ -27,16 +28,6 @@ import pandas as pd
 import evaluate
 import jiwer
 #====================================================================================================================================================
-
-# Disable TensorFlow and enable PyTorch for remove warning---------------------
-# FIXME - USES EXPORT INSTEAD OF ENVIRONMENT VARIABLES
-# os.environ["USE_TF"] = "0"
-# os.environ["USE_TORCH"] = "1"
-
-# os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" # Disable TensorFlow logging
-#------------------------------------------------------------------------------
-
 
 output_transform = jiwer.Compose([
     # jiwer.RemovePunctuation(),
@@ -61,13 +52,6 @@ multiprocessing.set_start_method("spawn", force=True)
 # This callback is used to clear the CUDA memory cache 
 # for every 100 steps while training
 # ----------------------------------------------------
-
-class MemoryCallback(TrainerCallback):
-    def on_step_end(self, args, state, control, **kwargs):
-        if state.global_step % 100 == 0:  # Check memory every 100 steps
-            torch.cuda.empty_cache()
-            # gc.collect() #FIXME - Not using gc.collect() as it slows down the training
-#----------------------------------------------------------
 
 def SpeechLaughWhisper(args):
     """
@@ -110,7 +94,6 @@ def SpeechLaughWhisper(args):
     #---------------------------------------------------------------------
     # clear GPU cache
     torch.cuda.empty_cache()
-    # gc.collect() # FIXME - Not using gc.collect() as it slows down the training
 
     model.config.use_cache = False # disable caching
     #---------------------------------------------------------
@@ -245,7 +228,7 @@ def SpeechLaughWhisper(args):
         )
         
         #write the alignment to the text file
-        with open("alignment_transcripts/alignment_speechlaugh_whisper.txt", "w") as f:
+        with open("alignment_transcripts/alignment_speechlaugh_whisper_subset10.txt", "w") as f:
             report_alignment = jiwer.visualize_alignment(
                 alignments,
                 show_measures=True, 
@@ -302,16 +285,8 @@ def SpeechLaughWhisper(args):
 
     # Verify dataset size
     print(f"Processed training dataset size: {len(train_dataset)}")
-    if len(train_dataset) == 0:
-        raise ValueError("Training dataset is empty after processing!")
-
     # Also verify the dataset format
     print("Dataset features:", train_dataset.features)
-    # print("First example:", train_dataset[0])
-
-    # check if each batch input_features and labels are tensors
-    print(f"Input_features is a Tensor?: {isinstance(train_dataset[0]['input_features'], torch.Tensor)}")
-    print(f"Labels is a Tensor?: {isinstance(train_dataset[0]['labels'], torch.Tensor)}")
 
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
@@ -329,8 +304,8 @@ def SpeechLaughWhisper(args):
         output_dir=args.model_output_dir,
 
         #Training Configs--------------------------------
-        per_device_train_batch_size=8, #8 - default batch size = 16, could add up to 256 based on the GPU max memory
-        gradient_accumulation_steps=4, #8 - default = 8 increase the batch size by accumulating gradients
+        per_device_train_batch_size=4, #8 - default batch size = 16, could add up to 256 based on the GPU max memory
+        gradient_accumulation_steps=8, #8 - default = 8 increase the batch size by accumulating gradients
         learning_rate=args.lr, #1e-5
         weight_decay=0.01,
         max_steps=args.max_steps, #default = 5000 - change based on the number of epochs
@@ -339,7 +314,7 @@ def SpeechLaughWhisper(args):
 
         # Evaluation Configs--------------------------------
         eval_strategy="steps",
-        per_device_eval_batch_size=4,
+        per_device_eval_batch_size=2,
         eval_steps=1000,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
@@ -362,7 +337,7 @@ def SpeechLaughWhisper(args):
         
         #-----------------------------------------------------
         remove_unused_columns=False,
-        logging_steps=25,
+        logging_steps=100,
         save_steps=1000,
         save_strategy="steps",
         save_total_limit=5, #save the last 5 checkpoints
@@ -375,6 +350,11 @@ def SpeechLaughWhisper(args):
         early_stopping_patience=3, #stop training if the model is not improving
         early_stopping_threshold=0.01 #consider improve if WER decrease by 0.01
     )
+    memory_callback = MemoryCallback()
+    metrics_callback = MetricsCallback(
+        output_dir=args.log_dir,
+        save_steps=1000
+    )
 
     trainer = Seq2SeqTrainer(
         model=model,
@@ -384,26 +364,24 @@ def SpeechLaughWhisper(args):
         eval_dataset=test_dataset,
         data_collator=speech_laugh_collator,
         compute_metrics=compute_metrics,
-        callbacks=[early_stopping, MemoryCallback()], #FIXME: Add MemoryCallback() to clear the CUDA memory cache for every 100 steps
+        callbacks=[
+            early_stopping, 
+            memory_callback,
+            metrics_callback
+            ], #FIXME: Add MemoryCallback() to clear the CUDA memory cache for every 100 steps
     )
 
 
     #===============================================================================================
     #                                 MONITOR GPU MEMORY
     #===============================================================================================
-    def monitor_memory():
-        if torch.cuda.is_available():
-            print(f"GPU Memory: {torch.cuda.memory_allocated() / 1024**2:.2f} MB")
-        process = psutil.Process()
-        print(f"RAM Memory: {process.memory_info().rss / 1024**2:.2f} MB")
 
     def cleanup_workers():
         """Cleanup function for workers"""
-        gc.collect() # FIXME - Not using gc.collect() as it slows down the training
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize() #wait for all operations to complete (finished cache clear)
-        
+        gc.collect()
 
     #-------------------------------------------------------------------------------------------------
 
@@ -412,56 +390,21 @@ def SpeechLaughWhisper(args):
     #                           TRAINING 
     #===============================================================================================
     # Create DataFrames to store the training and evaluation metrics
-    training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1"])
+    # training_metrics = pd.DataFrame(columns=["step", "training_loss", "epoch", "validation_loss","wer", "f1"])
 
-    # Training loop with TensorBoard logging and saving model per 1000 steps
-    for step in range(training_args.max_steps):
-        try:
-            trainer.train()
-            # FIXME: clear CUDA memory cache more frequently
-            if step % 50 == 0:
-                cleanup_workers()
-                monitor_memory()
-        except Exception as e:
-            print(f"Error in training: {e}")
-            cleanup_workers()
-            raise
-        finally:
-            cleanup_workers()
-
-        if step % args.save_steps == 0:
-            trainer.save_model(args.model_output_dir + f"speechlaugh_whisper_{str(step)}.bin")
-            
-            metrics = trainer.evaluate() #return evaluation metrics: {"wer": wer, "f1": f1, "exact_match": exact_match}
-            
-            training_metrics = training_metrics.append({
-                "step": step,
-                "training_loss": trainer.state.loss if trainer.state.loss is not None else 0,
-                "epoch": trainer.state.epoch,
-                "validation_loss": trainer.state.eval_loss if trainer.state.eval_loss is not None else 0,
-                "wer": metrics["wer"],
-                "f1": metrics["f1"],
-            }, ignore_index=True)
-            # Log metrics to TensorBoard after each epoch
-            for key, value in metrics.items():
-                writer.add_scalar(f"eval/{key}", value, step)
-            writer.add_scalar("training_loss", trainer.state.global_step, trainer.state.loss)
-            writer.add_scalar("validation_loss", trainer.state.global_step, trainer.state.eval_loss)
-            writer.add_scalar("WER", trainer.state.global_step, trainer.state.eval_metrics["wer"])
-            writer.add_scalar("F1", trainer.state.global_step, trainer.state.eval_metrics["f1"])
-            writer.flush()
-            #---------- end of logging -------------------------
-
-        if trainer.state.global_step >= training_args.max_steps:
-            break
-
-    # Save the training metrics to a CSV file
-    training_metrics.to_csv(args.model_output_dir + "training_metrics.csv", index=False)
-
-    writer.close()  # Close the TensorBoard writer
+    #================================
+    # TRAINING THE MODEL
+    #================================
+    try:
+        trainer.train()
+    except Exception as e:
+        print(f"Error in training: {e}")
+        cleanup_workers() #clear the CUDA memory cache
+    finally:
+        cleanup_workers() #clear the CUDA memory cache
 
     # Save the final model
-    model.save_pretrained(args.model_output_dir + "model")
+    model.save_pretrained(args.model_output_dir + "fine-tuned")
     #-----------------------------------------end of training ------------------------------
 
 
@@ -514,9 +457,7 @@ if __name__ == "__main__":
 
     try:
         # login(token=os.getenv("HUGGINGFACE_TOKEN"))
-        start_time = time.time()
         SpeechLaughWhisper(args)
-        print(f"Total Processing time: {time.time() - start_time:.2f} seconds")
     except OSError as error:
         print(error)
 

@@ -1,0 +1,2 @@
+step,epoch,timestamp,training_loss,validation_loss,wer,f1
+1000,1.3900955690703736,2024-11-15 05:17:34,0.1836,0,0,0

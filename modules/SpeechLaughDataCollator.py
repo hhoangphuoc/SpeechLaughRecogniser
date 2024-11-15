@@ -36,58 +36,57 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         """
         if not features:
             return None
-        try:
-            # ==========================================================================
-            #                           Process Input Features
-            # ==========================================================================
+        # try:
+        # ==========================================================================
+        #                           Process Input Features
+        # ==========================================================================
 
-            input_features = [{
-                "input_features": torch.tensor(feature["input_features"])
-                } for feature in features]
+        input_features = [{
+            "input_features": torch.tensor(feature["input_features"])
+            } for feature in features]
 
-            batch = self.processor.feature_extractor.pad(
-                input_features,
-                padding=self.padding,
-                return_tensors="pt",
-            )
+        batch = self.processor.feature_extractor.pad(
+            input_features,
+            padding=self.padding,
+            return_tensors="pt",
+        )
 
-            # ====================================================================================
-            #                                   Process Labels
-            # ====================================================================================
-            print("Processing labels...")
+        # ====================================================================================
+        #                                   Process Labels
+        # ====================================================================================
+        
+        labels_features = [
+            {
+                'input_ids': torch.tensor(feat['labels'])
+            } for feat in features
+        ] # List[Dict[str, torch.Tensor]] - Labels does not need to be tensors
+        
+        labels_batch = self.processor.tokenizer.pad(
+            labels_features,
+            padding=self.padding,
+            return_tensors="pt",
+        )
 
-            labels_features = [
-                {
-                    'input_ids': torch.tensor(feat['labels'])
-                } for feat in features
-            ] # List[Dict[str, torch.Tensor]] - Labels does not need to be tensors
-            
-            labels_batch = self.processor.tokenizer.pad(
-                labels_features,
-                padding=self.padding,
-                return_tensors="pt",
-            )
+        # Replace padding token id with -100 to ignore in loss
+        labels = labels_batch['input_ids'].masked_fill(labels_batch['attention_mask'].ne(1), -100)
 
-            # Replace padding token id with -100 to ignore in loss
-            labels = labels_batch['input_ids'].masked_fill(labels_batch['attention_mask'].ne(1), -100)
+        # Remove decoder_start_token_id if present
+        if labels.size(1) > 0 and (labels[:, 0] == self.decoder_start_token_id).all():
+            labels = labels[:, 1:]
+        
+        batch["labels"] = labels
 
-            # Remove decoder_start_token_id if present
-            if labels.size(1) > 0 and (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
-                labels = labels[:, 1:]
-            
-            batch["labels"] = labels
-            # ====================================================================================
-            #                                   Finalize Batch
-            # ====================================================================================
-            
-            # FIXME -Move to CPU until needed
-            batch = {k: v.cpu() for k, v in batch.items()}
-            return batch
+        # ====================================================================================
+        #                                   Finalize Batch
+        # ====================================================================================
+        # FIXME -Move to CPU until needed
+        # batch = {k: v.cpu() for k, v in batch.items()}
+        return batch
 
-        except Exception as e:
-            print(f"Error in DataCollator: {e}")
-            raise
+        # except Exception as e:
+        #     print(f"Error in DataCollator: {e}")
+        #     raise
 
-        finally:
-            torch.cuda.empty_cache()
+        # finally:
+        #     torch.cuda.empty_cache()
 
