@@ -1,17 +1,18 @@
 #!/bin/bash
-#SBATCH --job-name=laughwhisper-subset-10-pad-True-optimized-dataloader        # Job name
-#SBATCH -c 32                                       # Number of cores
+#SBATCH --job-name=laughtokens-whisper-23000-pad-True-16c-GPU-optimized       # Job name
+#SBATCH -c 16                                       # Number of cores
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
-#SBATCH --mem=64G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
+#SBATCH --mem=40G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
 #SBATCH --time=64:00:00                             # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 
 # Load modules (adjust versions as needed)
 module purge # clean the environment before loading new modules
-module load nvidia/cuda-11.7
-module load nvidia/cuda-11.x_cudnn-8.6
-module load nvidia/cuda-11.x_tensorrt-8.6
+# module load nvidia/cuda-11.7
+# module load nvidia/cuda-11.x_cudnn-8.6
+# module load nvidia/cuda-11.x_tensorrt-8.6
+module load nvidia/cuda-11.8
 module load nvidia/nvtop
 
 #if we use laplace GPU instead
@@ -31,12 +32,14 @@ echo "Starting worker: "
 # Activate your environment (if applicable)
 source activate .venv
 
+export TF_ENABLE_ONEDNN_OPTS=0
+export TF_CPP_MIN_LOG_LEVEL=2
 # Run your script with the appropriate arguments
 
 python SpeechLaughRecognition.py \
     --processed_as_dataset True \
     --processed_file_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset \
-    --model_output_dir ./vocalwhisper/speechlaugh-whisper-subset-10-fixed-pad-2/ \
+    --model_output_dir ./vocalwhisper/speechlaughwhisper-subset-10-pad-memory-optimized/ \
     --log_dir ./checkpoints \
     --evaluate_dir ./evaluate \
 
