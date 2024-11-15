@@ -12,393 +12,8 @@ import re
 import time
 
 from preprocess import split_dataset, filter_and_match_datasets
-
-#---------------------------------------
-# TRANSCRIPT TRANFORMATION
-#---------------------------------------
-alignment_transformation = jiwer.Compose([
-    # jiwer.RemovePunctuation(), # FIXME: NOT USING THIS TO REMOVE PUNCTUATION BECAUSE IT ALSO REMOVE - AND ' WHICH ARE IMPORTANT FOR RETOKENIZATION
-    jiwer.ExpandCommonEnglishContractions(),
-    jiwer.RemovePunctuation(),
-    jiwer.RemoveMultipleSpaces(),
-    jiwer.Strip(),
-    jiwer.RemoveEmptyStrings(),
-    jiwer.ToLowerCase(),
-    jiwer.ReduceToSingleSentence() # incase the HYP transcript is not a single sentence
-])
-
-# TRANSFORMATION FOR NUMBERS
-def transform_number_to_word(sentence):
-    number_words = {
-        "0": "zero",
-        "1": "one",
-        "2": "two",
-        "3": "three",
-        "4": "four",
-        "5": "five",
-        "6": "six",
-        "7": "seven",
-        "8": "eight",
-        "9": "nine"
-    }
-
-    # Use re.sub with a lambda function to replace digits
-    pattern = r"\d"  # Matches any single digit
-    return re.sub(pattern, lambda match: number_words[match.group(0)] + " ", sentence).strip()
-
-
-#----------------------
-# METRICS FUNCTIONS
-#----------------------
-# wer_metric = evaluate.load("wer") #WER
-
-def calculate_iou(ref_sentence, hyp_sentence):
-    """
-    Calculate the Intersection Over Union (IOU) between reference and hypothesis sentence
-    By this we can evaluate the similarity between the two sentences, and how accurate
-    the model is in predicting the laughter words
-    """
-    # ref_segments = [segment.split() for segment in ref_segments]
-    # hyp_segments = [segment.split() for segment in hyp_segments]
-
-    ref_words = set(ref_sentence.split())
-    hyp_words = set(hyp_sentence.split())
-
-    intersection = ref_words.intersection(hyp_words)
-    union = ref_words.union(hyp_words)
-
-    if len(union) == 0:
-        return 0
-    
-    similarity = len(intersection) / len(union)
-
-    return similarity
-
-def calculate_f1(ref_sentence, hyp_sentence):
-    """
-    Calculate the F1 score between reference and hypothesis segments.
-    F1 score is the harmonic mean of precision and recall.
-    This is used to evaluate the accuracy of the model in recognising the laughing words
-    In this case, we only use it in the dataset that having [SPEECH_LAUGH] or [LAUGHTER] token
-    
-    Args:
-        ref_segments: List of reference segments (ground truth)
-        hyp_segments: List of hypothesis segments (predictions)
-        
-    Returns:
-        float: F1 score between 0 and 1
-    """
-    # Convert segments to sets of words
-    ref_words = set(ref_sentence.split())
-    hyp_words = set(hyp_sentence.split())
-
-    # Calculate true positives (intersection)
-    true_positives = len(ref_words.intersection(hyp_words))
-    
-    # Handle edge case of empty sets
-    if len(ref_words) == 0 and len(hyp_words) == 0:
-        return 1.0
-    if len(ref_words) == 0 or len(hyp_words) == 0:
-        return 0.0
-    
-    # Calculate precision and recall
-    precision = true_positives / len(hyp_words)
-    recall = true_positives / len(ref_words)
-    
-    # Handle edge case where both precision and recall are 0
-    if precision + recall == 0:
-        return 0.0
-        
-    # Calculate F1 score
-    f1 = 2 * (precision * recall) / (precision + recall)
-    
-    return f1
-
-
-# #-----------------------------------------------------------------------------------
-# # TRACK LAUGH WORD ALIGNMENTS
-# # FIXME - Is that a better way to track?
-# #-----------------------------------------------------------------------------------
-# def track_laugh_word_alignments(reference, hypothesis, alignment):
-#     """
-#     Track the alignment status of laughing words (in uppercase) between reference and hypothesis.
-    
-#     Args:
-#         reference (str): Original reference transcript with uppercase laugh words
-#         hypothesis (str): Predicted transcript
-#         alignment: JiWER alignment object
-        
-#     Returns:
-#         dict: Statistics about laugh word alignments including hits, substitutions, deletions
-#     """
-#     # Split reference into words while preserving case
-#     ref_words = reference.split()
-#     hyp_words = hypothesis.split()
-    
-#     # Find indices of laugh words (uppercase words)
-#     laugh_word_indices = {
-#         i: word.lower() 
-#         for i, word in enumerate(ref_words) 
-#         if word.isupper()
-#     }
-
-#     # Initialize tracking dictionaries
-#     laugh_word_stats = {
-#         'hits': [],        # Correct alignments
-#         'substitutions': [],  # Wrong word at aligned position
-#         'deletions': [],   # Laugh word was deleted
-#         'total': len(laugh_word_indices)
-#     }
-
-#         # Helper function to extract word from alignment output
-#     def get_word(aligned_word):
-#         if isinstance(aligned_word, str):
-#             return aligned_word
-#         elif isinstance(aligned_word, list) and len(aligned_word) > 0:
-#             return aligned_word[0]
-#         else:
-#             return '*'
-    
-#     # Get alignment information from JiWER output
-#     # ref_aligned = alignment.references
-#     # hyp_aligned = alignment.hypotheses
-#     ref_aligned = [get_word(word) for word in alignment.references]
-#     hyp_aligned = [get_word(word) for word in alignment.hypotheses]
-    
-#     # Track current position in reference and hypothesis
-#     ref_pos = 0
-#     aligned_pos = 0
-#     ref_map = {}
-    
-#     for word in ref_aligned:
-#         if word != '*':  # Skip insertions
-#             ref_map[ref_pos] = aligned_pos
-#             ref_pos += 1
-#         aligned_pos += 1
-#     for ref_pos, laugh_word in laugh_word_indices.items():
-#         if ref_pos not in ref_map:
-#             # Words was deleted
-#             laugh_word_stats['deletions'].append({
-#                 'word': laugh_word,
-#                 'ref_pos': ref_pos
-#             })
-#             continue
-        
-#         aligned_pos = ref_map[ref_pos]
-
-#         if aligned_pos < len(hyp_aligned):
-#             hyp_word = hyp_aligned[aligned_pos]
-
-#             if hyp_word == "*":
-#                 # Word was deleted
-#                 laugh_word_stats['deletions'].append({
-#                     'word': laugh_word,
-#                     'ref_pos': ref_pos
-#                 })
-
-#             elif hyp_word.lower() == laugh_word:
-#                 # Mark a HITs match in laughter words
-#                 laugh_word_stats['hits'].append({
-#                     'word': laugh_word,
-#                     'ref_pos': ref_pos,
-#                     'hyp_pos': aligned_pos
-#                 })
-#             else:
-#                 # Mark a SUBSTITUTION
-#                 laugh_word_stats['substitutions'].append({
-#                     'ref_word': laugh_word,
-#                     'hyp_word': hyp_word,
-#                     'ref_pos': ref_pos,
-#                     'hyp_pos': aligned_pos
-#                 })
-#         else:
-#             # Word was deleted
-#             laugh_word_stats['deletions'].append({
-#                 'word': laugh_word,
-#                 'ref_pos': ref_pos
-#             })
-    
-#     # Calculate statistics
-#     laugh_word_stats['hit_rate'] = len(laugh_word_stats['hits']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
-#     laugh_word_stats['substitution_rate'] = len(laugh_word_stats['substitutions']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
-#     laugh_word_stats['deletion_rate'] = len(laugh_word_stats['deletions']) / laugh_word_stats['total'] if laugh_word_stats['total'] > 0 else 0
-    
-#     return laugh_word_stats
-
-#-----------------------------------------------------------------------------------
-def track_laugh_word_alignments(original_reference, hypothesis, alignment):
-    """
-    Track the alignment status of laughing words (in uppercase) and laughter tokens between reference and hypothesis.
-    Uses JiWER's alignment chunks to accurately track operations.
-    
-    Args:
-        original_reference (str): Original reference transcript with uppercase laugh words
-        hypothesis (str): Predicted transcript
-        alignment: JiWER alignment object
-    """
-    # Split reference into words while preserving case
-    ref_words = original_reference.split() # THIS IS THE ORIGINAL TRANSCRIPT with UPPERCASE WORDS
-    hyp_words = hypothesis.split()
-    
-    # Find indices of laugh words and laughter tokens
-    laugh_indices = {
-        i: {
-            'word': word,
-            'type': 'token' if word in ['[LAUGHTER]', '[SPEECH_LAUGH]'] else 'word',
-            'lower': word.lower()
-        }
-        for i, word in enumerate(ref_words) # GET word and corresponding indices
-        if word.isupper() or word in ['[LAUGHTER]', '[SPEECH_LAUGH]']
-    }
-
-    # LAUGH WORDS AND LAUGHTER TOKENS IN REF
-    laugh_words = [info['word'] for info in laugh_indices.values() if info['type'] == 'word'] 
-    laughter_tokens = [info['word'] for info in laugh_indices.values() if info['type'] == 'token']
-
-    total_laugh_words = len(laugh_words)
-    total_laughter_tokens = len(laughter_tokens)
-
-    #============================================================================================
-    #                   TRACKING HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS
-    #============================================================================================
-    laugh_stats = {
-        'laugh_words': laugh_words,
-        'laughter_tokens': laughter_tokens,
-        'total_laugh_words': total_laugh_words,
-        'total_laughter_tokens': total_laughter_tokens,
-        'hits': [],
-        'substitutions': [],
-        'deletions': [],
-        'insertions': [],
-
-    }
-    #----------------------------------------------------------------------------------------
-    # alignment.alignments(): Jiwer WordOutput alignment that contains multiple Alignment Chunks
-    # each chunk contains REF and HYP word indices and type of operation
-    # Process each alignment chunk
-    # current_ref_pos = 0
-    # current_hyp_pos = 0
-    # TYPE OF OPERATIONS IN ALIGNMENT CHUNK: `equal`, `substitute`, `insert`, or `delete`
-    total_hits, total_substitutions, total_deletions, total_insertions = 0, 0, 0, 0
-
-    for chunk in alignment.alignments[0]:  # First sentence's alignment
-
-        ref_start, ref_end = chunk.ref_start_idx, chunk.ref_end_idx
-        hyp_start, hyp_end = chunk.hyp_start_idx, chunk.hyp_end_idx
-
-        # Get the actual words from reference and hypothesis
-        chunk_ref_words = ref_words[ref_start:ref_end] if ref_start < len(ref_words) else []
-        chunk_hyp_words = hyp_words[hyp_start:hyp_end] if hyp_start < len(hyp_words) else []
-
-        print(f"REF WORDS: {chunk_ref_words} - HYP WORDS: {chunk_hyp_words}\n")
-
-        #==================================================================================
-        #                           ALIGNMENT CHUNK BY TYPE
-        #==================================================================================
-        if chunk.type == "equal":
-            # Check for exact matches
-            for i, (ref_idx, hyp_idx) in enumerate(zip(range(ref_start, ref_end), 
-                                                      range(hyp_start, hyp_end))):
-                if ref_idx in laugh_indices:
-                    laugh_stats['hits'].append({
-                        'word': laugh_indices[ref_idx]['word'],
-                        'hyp_word': chunk_hyp_words[i],
-                        'type': laugh_indices[ref_idx]['type'],
-                        'ref_pos': ref_idx,
-                        'hyp_pos': hyp_idx
-                    })
-                total_hits += 1
-                    
-        elif chunk.type == "substitute":
-            # Check for substitutions
-            for i, ref_idx in enumerate(range(ref_start, ref_end)):
-                if ref_idx in laugh_indices:
-                    laugh_stats['substitutions'].append({
-                        'ref_word': laugh_indices[ref_idx]['word'],
-                        'hyp_word': chunk_hyp_words[i] if i < len(chunk_hyp_words) else None,
-                        'type': laugh_indices[ref_idx]['type'],
-                        'ref_pos': ref_idx,
-                        'hyp_pos': hyp_start + i if i < len(chunk_hyp_words) else None
-                    })
-                    total_substitutions += 1
-        elif chunk.type == "delete":
-            # Check for deletions
-            for ref_idx in range(ref_start, ref_end):
-                if ref_idx in laugh_indices:
-                    laugh_stats['deletions'].append({
-                        'word': laugh_indices[ref_idx]['word'],
-                        'type': laugh_indices[ref_idx]['type'],
-                        'ref_pos': ref_idx
-                    })
-                    total_deletions += 1
-        elif chunk.type == "insert":
-            # Check for inserted laugh items
-            for i, hyp_idx in enumerate(range(hyp_start, hyp_end)):
-                hyp_word = chunk_hyp_words[i]
-                if hyp_word.isupper() or hyp_word in ['[LAUGHTER]', '[SPEECH_LAUGH]']:
-                    laugh_stats['insertions'].append({
-                        'word': hyp_word,
-                        'type': 'token' if hyp_word in ['[LAUGHTER]', '[SPEECH_LAUGH]'] else 'word',
-                        'hyp_pos': hyp_idx
-                    })
-                    total_insertions += 1
-    #------------------------------------------------------------------------------------------
-    
-    #=====================================================================================================================================
-    #                                                       CALCULATE STATISTICS
-    #=====================================================================================================================================      
-
-    #HITS----------------------------------------------------------------------
-    laugh_word_hits = sum(1 for hit in laugh_stats['hits'] if hit['type'] == 'word')
-    laugh_stats['laugh_word_hit_rate'] = laugh_word_hits / total_laugh_words if total_laugh_words > 0 else 0
-
-    laugh_token_hits = sum(1 for hit in laugh_stats['hits'] if hit['type'] == 'token')
-    laugh_stats['laugh_token_hit_rate'] = laugh_token_hits / total_laughter_tokens if total_laughter_tokens > 0 else 0
-
-    # SUBSTITUTIONS----------------------------------------------------------------------
-    laugh_word_substitutions = sum(1 for substitution in laugh_stats['substitutions'] if substitution['type'] == 'word')
-    laugh_stats['laugh_word_substitution_rate'] = laugh_word_substitutions / total_laugh_words if total_laugh_words > 0 else 0
-
-    laugh_token_substitutions = sum(1 for substitution in laugh_stats['substitutions'] if substitution['type'] == 'token')
-    laugh_stats['laugh_token_substitution_rate'] = laugh_token_substitutions / total_laughter_tokens if total_laughter_tokens > 0 else 0
-
-    # DELETIONS----------------------------------------------------------------------
-    laugh_word_deletions = sum(1 for deletion in laugh_stats['deletions'] if deletion['type'] == 'word')
-    laugh_stats['laugh_word_deletion_rate'] = laugh_word_deletions / total_laugh_words if total_laugh_words > 0 else 0
-    
-    laugh_token_deletions = sum(1 for deletion in laugh_stats['deletions'] if deletion['type'] == 'token')
-    laugh_stats['laugh_token_deletion_rate'] = laugh_token_deletions / total_laughter_tokens if total_laughter_tokens > 0 else 0
-    
-    # INSERTIONS----------------------------------------------------------------------
-    laugh_word_insertions = sum(1 for insertion in laugh_stats['insertions'] if insertion['type'] == 'word')
-    laugh_stats['laugh_word_insertion_rate'] = laugh_word_insertions / total_laugh_words if total_laugh_words > 0 else 0
-    
-    laugh_token_insertions = sum(1 for insertion in laugh_stats['insertions'] if insertion['type'] == 'token')
-    laugh_stats['laugh_token_insertion_rate'] = laugh_token_insertions / total_laughter_tokens if total_laughter_tokens > 0 else 0
-    
-
-    #-------------- LAUGH_STATS FORMAT -----------------
-    """
-    laugh_stats = {
-        'laugh_words': laugh_words,
-        'laughter_tokens': laughter_tokens,
-        'total_laugh_words': total_laugh_words,
-        'total_laughter_tokens': total_laughter_tokens,
-        'hits': [],
-        'substitutions': [],
-        'deletions': [],
-        'insertions': [],
-        'laugh_word_hit_rate': 
-        'laugh_token_hit_rate': 
-        'laugh_word_substitution_rate': 
-        'laugh_token_substitution_rate': 
-        'laugh_word_deletion_rate': 
-        'laugh_token_deletion_rate': 
-        'laugh_word_insertion_rate': 
-        'laugh_token_insertion_rate': 
-    }
-    """
-    return laugh_stats
+from utils.metrics import track_laugh_word_alignments
+from utils.transcript_process import alignment_transformation, transform_number_words
 
 
 #--------------------------------------------------
@@ -504,8 +119,6 @@ def evaluate_whisper(
         "tir": [], # laughter token insertion rates
 
     }
-    # total_laugh_words = 0
-    # total_matched_laugh_words = 0
 
     special_tokens = ["[SPEECH_LAUGH]", "[LAUGHTER]"]
 
@@ -541,17 +154,10 @@ def evaluate_whisper(
                 print(f"Skipping empty or invalid reference transcript for {audio_pathname}")
                 print(f"REF skipped: {reference_transcript}")
                 continue
-            
-            # # laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word not in special_tokens)
-            # if dataset_type == "word":
-            #     laugh_words = set(word.lower() for word in reference_transcript.split() if word.isupper() and word not in special_tokens) #any UPPERCASE words that not [SPEECH_LAUGH] or [LAUGHTER]
-            # elif dataset_type == "token":
-            #     laugh_words = set(word.lower() for word in reference_transcript.split() if word in special_tokens)
-            
-            # current_laugh_words = len(laugh_words)
-            # total_laugh_words += current_laugh_words
 
             reference_transcript = jiwer.ToLowerCase()(reference_transcript)
+            # FIXME: Transform all existing numbers to words - NOT DO IN REF, USE IN HYP WITH REVERSE INSTEAD
+            # reference_transcript = transform_number_words(reference_transcript) 
             f.write(f"REF: {reference_transcript} \n")
 
             #==================================================================================================
@@ -563,8 +169,11 @@ def evaluate_whisper(
             # Generate the predicted transcript
             predicted_ids = model.generate(audio)
             predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-            predicted_transcript = transform_number_to_word(predicted_transcript) # First: Transform all existing numbers to words
             
+            # Transform all existing numbers to words in the HYP transcript: 
+            # one nine -> nineteen  
+            predicted_transcript = transform_number_words(predicted_transcript, reverse=True) 
+
             if not isinstance(predicted_transcript, str) or not predicted_transcript.strip():
                 print(f"Skipping empty or invalid predicted transcript for {audio_pathname}")
                 print(f"HYP skipped: {predicted_transcript}")
@@ -572,21 +181,8 @@ def evaluate_whisper(
             
             predicted_transcript = alignment_transformation(predicted_transcript)
             
-            # Count the number of matched laugh words ------------------------------------------------------------
-            # predicted_words = predicted_transcript.split()
-            # matched_laugh_words = sum(
-            #     sum(1 for match_word in predicted_words if match_word == laugh_word)
-            #     for laugh_word in laugh_words
-            # )
-            # total_matched_laugh_words += matched_laugh_words
-            #--------------------------------------------------------------------------------------------
-
             f.write(f"HYP: {predicted_transcript} \n")
             f.write("-------------------------------------------------------\n")
-
-            # f.write(f"SPEECH LAUGH WORDS: [{', '.join(laugh_words)} ] \n")
-            # f.write(f"Matched Laugh Words: {matched_laugh_words}/{current_laugh_words} \n\n")
-
 
             #--------------------------------
             #   VISUALIZE THE ALIGNMENT

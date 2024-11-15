@@ -10,11 +10,15 @@ import os
 import jiwer
 # import openai #for clean and format transcripts
 
-#------- SWITCHBOARD TRANSCRIPT PATTERN -----------------------------------------------------------------------------#
+#=========================================================================================================================
+#                   SWITCHBOARD TRANSCRIPT PATTERN
+#=========================================================================================================================  
 switchboard_pattern = r"sw\S+ (\d+\.\d+) (\d+\.\d+) (.*)"  # sw.. <start_time> <end_time> <text>
-#-------------------------------------------------------------------------------------------------------------------#
 
-# SETS OF SPECIAL PATTERNS FROM ORIGINAL SWITCHBOARD TRANSCRIPT THAT NEED TO BE HANDLED ---------------------------------#
+
+#=========================================================================================================================
+#               SETS OF SPECIAL PATTERNS FROM ORIGINAL SWITCHBOARD TRANSCRIPT THAT NEED TO BE HANDLED
+#=========================================================================================================================
 word_pattern = r"\b\w+\b"
 silence_pattern = r"\b\[silence\]\b" #pattern: [silence]
 noise_pattern = r"\[noise\]|\[vocalized-noise\]"
@@ -24,45 +28,103 @@ pronunciation_variant_pattern = r"(\w+)_1" # pattern: word_1
 # coinages_pattern = r"{(\w+)}" # pattern: {word}
 coinages_pattern = r'\{(\w+(?:-\w+)*)\}' # pattern: {brother-in-laws}
 
-# partialword_pattern = r"-w+\[\w+['\w+\-]\]\w+|\w+\[\w+['\w+\-]\]w+-"  # partial word: w[ord]- or -[wor]d, or -sh[ouldn't], or [shouldn't]d-
-# partialword_pattern = r"-w+\[\w+['\w-]+\]w+|\w+\[\w+['\w-]+\]w+-"
-# partialword_pattern = r"-\w+\[\w+['\w-]+\]\w+|\b\w+\[\w+['\w-]+\]-"
 partialword_pattern = r"\b\w*(?:\[\w+'?\w*\])?-|-\[\w+'?\w*\]\w*\b"
 
 laughter_pattern = r"\[laughter\]" #pattern: [laughter]
 speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 
-
-
 # TOBE CONSIDERED FOR RETOKENIZATION ------------------------
 #filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
-
 #-----------------------------------------------------------------------------------------------#
-# SUBTITUTE THE PARTIAL WORDS WITH REGEX PATTERNS
-transcript_processing_composer = jiwer.Compose([
-    # jiwer.RemovePunctuation(), # FIXME: NOT USING THIS TO REMOVE PUNCTUATION BECAUSE IT ALSO REMOVE - AND ' WHICH ARE IMPORTANT FOR RETOKENIZATION
+
+#=========================================================================================================================
+
+
+alignment_transformation = jiwer.Compose([
     jiwer.ExpandCommonEnglishContractions(),
-    # jiwer.SubstituteRegexes(substitution_patterns),
+    jiwer.RemovePunctuation(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
     jiwer.RemoveEmptyStrings(),
-    jiwer.ToLowerCase(),
+    # jiwer.ToLowerCase(),
 ])
 
-#--------------------------------
+def transform_number_words(text, reverse=False):
+    """
+    Transform number words between spelled out form and digit pairs.
+    If reverse=False (default): Convert number words to digit pairs
+    If reverse=True: Convert digit pairs back to number words
+    
+    Examples with reverse=False:
+    - nineteen -> one nine
+    - twenty -> two zero
+    
+    Examples with reverse=True:  
+    - one nine -> nineteen
+    - two zero -> twenty
+    """
+    
+    # Dictionary for number word mappings
+    number_mappings = {
+        'eleven': 'one one',
+        'twelve': 'one two', 
+        'thirteen': 'one three',
+        'fourteen': 'one four',
+        'fifteen': 'one five',
+        'sixteen': 'one six',
+        'seventeen': 'one seven',
+        'twenty': 'two zero',
+        'thirty': 'three zero',
+        'forty': 'four zero',
+        'fifty': 'five zero',
+        'sixty': 'six zero',
+        'seventy': 'seven zero',
+        'eighty': 'eight zero',
+        'ninety': 'nine zero'
+    }
+
+    # Create reverse mapping for converting back
+    reverse_mappings = {v: k for k, v in number_mappings.items()}
+    
+    words = text.split()
+    transformed_words = []
+    
+    if not reverse:
+        # Forward transformation (number words to digit pairs)
+        for word in words:
+            if word in number_mappings:
+                transformed_words.append(number_mappings[word])
+            else:
+                transformed_words.append(word)
+    else:
+        # Reverse transformation (digit pairs to number words)
+        i = 0
+        while i < len(words):
+            if i < len(words) - 1:
+                word_pair = words[i] + ' ' + words[i+1]
+                if word_pair in reverse_mappings:
+                    transformed_words.append(reverse_mappings[word_pair])
+                    i += 2
+                    continue
+            transformed_words.append(words[i])
+            i += 1
+            
+    return ' '.join(transformed_words)
+#--------------------------------------------------------
+
+#=========================================================================================================================
 # Clean and format the transcript sentence with Jiwer Compose
-#--------------------------------
+#=========================================================================================================================
 def clean_transcript_sentence(sentence):
     """
     Clean and format the transcript text using Jiwer Componse
     """
-    return transcript_processing_composer(sentence)
+    return alignment_transformation(sentence)
 
-
-#--------------------------------
+#=========================================================================================================================
 # Retokenize the transcript line based on the given pattern
-#--------------------------------
+#=========================================================================================================================
 
 def retokenize_transcript_pattern(
         transcript_line,
@@ -124,9 +186,13 @@ def retokenize_transcript_pattern(
 
     return transcript_line
 
-#------------------------
+#=========================================================================================================================
 # Transcript processing functions for each dataset
-#------------------------
+#=========================================================================================================================
+
+#--------------------------------------
+# Process the Switchboard transcript
+#-------------------------------------- 
 def process_switchboard_transcript(
         audio_file, 
         transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts',
