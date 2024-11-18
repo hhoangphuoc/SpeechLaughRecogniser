@@ -46,6 +46,7 @@ alignment_transformation = jiwer.Compose([
     jiwer.RemovePunctuation(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
+    jiwer.ToLowerCase(),
     jiwer.RemoveEmptyStrings(),
 ])
 
@@ -117,14 +118,14 @@ def transform_number_words(text, reverse=False):
 #=========================================================================================================================
 def clean_transcript_sentence(sentence):
     """
-    Clean and format the transcript text using Jiwer Componse
+    Clean and format the transcript text using Jiwer Compose
+    This function mainly used for REF and Hypothesis in the evaluation.
     """
     return alignment_transformation(sentence)
 
 #=========================================================================================================================
 # Retokenize the transcript line based on the given pattern
 #=========================================================================================================================
-
 def retokenize_transcript_pattern(
         transcript_line,
         tokenize_speechlaugh = False,
@@ -156,11 +157,15 @@ def retokenize_transcript_pattern(
             # remove if [noise], [vocalized-noise]
             continue
         elif match := re.match(speech_laugh_pattern, word):
-            # if the word is [laughter-...], change it to the token [SPEECH_LAUGH]
+            # if the word is [laughter-...]:
+            # change it to the token [SPEECH_LAUGH] if tokenize_speechlaugh is True
+            # otherwise, change it to the laughing word
             word = "[SPEECH_LAUGH]" if tokenize_speechlaugh else match.group(1).upper()
         elif re.match(laughter_pattern, word):
-            # if the word is [laughter], change it to the token [LAUGHTER]
-            word = "[LAUGHTER]"
+            # if the word is [laughter]:
+            # change it to the token [LAUGHTER] if tokenize_speechlaugh is True
+            # otherwise, keep it empty
+            word = "[LAUGHTER]" if tokenize_speechlaugh else ""
         elif match := re.match(coinages_pattern, word):
             replace_pattern = match.group(1).replace("-", " ")
             word = re.sub(coinages_pattern,replace_pattern, word) # {brother-in-laws} -> brother in laws
@@ -176,11 +181,11 @@ def retokenize_transcript_pattern(
         
         new_line += word + " "
         # transcript_line = new_line.strip()
-    # finally extent the english, remove multiple spaces and strip
+    # FINALLY extent the english, remove multiple spaces and strip
     transcript_line = jiwer.Compose([
-        jiwer.ExpandCommonEnglishContractions(),
-        jiwer.RemoveMultipleSpaces(),
-        jiwer.Strip(),
+        jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
+        jiwer.RemoveMultipleSpaces(), #remove multiple spaces
+        jiwer.Strip(), #strip the line
     ])(new_line)
 
     return transcript_line
@@ -262,8 +267,12 @@ def process_switchboard_transcript(
                     if text == "[silence]" or text == "[noise]" or text=="[vocalized-noise]": 
                         # if the sentence only contains [silence] or [noise], skip
                         continue 
-
-                    text = clean_transcript_sentence(text)
+                    text = jiwer.Compose([
+                        jiwer.RemoveMultipleSpaces(), #remove multiple spaces
+                        jiwer.Strip(), #strip the line
+                        jiwer.ToLowerCase(), #lowercase every words
+                        jiwer.RemoveEmptyStrings(), #if text is empty, remove it
+                    ])(text)
 
 # 4. Retokenize the sentence based on the specific patterns
 
