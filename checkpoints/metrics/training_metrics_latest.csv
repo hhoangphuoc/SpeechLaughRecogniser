@@ -1,2 +1,2 @@
 step,epoch,timestamp,training_loss,validation_loss,wer,f1,lwhr,lthr,lwsr,ltsr,lwd,ltd,lwir,ltir
-1000,0.6950477845351868,2024-11-15 21:33:50,0.1641,0,0,0,0,0,0,0,0,0,0,0
+2000,2.780191138140747,2024-11-18 07:01:11,0.0447,0,0,0,0,0,0,0,0,0,0,0

@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=preprocess_shorter_padded_segments       # Job name
+#SBATCH --job-name=preprocess_shorter_padded_segments_word_speechlaugh       # Job name
 #SBATCH -c 16                                               # Number of cores
 #SBATCH --mem=10G                                            # Request 10GB memory
 #SBATCH --gres=gpu:ampere:1                                 # Request 1 GPU
@@ -32,20 +32,20 @@ source activate .venv
 # PREPROCESS WITH SPEECH_LAUGH TOKENIZATION
 #---------------------------------------------#
 # for token [SPEECH_LAUGH]
-python preprocess.py \
-    --data_names switchboard \
-    --csv_dir ./datasets/short_padded_switchboard/ \
-    --to_dataset True \
-    --to_csv True \
-    --tokenize_speechlaugh True \
+# python preprocess.py \
+#     --data_names switchboard \
+#     --csv_dir ./datasets/short_padded_switchboard/ \
+#     --to_dataset True \
+#     --to_csv True \
+#     --tokenize_speechlaugh True \
 #---------------------------------------------#
 
 #---------------------------------------------#
 # PREPROCESS WITH LAUGHING WORD TOKENIZATION
 #---------------------------------------------#
 # for token 'word' in [laughter-word]
-# python preprocess.py \
-#     --data_names switchboard \
-#     --csv_dir ./datasets/short_padded_switchboard/ \
-#     --to_dataset True \
-#     --to_csv True \
+python preprocess.py \
+    --data_names switchboard \
+    --csv_dir ./datasets/short_padded_switchboard/ \
+    --to_dataset True \
+    --to_csv True \

@@ -47,7 +47,6 @@ alignment_transformation = jiwer.Compose([
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
     jiwer.RemoveEmptyStrings(),
-    # jiwer.ToLowerCase(),
 ])
 
 def transform_number_words(text, reverse=False):
