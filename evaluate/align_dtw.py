@@ -8,6 +8,7 @@ import jiwer
 import whisper_timestamped as whisper_ts
 from utils.transcript_process import clean_transcript_sentence, transform_number_words
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 #===================================================================
 # REMOVE TF WARNINGS
@@ -45,11 +46,13 @@ def align_dtw(
         audio=audio_path,
         task="transcribe",
         language="en",
-        plot_word_alignment=plot_alignment_path
+        plot_word_alignment=plot_alignment_path,
+        remove_punctuation_from_words=True,
+        detect_disfluencies=True #to indicate position having laughter, speechlaugh
     )
-
     
-    ref_transcript = clean_transcript_sentence(ref_transcript) # REMOVE EMPTY STRINGS, MULTIPLE SPACES, ALREADY LOWERCASE
+    # ref_transcript = clean_transcript_sentence(ref_transcript) # REMOVE EMPTY STRINGS, MULTIPLE SPACES, ALREADY LOWERCASE
+    ref_transcript = jiwer.RemoveMultipleSpaces()(ref_transcript)
 
     # HYP: Transform number words to their numerical values
     hyp_transcript = transform_number_words(result["text"], reverse=True)
@@ -62,8 +65,8 @@ def align_dtw(
     output_dict = {}
     output_dict['ref'] = ref_transcript
     output_dict['hyp'] = hyp_transcript
-    output_dict['ref_alignment'] = jiwer_alignment.references
-    output_dict['hyp_alignment'] = jiwer_alignment.hypotheses
+    # output_dict['ref_alignment'] = jiwer_alignment.references
+    # output_dict['hyp_alignment'] = jiwer_alignment.hypotheses
     output_dict['segments'] = result["segments"]
     with open(alignment_json_path, "w") as f:
         json.dump(output_dict, f)
@@ -113,7 +116,7 @@ if __name__ == "__main__":
     for example_name, example in tqdm(examples.items(), desc="Processing aligning examples"):
         align_dtw(
             model_name="openai/whisper-small",
-            plot_alignment_dir="../alignment_transcripts/plots",
+            plot_alignment_dir="../alignment_transcripts/plot_alignments",
             audio_path=example["audio_path"],
             ref_transcript=example["ref_transcript"],
             alignment_plot_name=example_name,

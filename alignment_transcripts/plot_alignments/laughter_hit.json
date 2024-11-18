@@ -1,0 +1,36 @@
+{
+    "ref": "[LAUGHTER]",
+    "hyp": "heh heh",
+    "segments": [
+        {
+            "id": 0,
+            "seek": 0,
+            "start": 0.34,
+            "end": 0.74,
+            "text": " Heh heh.",
+            "tokens": [
+                50364,
+                34984,
+                37791,
+                13,
+                50414
+            ],
+            "temperature": 0.0,
+            "confidence": 0.133,
+            "words": [
+                {
+                    "text": "Heh",
+                    "start": 0.34,
+                    "end": 0.58,
+                    "confidence": 0.008
+                },
+                {
+                    "text": "heh",
+                    "start": 0.58,
+                    "end": 0.74,
+                    "confidence": 0.554
+                }
+            ]
+        }
+    ]
+}
