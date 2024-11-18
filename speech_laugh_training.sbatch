@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=laughtokens-whisper-subset-10-16c-40G-1000-save       # Job name
+#SBATCH --job-name=laughtokens-whisper-subset10-16c-64G-from-original      # Job name
 #SBATCH -c 16                                       # Number of cores
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
-#SBATCH --mem=40G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
+#SBATCH --mem=64G                                   # Request 24GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
 #SBATCH --time=64:00:00                             # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
@@ -30,8 +30,12 @@ echo "Starting worker: "
 source activate .venv
 
 export TF_ENABLE_ONEDNN_OPTS=0
-export TF_CPP_MIN_LOG_LEVEL=2
-export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512,expandable_segments:True
+export TF_CPP_MIN_LOG_LEVEL=3
+export PYTHONWARNINGS="ignore"
+
+# Memory optimization
+# export PYTORCH_CUDA_ALLOC_CONF='max_split_size_mb:128,garbage_collection_threshold:0.8,roundup_power2_divisions:4'
+export PYTORCH_CUDA_ALLOC_CONF='max_split_size_mb:256,garbage_collection_threshold:0.8,roundup_power2_divisions:4' #expandable_segments:True
 export CUDA_LAUNCH_BLOCKING=1
 
 # Run your script with the appropriate arguments
