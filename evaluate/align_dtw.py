@@ -22,8 +22,8 @@ def align_dtw(
         model_name="openai/whisper-small",
         cache_dir="../ref_models/pre_trained", #If used fine-tuned model: ../vocalwhisper/speechlaughwhisper-subset-10
         plot_alignment_dir="../alignment_transcripts/plots",
-        alignment_plot_name="laugh_word_miss.png",
-        alignment_json_name="laugh_word_miss.json"
+        alignment_plot_name="laughing_word_miss",
+        alignment_json_name="laughing_word_miss.json"
 ):  
     if not os.path.exists(plot_alignment_dir):
         os.makedirs(plot_alignment_dir)
@@ -49,11 +49,12 @@ def align_dtw(
     )
 
     
-    ref_transcript = clean_transcript_sentence(ref_transcript)
+    ref_transcript = clean_transcript_sentence(ref_transcript) # REMOVE EMPTY STRINGS, MULTIPLE SPACES, ALREADY LOWERCASE
 
     # HYP: Transform number words to their numerical values
-    hyp_transcript = transform_number_words(result["text"])
+    hyp_transcript = transform_number_words(result["text"], reverse=True)
     hyp_transcript = clean_transcript_sentence(hyp_transcript)
+    hyp_transcript = jiwer.RemovePunctuation()(hyp_transcript) # ALSO REMOVE PUNCTUATION
 
     jiwer_alignment = jiwer.process_words(ref_transcript, hyp_transcript)
     
@@ -76,37 +77,37 @@ if __name__ == "__main__":
         "laughing_word_miss": {
             "original_audio": "sw02325A_25763475_270175625.wav",
             "audio_path": "../examples/alignments/laughing_word_miss.wav",
-            "ref_transcript": "uh you know they were filthy when i would get home now i understand kids go out and play and they get dirty but i mean filthy i am talking sand in the ears and the eyes and the hair and the and i was like gosh and then"
+            "ref_transcript": "uh you know they were FILTHY when i would get home now i understand kids go out and play and they get DIRTY but i mean filthy i am talking sand in the EARS and the EYES and the HAIR and the and i was like gosh and then"
         },
         "laughing_word_hit": {
             "original_audio": "sw02297A_533487375_54041475.wav",
             "audio_path": "../examples/alignments/laughing_word_hit.wav",
-            "ref_transcript": "only because i am i am too cheap to pay somebody uh twice the value of the oil and the filter do it"
+            "ref_transcript": "only because i am i am too cheap to pay somebody uh twice the value of the oil and the FILTER DO IT"
         },
         "laughing_word_hit_miss": {
             "original_audio": "sw02241A_4284225_433435875.wav",
             "audio_path": "../examples/alignments/laughing_word_miss(getting)_hit(this).wav",
-            "ref_transcript": "and they said well we just plan on spending the rest of our lives just getting this property developed"
+            "ref_transcript": "and they said well we just plan on spending the rest of our lives just GETTING THIS property developed"
         },
         "laughing_word_backchannel_hit": {
             "original_audio": "sw02548B_5221_6610875.wav",
             "audio_path": "../examples/alignments/laughing_word_backchannel_hit.wav",
-            "ref_transcript": "yeah"
+            "ref_transcript": "YEAH"
         },
         "laughter_intext_miss": {
             "original_audio": "sw04357B_25400125_2594545.wav",
             "audio_path": "../examples/alignments/laughter_intext_miss.wav",
-            "ref_transcript": "yeah and uh most people do not want to live that way today [laughter] in this country [laughter]"
+            "ref_transcript": "yeah and uh most people do not want to live that way today [LAUGHTER] in this country [LAUGHTER]"
         },
         "laughter_hit": {
             "original_audio": "sw04057B_131815_1424525.wav",
             "audio_path": "../examples/alignments/only_laughter_hit.wav",
-            "ref_transcript": "[laughter]"
+            "ref_transcript": "[LAUGHTER]"
         },
         "laughter_substitution_hit": {
             "original_audio": "sw04323A_1670465_170344625.wav",
             "audio_path": "../examples/alignments/laughter_substitution_hit.wav",
-            "ref_transcript": "[laughter]" #HYP: hehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehe
+            "ref_transcript": "[LAUGHTER]" #HYP: hehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehe
         }
     }
     for example_name, example in tqdm(examples.items(), desc="Processing aligning examples"):
@@ -115,6 +116,6 @@ if __name__ == "__main__":
             plot_alignment_dir="../alignment_transcripts/plots",
             audio_path=example["audio_path"],
             ref_transcript=example["ref_transcript"],
-            alignment_plot_name=f"{example_name}.png",
+            alignment_plot_name=example_name,
             alignment_json_name=f"{example_name}.json"
         )

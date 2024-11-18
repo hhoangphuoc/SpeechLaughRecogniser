@@ -1,0 +1,515 @@
+{
+    "ref": "uh you know they were FILTHY when i would get home now i understand kids go out and play and they get DIRTY but i mean filthy i am talking sand in the EARS and the EYES and the HAIR and the and i was like gosh and then",
+    "hyp": "they were filthy when i get home now i understand kids go out and play and they get dirty but i mean filthy i am talking sand in the ears and the eyes and the hair and i was like gosh and then you know",
+    "ref_alignment": [
+        [
+            "uh",
+            "you",
+            "know",
+            "they",
+            "were",
+            "filthy",
+            "when",
+            "i",
+            "would",
+            "get",
+            "home",
+            "now",
+            "i",
+            "understand",
+            "kids",
+            "go",
+            "out",
+            "and",
+            "play",
+            "and",
+            "they",
+            "get",
+            "dirty",
+            "but",
+            "i",
+            "mean",
+            "filthy",
+            "i",
+            "am",
+            "talking",
+            "sand",
+            "in",
+            "the",
+            "ears",
+            "and",
+            "the",
+            "eyes",
+            "and",
+            "the",
+            "hair",
+            "and",
+            "the",
+            "and",
+            "i",
+            "was",
+            "like",
+            "gosh",
+            "and",
+            "then"
+        ]
+    ],
+    "hyp_alignment": [
+        [
+            "they",
+            "were",
+            "filthy",
+            "when",
+            "i",
+            "get",
+            "home",
+            "now",
+            "i",
+            "understand",
+            "kids",
+            "go",
+            "out",
+            "and",
+            "play",
+            "and",
+            "they",
+            "get",
+            "dirty",
+            "but",
+            "i",
+            "mean",
+            "filthy",
+            "i",
+            "am",
+            "talking",
+            "sand",
+            "in",
+            "the",
+            "ears",
+            "and",
+            "the",
+            "eyes",
+            "and",
+            "the",
+            "hair",
+            "and",
+            "i",
+            "was",
+            "like",
+            "gosh",
+            "and",
+            "then",
+            "you",
+            "know"
+        ]
+    ],
+    "segments": [
+        {
+            "id": 0,
+            "seek": 0,
+            "start": 1.2,
+            "end": 3.28,
+            "text": " They were filthy when I get home.",
+            "tokens": [
+                50364,
+                814,
+                645,
+                40384,
+                562,
+                286,
+                483,
+                1280,
+                13,
+                50528
+            ],
+            "temperature": 0.0,
+            "confidence": 0.252,
+            "words": [
+                {
+                    "text": "They",
+                    "start": 1.2,
+                    "end": 1.32,
+                    "confidence": 0.132
+                },
+                {
+                    "text": "were",
+                    "start": 1.32,
+                    "end": 1.74,
+                    "confidence": 0.933
+                },
+                {
+                    "text": "filthy",
+                    "start": 1.74,
+                    "end": 2.28,
+                    "confidence": 0.112
+                },
+                {
+                    "text": "when",
+                    "start": 2.28,
+                    "end": 2.7,
+                    "confidence": 0.018
+                },
+                {
+                    "text": "I",
+                    "start": 2.7,
+                    "end": 2.88,
+                    "confidence": 0.75
+                },
+                {
+                    "text": "get",
+                    "start": 2.88,
+                    "end": 3.08,
+                    "confidence": 0.511
+                },
+                {
+                    "text": "home.",
+                    "start": 3.08,
+                    "end": 3.28,
+                    "confidence": 0.411
+                }
+            ]
+        },
+        {
+            "id": 1,
+            "seek": 0,
+            "start": 3.28,
+            "end": 5.46,
+            "text": " Now I understand kids go out and play and they get dirty.",
+            "tokens": [
+                50528,
+                823,
+                286,
+                1223,
+                2301,
+                352,
+                484,
+                293,
+                862,
+                293,
+                436,
+                483,
+                9360,
+                13,
+                50672
+            ],
+            "temperature": 0.0,
+            "confidence": 0.813,
+            "words": [
+                {
+                    "text": "Now",
+                    "start": 3.28,
+                    "end": 3.42,
+                    "confidence": 0.463
+                },
+                {
+                    "text": "I",
+                    "start": 3.42,
+                    "end": 3.56,
+                    "confidence": 0.813
+                },
+                {
+                    "text": "understand",
+                    "start": 3.56,
+                    "end": 3.84,
+                    "confidence": 0.994
+                },
+                {
+                    "text": "kids",
+                    "start": 3.84,
+                    "end": 4.14,
+                    "confidence": 0.978
+                },
+                {
+                    "text": "go",
+                    "start": 4.14,
+                    "end": 4.34,
+                    "confidence": 0.887
+                },
+                {
+                    "text": "out",
+                    "start": 4.34,
+                    "end": 4.46,
+                    "confidence": 0.998
+                },
+                {
+                    "text": "and",
+                    "start": 4.46,
+                    "end": 4.52,
+                    "confidence": 0.767
+                },
+                {
+                    "text": "play",
+                    "start": 4.52,
+                    "end": 4.72,
+                    "confidence": 0.996
+                },
+                {
+                    "text": "and",
+                    "start": 4.72,
+                    "end": 4.84,
+                    "confidence": 0.696
+                },
+                {
+                    "text": "they",
+                    "start": 4.84,
+                    "end": 4.96,
+                    "confidence": 0.948
+                },
+                {
+                    "text": "get",
+                    "start": 4.96,
+                    "end": 5.1,
+                    "confidence": 0.997
+                },
+                {
+                    "text": "dirty.",
+                    "start": 5.1,
+                    "end": 5.46,
+                    "confidence": 0.646
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "seek": 0,
+            "start": 6.1,
+            "end": 7.1,
+            "text": " But I mean filthy.",
+            "tokens": [
+                50672,
+                583,
+                286,
+                914,
+                40384,
+                13,
+                50728
+            ],
+            "temperature": 0.0,
+            "confidence": 0.592,
+            "words": [
+                {
+                    "text": "But",
+                    "start": 6.1,
+                    "end": 6.2,
+                    "confidence": 0.447
+                },
+                {
+                    "text": "I",
+                    "start": 6.2,
+                    "end": 6.38,
+                    "confidence": 0.915
+                },
+                {
+                    "text": "mean",
+                    "start": 6.38,
+                    "end": 6.56,
+                    "confidence": 0.912
+                },
+                {
+                    "text": "filthy.",
+                    "start": 6.56,
+                    "end": 7.1,
+                    "confidence": 0.442
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "seek": 0,
+            "start": 7.1,
+            "end": 9.9,
+            "text": " I'm talking sand in the ears and the eyes and the hair.",
+            "tokens": [
+                50728,
+                286,
+                478,
+                1417,
+                4932,
+                294,
+                264,
+                8798,
+                293,
+                264,
+                2575,
+                293,
+                264,
+                2578,
+                13,
+                50900
+            ],
+            "temperature": 0.0,
+            "confidence": 0.77,
+            "words": [
+                {
+                    "text": "I'm",
+                    "start": 7.1,
+                    "end": 7.4,
+                    "confidence": 0.542
+                },
+                {
+                    "text": "talking",
+                    "start": 7.4,
+                    "end": 7.66,
+                    "confidence": 0.975
+                },
+                {
+                    "text": "sand",
+                    "start": 7.66,
+                    "end": 8.04,
+                    "confidence": 0.765
+                },
+                {
+                    "text": "in",
+                    "start": 8.04,
+                    "end": 8.24,
+                    "confidence": 0.951
+                },
+                {
+                    "text": "the",
+                    "start": 8.24,
+                    "end": 8.34,
+                    "confidence": 0.996
+                },
+                {
+                    "text": "ears",
+                    "start": 8.34,
+                    "end": 8.66,
+                    "confidence": 0.894
+                },
+                {
+                    "text": "and",
+                    "start": 8.66,
+                    "end": 8.92,
+                    "confidence": 0.68
+                },
+                {
+                    "text": "the",
+                    "start": 8.92,
+                    "end": 9.04,
+                    "confidence": 0.934
+                },
+                {
+                    "text": "eyes",
+                    "start": 9.04,
+                    "end": 9.3,
+                    "confidence": 0.958
+                },
+                {
+                    "text": "and",
+                    "start": 9.3,
+                    "end": 9.54,
+                    "confidence": 0.926
+                },
+                {
+                    "text": "the",
+                    "start": 9.54,
+                    "end": 9.66,
+                    "confidence": 0.979
+                },
+                {
+                    "text": "hair.",
+                    "start": 9.66,
+                    "end": 9.9,
+                    "confidence": 0.504
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "seek": 0,
+            "start": 10.68,
+            "end": 11.9,
+            "text": " And I was like, gosh.",
+            "tokens": [
+                50900,
+                400,
+                286,
+                390,
+                411,
+                11,
+                6502,
+                13,
+                50976
+            ],
+            "temperature": 0.0,
+            "confidence": 0.659,
+            "words": [
+                {
+                    "text": "And",
+                    "start": 10.68,
+                    "end": 10.76,
+                    "confidence": 0.54
+                },
+                {
+                    "text": "I",
+                    "start": 10.76,
+                    "end": 10.94,
+                    "confidence": 0.918
+                },
+                {
+                    "text": "was",
+                    "start": 10.94,
+                    "end": 11.1,
+                    "confidence": 0.994
+                },
+                {
+                    "text": "like,",
+                    "start": 11.1,
+                    "end": 11.32,
+                    "confidence": 0.802
+                },
+                {
+                    "text": "gosh.",
+                    "start": 11.52,
+                    "end": 11.9,
+                    "confidence": 0.413
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "seek": 0,
+            "start": 12.26,
+            "end": 12.94,
+            "text": " And then, you know,",
+            "tokens": [
+                50976,
+                400,
+                550,
+                11,
+                291,
+                458,
+                11,
+                51018
+            ],
+            "temperature": 0.0,
+            "confidence": 0.252,
+            "words": [
+                {
+                    "text": "And",
+                    "start": 12.26,
+                    "end": 12.34,
+                    "confidence": 0.162
+                },
+                {
+                    "text": "then,",
+                    "start": 12.34,
+                    "end": 12.56,
+                    "confidence": 0.248
+                },
+                {
+                    "text": "you",
+                    "start": 12.72,
+                    "end": 12.92,
+                    "confidence": 0.137
+                },
+                {
+                    "text": "know,",
+                    "start": 12.92,
+                    "end": 12.94,
+                    "confidence": 0.435
+                }
+            ]
+        }
+    ]
+}

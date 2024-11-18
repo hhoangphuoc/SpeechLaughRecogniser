@@ -1,0 +1,155 @@
+{
+    "ref": "yeah and uh most people do not want to live that way today [LAUGHTER] in this country [LAUGHTER]",
+    "hyp": "yeah and most people do not want to live that way in this country",
+    "ref_alignment": [
+        [
+            "yeah",
+            "and",
+            "uh",
+            "most",
+            "people",
+            "do",
+            "not",
+            "want",
+            "to",
+            "live",
+            "that",
+            "way",
+            "today",
+            "[laughter]",
+            "in",
+            "this",
+            "country",
+            "[laughter]"
+        ]
+    ],
+    "hyp_alignment": [
+        [
+            "yeah",
+            "and",
+            "most",
+            "people",
+            "do",
+            "not",
+            "want",
+            "to",
+            "live",
+            "that",
+            "way",
+            "in",
+            "this",
+            "country"
+        ]
+    ],
+    "segments": [
+        {
+            "id": 0,
+            "seek": 0,
+            "start": 0.58,
+            "end": 4.7,
+            "text": " Yeah, and most people don't want to live that way in this country.",
+            "tokens": [
+                50364,
+                865,
+                11,
+                293,
+                881,
+                561,
+                500,
+                380,
+                528,
+                281,
+                1621,
+                300,
+                636,
+                294,
+                341,
+                1941,
+                13,
+                50614
+            ],
+            "temperature": 0.0,
+            "confidence": 0.844,
+            "words": [
+                {
+                    "text": "Yeah,",
+                    "start": 0.58,
+                    "end": 0.88,
+                    "confidence": 0.537
+                },
+                {
+                    "text": "and",
+                    "start": 1.22,
+                    "end": 1.52,
+                    "confidence": 0.792
+                },
+                {
+                    "text": "most",
+                    "start": 1.52,
+                    "end": 2.02,
+                    "confidence": 0.947
+                },
+                {
+                    "text": "people",
+                    "start": 2.02,
+                    "end": 2.22,
+                    "confidence": 0.997
+                },
+                {
+                    "text": "don't",
+                    "start": 2.22,
+                    "end": 2.4,
+                    "confidence": 0.981
+                },
+                {
+                    "text": "want",
+                    "start": 2.4,
+                    "end": 2.46,
+                    "confidence": 0.888
+                },
+                {
+                    "text": "to",
+                    "start": 2.46,
+                    "end": 2.54,
+                    "confidence": 0.992
+                },
+                {
+                    "text": "live",
+                    "start": 2.54,
+                    "end": 2.7,
+                    "confidence": 0.981
+                },
+                {
+                    "text": "that",
+                    "start": 2.7,
+                    "end": 2.86,
+                    "confidence": 0.978
+                },
+                {
+                    "text": "way",
+                    "start": 2.86,
+                    "end": 3.0,
+                    "confidence": 0.98
+                },
+                {
+                    "text": "in",
+                    "start": 3.0,
+                    "end": 3.34,
+                    "confidence": 0.457
+                },
+                {
+                    "text": "this",
+                    "start": 3.34,
+                    "end": 4.32,
+                    "confidence": 0.981
+                },
+                {
+                    "text": "country.",
+                    "start": 4.32,
+                    "end": 4.7,
+                    "confidence": 0.931
+                }
+            ]
+        }
+    ]
+}
