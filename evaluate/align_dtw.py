@@ -6,7 +6,7 @@ import warnings
 import torch
 import jiwer
 import whisper_timestamped as whisper_ts
-from utils.transcript_process import clean_transcript_sentence, transform_number_words
+from preprocess.transcript_process import clean_transcript_sentence, transform_number_words
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 

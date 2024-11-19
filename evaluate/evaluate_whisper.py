@@ -6,15 +6,15 @@ from datasets import load_from_disk
 import jiwer
 import argparse
 import torch
+import librosa
+import time
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import librosa
-import time
 
-from utils.datasets_preprocess import filter_and_match_datasets
+from preprocess.datasets_preprocess import filter_and_match_datasets
 from utils.metrics import track_laugh_word_alignments
-from utils.transcript_process import transform_number_words, clean_transcript_sentence
+from preprocess.transcript_process import transform_number_words, clean_transcript_sentence
 
 
 #--------------------------------------------------

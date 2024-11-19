@@ -3,12 +3,7 @@
 
 import pandas as pd
 import numpy as np
-import evaluate
-import jiwer
-import torch
-import os
-import re
-import time
+
 
 def calculate_iou(ref_sentence, hyp_sentence):
     """
@@ -94,7 +89,7 @@ def track_laugh_word_alignments(
             'type': 'token' if word in ['[LAUGHTER]', '[SPEECH_LAUGH]'] else 'word',
             'lower': word.lower()
         }
-        for i, word in enumerate(ref_words) # GET word and corresponding indices
+        for i, word in enumerate(ref_words) # GET: word (both LAUGHTER and LAUGHING WORDS) and corresponding indices
         if word.isupper() or word in ['[LAUGHTER]', '[SPEECH_LAUGH]']
     }
 

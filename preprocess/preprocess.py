@@ -9,8 +9,8 @@ import torch
 
 from datasets import load_dataset, Dataset, DatasetDict, Audio
 
-from utils.transcript_process import process_switchboard_transcript, process_ami_transcript
-from utils.audio_process import cut_audio_based_on_transcript_segments
+from preprocess.transcript_process import process_switchboard_transcript, process_ami_transcript
+from preprocess.audio_process import cut_audio_based_on_transcript_segments
 
 import utils.params as prs
 
