@@ -41,7 +41,7 @@ def align_dtw(
         # download_root=cache_dir
     )
 
-    result = whisper_ts.transcribe_timestamped(
+    result = whisper_ts.transcribe(
         model=model,
         audio=audio_path,
         task="transcribe",
@@ -49,6 +49,7 @@ def align_dtw(
         plot_word_alignment=plot_alignment_path,
         remove_punctuation_from_words=True,
         detect_disfluencies=True #to indicate position having laughter, speechlaugh
+        
     )
     
     # ref_transcript = clean_transcript_sentence(ref_transcript) # REMOVE EMPTY STRINGS, MULTIPLE SPACES, ALREADY LOWERCASE
@@ -59,7 +60,7 @@ def align_dtw(
     hyp_transcript = clean_transcript_sentence(hyp_transcript)
     hyp_transcript = jiwer.RemovePunctuation()(hyp_transcript) # ALSO REMOVE PUNCTUATION
 
-    jiwer_alignment = jiwer.process_words(ref_transcript, hyp_transcript)
+    # jiwer_alignment = jiwer.process_words(ref_transcript, hyp_transcript)
     
     # save result to json
     output_dict = {}
