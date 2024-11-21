@@ -3,8 +3,6 @@ from .TrainerCallbacks import (
     MemoryEfficientCallback, 
     MetricsCallback, 
     MultiprocessingCallback, 
-    # EarlyStoppingCallback,
-    manage_memory
 )
 
 __all__ = [
@@ -12,5 +10,4 @@ __all__ = [
     'MemoryEfficientCallback',
     'MetricsCallback',
     'MultiprocessingCallback',
-    'manage_memory'
 ]

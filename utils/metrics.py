@@ -77,6 +77,18 @@ def track_laugh_word_alignments(
         original_reference (str): Original reference transcript with uppercase laugh words/laughter tokens
         hypothesis (str): Predicted transcript
         alignment: JiWER alignment object
+
+    Returns:
+        dict: Dictionary containing laughter statistics. This contains the following keys:
+            - laugh_words: List of laughter words in the reference
+            - laughter_tokens: List of laughter tokens in the reference
+            - total_laugh_words: Total number of laughter words in the reference
+            - total_laughter_tokens: Total number of laughter tokens in the reference
+            - hits: List of hits (correctly predicted laughter words/tokens)
+            - substitutions: List of substitutions (incorrectly predicted laughter words/tokens)
+            - deletions: List of deletions (laughter words/tokens that are not predicted)
+            - insertions: List of insertions (laughter words/tokens that are not in the reference)
+
     """
     # Split reference into words while preserving case
     ref_words = original_reference.split() # THIS IS THE ORIGINAL TRANSCRIPT with UPPERCASE WORDS
@@ -191,31 +203,31 @@ def track_laugh_word_alignments(
 
     #HITS----------------------------------------------------------------------
     laugh_word_hits = sum(1 for hit in laugh_stats['hits'] if hit['type'] == 'word')
-    laugh_stats['laugh_word_hit_rate'] = laugh_word_hits / total_laugh_words if total_laugh_words > 0 else 0
+    laugh_stats['lwhr'] = laugh_word_hits / total_laugh_words if total_laugh_words > 0 else 0
 
     laugh_token_hits = sum(1 for hit in laugh_stats['hits'] if hit['type'] == 'token')
-    laugh_stats['laugh_token_hit_rate'] = laugh_token_hits / total_laughter_tokens if total_laughter_tokens > 0 else 0
+    laugh_stats['lthr'] = laugh_token_hits / total_laughter_tokens if total_laughter_tokens > 0 else 0
 
     # SUBSTITUTIONS----------------------------------------------------------------------
     laugh_word_substitutions = sum(1 for substitution in laugh_stats['substitutions'] if substitution['type'] == 'word')
-    laugh_stats['laugh_word_substitution_rate'] = laugh_word_substitutions / total_laugh_words if total_laugh_words > 0 else 0
+    laugh_stats['lwsr'] = laugh_word_substitutions / total_laugh_words if total_laugh_words > 0 else 0
 
     laugh_token_substitutions = sum(1 for substitution in laugh_stats['substitutions'] if substitution['type'] == 'token')
-    laugh_stats['laugh_token_substitution_rate'] = laugh_token_substitutions / total_laughter_tokens if total_laughter_tokens > 0 else 0
+    laugh_stats['ltsr'] = laugh_token_substitutions / total_laughter_tokens if total_laughter_tokens > 0 else 0
 
     # DELETIONS----------------------------------------------------------------------
     laugh_word_deletions = sum(1 for deletion in laugh_stats['deletions'] if deletion['type'] == 'word')
-    laugh_stats['laugh_word_deletion_rate'] = laugh_word_deletions / total_laugh_words if total_laugh_words > 0 else 0
+    laugh_stats['lwdr'] = laugh_word_deletions / total_laugh_words if total_laugh_words > 0 else 0
     
     laugh_token_deletions = sum(1 for deletion in laugh_stats['deletions'] if deletion['type'] == 'token')
-    laugh_stats['laugh_token_deletion_rate'] = laugh_token_deletions / total_laughter_tokens if total_laughter_tokens > 0 else 0
+    laugh_stats['ltdr'] = laugh_token_deletions / total_laughter_tokens if total_laughter_tokens > 0 else 0
     
     # INSERTIONS----------------------------------------------------------------------
     laugh_word_insertions = sum(1 for insertion in laugh_stats['insertions'] if insertion['type'] == 'word')
-    laugh_stats['laugh_word_insertion_rate'] = laugh_word_insertions / total_laugh_words if total_laugh_words > 0 else 0
+    laugh_stats['lwir'] = laugh_word_insertions / total_laugh_words if total_laugh_words > 0 else 0
     
     laugh_token_insertions = sum(1 for insertion in laugh_stats['insertions'] if insertion['type'] == 'token')
-    laugh_stats['laugh_token_insertion_rate'] = laugh_token_insertions / total_laughter_tokens if total_laughter_tokens > 0 else 0
+    laugh_stats['ltir'] = laugh_token_insertions / total_laughter_tokens if total_laughter_tokens > 0 else 0
     
 
     #-------------- LAUGH_STATS FORMAT -----------------
@@ -229,14 +241,14 @@ def track_laugh_word_alignments(
         'substitutions': [],
         'deletions': [],
         'insertions': [],
-        'laugh_word_hit_rate': 
-        'laugh_token_hit_rate': 
-        'laugh_word_substitution_rate': 
-        'laugh_token_substitution_rate': 
-        'laugh_word_deletion_rate': 
-        'laugh_token_deletion_rate': 
-        'laugh_word_insertion_rate': 
-        'laugh_token_insertion_rate': 
+        'lwhr': 
+        'lthr': 
+        'lwsr': 
+        'ltsr': 
+        'lwdr': 
+        'ltdr': 
+        'lwir': 
+        'ltir': 
     }
     """
     return laugh_stats
