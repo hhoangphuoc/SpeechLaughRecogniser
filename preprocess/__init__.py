@@ -1,4 +1,4 @@
-from .preprocess import (
+from .data_preprocess import (
     split_dataset,
     csv_to_dataset,
     combine_data_csv,
@@ -26,8 +26,9 @@ from .audio_process import (
 )
 
 from .transcript_process import (
-    transform_number_words,
-    clean_transcript_sentence
+    retokenize_transcript_pattern,
+    process_switchboard_transcript,
+    process_ami_transcript
 )
 
 __all__ = [
@@ -56,6 +57,8 @@ __all__ = [
     'add_noise',
 
     # From transcript_process.py
-    'transform_number_words',
-    'clean_transcript_sentence'
+    'retokenize_transcript_pattern',
+    'process_switchboard_transcript',
+    'process_ami_transcript'
+
 ]

@@ -4,10 +4,12 @@ from .TrainerCallbacks import (
     MetricsCallback, 
     MultiprocessingCallback, 
 )
+from .CustomTrainer import MemoryEfficientTrainer
 
 __all__ = [
     'DataCollatorSpeechSeq2SeqWithPadding',
     'MemoryEfficientCallback',
     'MetricsCallback',
     'MultiprocessingCallback',
+    'MemoryEfficientTrainer',
 ]

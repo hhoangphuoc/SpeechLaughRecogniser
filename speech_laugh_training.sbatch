@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=laughtokens-whisper-subset10-16proc-batch16-grad2-0loader-save1000--64G      # Job name
+#SBATCH --job-name=laughtokens-whisper-subset10-memoryefficient-trainer-with-eval-save1000--64G      # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU

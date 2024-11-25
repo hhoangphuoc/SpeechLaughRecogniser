@@ -1,8 +1,6 @@
 # THIS FILE CONTAINS THE LOADING AND CUSTOM METRICS
 #========================================================================================================================
-
-import pandas as pd
-import numpy as np
+import evaluate
 
 
 def calculate_iou(ref_sentence, hyp_sentence):
@@ -254,3 +252,14 @@ def track_laugh_word_alignments(
     return laugh_stats
 
 
+#=================================================================================================      
+def load_metrics():
+    """
+    Load the metrics for evaluation using HuggingFace's evaluate library including:
+    - Word Error Rate (WER)
+    - F1 score (F1)
+    """
+    wer_metric = evaluate.load("wer") #Word Error Rate between the hypothesis and the reference transcript
+    f1_metric = evaluate.load("f1") #F1 score between the hypothesis and the reference transcript
+
+    return wer_metric, f1_metric

@@ -207,15 +207,15 @@ def evaluate_whisper(
             #=====================================================================================================
             #                               WRITE SUMMARY STATISTICS
             #=====================================================================================================
-            summary_stats['whrs'].append(laugh_stats['laugh_word_hit_rate'])
-            summary_stats['wrs'].append(laugh_stats['laugh_word_substitution_rate'])
-            summary_stats['wdr'].append(laugh_stats['laugh_word_deletion_rate'])
-            summary_stats['wir'].append(laugh_stats['laugh_word_insertion_rate'])
+            summary_stats['whrs'].append(laugh_stats['lthr'])
+            summary_stats['wrs'].append(laugh_stats['lwsr'])
+            summary_stats['wdr'].append(laugh_stats['lwdr'])
+            summary_stats['wir'].append(laugh_stats['lwir'])
 
-            summary_stats['thr'].append(laugh_stats['laugh_token_hit_rate'])
-            summary_stats['trs'].append(laugh_stats['laugh_token_substitution_rate'])
-            summary_stats['tdr'].append(laugh_stats['laugh_token_deletion_rate'])
-            summary_stats['tir'].append(laugh_stats['laugh_token_insertion_rate'])
+            summary_stats['thr'].append(laugh_stats['lthr'])
+            summary_stats['trs'].append(laugh_stats['ltsr'])
+            summary_stats['tdr'].append(laugh_stats['ltdr'])
+            summary_stats['tir'].append(laugh_stats['ltir'])
 
 
             #===============================================================================================================================
@@ -261,8 +261,22 @@ def evaluate_whisper(
         
         f.write(f"Average WER: {np.mean(summary_stats['wers']):.2f} \n\n")
 
+        f.write("________________________________________________________________________________________________________________\n")
+        f.write(f"Total Laugh Word Hit Rate:{len(laugh_stats['hits'])/laugh_stats['total_laugh_words']:.2f} \n")
+        f.write(f"Total Laugh Word Substitution Rate:{len(laugh_stats['substitutions'])/laugh_stats['total_laugh_words']:.2f} \n")
+        f.write(f"Total Laugh Word Deletion Rate:{len(laugh_stats['deletions'])/laugh_stats['total_laugh_words']:.2f} \n")
+        f.write(f"Total Laugh Word Insertion Rate:{len(laugh_stats['insertions'])/laugh_stats['total_laugh_words']:.2f} \n")
+
+        f.write(f"Total Laughter Token Hit Rate:{len(laugh_stats['hits'])/laugh_stats['total_laughter_tokens']:.2f} \n")
+        f.write(f"Total Laughter Token Substitution Rate:{len(laugh_stats['substitutions'])/laugh_stats['total_laughter_tokens']:.2f} \n")
+        f.write(f"Total Laughter Token Deletion Rate:{len(laugh_stats['deletions'])/laugh_stats['total_laughter_tokens']:.2f} \n")
+        f.write(f"Total Laughter Token Insertion Rate:{len(laugh_stats['insertions'])/laugh_stats['total_laughter_tokens']:.2f} \n")
+        f.write("__________________________________________________________________________________________________________________\n\n")
+
+
+        f.write("=============================== AVERAGE METRICS SUMMARY =======================================\n")
         f.write("___________________________________________________________________________________________\n")
-        f.write(f"Avg Laugh Word Detected Rate: {np.mean(summary_stats['whrs']):.2f} \n")
+        f.write(f"Avg Laugh Word Hit Rate: {np.mean(summary_stats['whrs']):.2f} \n")
         f.write(f"Avg Laugh Word Substitution Rate: {np.mean(summary_stats['wrs']):.2f} \n")
         f.write(f"Avg Laugh Word Deletion Rate: {np.mean(summary_stats['wdr']):.2f} \n")
         f.write(f"Avg Laugh Word Insertion Rate: {np.mean(summary_stats['wir']):.2f} \n")
