@@ -1,6 +1,8 @@
 import argparse
 import numpy as np
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import warnings
 import torch
 import multiprocessing
@@ -31,11 +33,7 @@ from preprocess import (
     transform_number_words, 
     clean_transcript_sentence
 )
-from utils import (
-    track_laugh_word_alignments,
-    init_multiprocessing,
-    save_model_components
-)
+from utils import track_laugh_word_alignments
 
 # Evaluation Metrics------
 import pandas as pd
@@ -57,6 +55,30 @@ This is the fine-tuning Whisper model
 for the specific task of transcribing recognizing speech laughter, fillers, 
 pauses, and other non-speech sounds in conversations.
 """
+#==========================================================================================================
+#   Initialise Multiprocessing
+#==========================================================================================================
+def init_multiprocessing():
+    """Initialize multiprocessing settings"""
+    # Set start method
+    mp.set_start_method('spawn', force=True)
+    
+    # Get number of available CPUs from SLURM
+    n_cores = os.environ.get('SLURM_CPUS_PER_TASK')
+    print(f"Number of available CPUs: {n_cores}")
+    if n_cores is not None:
+        n_cores = int(n_cores)
+    else:
+        n_cores = max(1, multiprocessing.cpu_count() // 2)
+    
+    print(f"Using multiprocessing workers: {n_cores}")
+
+    # Set the number of threads for PyTorch
+    torch.set_num_threads(n_cores)
+    os.environ["TOKENIZERS_PARALLELISM"] = "false" 
+    print(f"PyTorch threads: {torch.get_num_threads()}")
+    
+    return n_cores
 
 #==========================================================================================================
 #           HELPER FUNCTIONS TO LOAD AND SAVE MODEL COMPONENTS
@@ -80,11 +102,25 @@ def initialize_model_config(model_path, cache_dir):
     torch.backends.cudnn.allow_tf32 = True
     torch.backends.cuda.matmul.allow_tf32 = True
     #===================================================================
+    model.gradient_checkpointing_enable()
     model.config.use_cache = False
     
 
     return model
 
+def save_model_components(
+        model, 
+        tokenizer, 
+        generation_config,  
+        output_dir
+    ):
+    """Save all model components to the specified directory"""
+    # Save main components
+    model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
+    generation_config.save_pretrained(output_dir)
+    
+    print("Successfully saved model components to: ", output_dir)
 
 def setup_tokenizer_and_generation_config(
         model_path="openai/whisper-small", 
@@ -174,13 +210,6 @@ def SpeechLaughWhisper(args):
         model_path=args.model_path, 
         cache_dir=args.pretrained_model_dir
     )
-
-    # MODEL FROM CHECKPOINT
-    # model = WhisperForConditionalGeneration.from_pretrained(
-    #     args.model_output_dir + "fine-tuned-2000steps-oom",
-    #     device_map="auto",
-    #     low_cpu_mem_usage=True,
-    # )
 
     #=====================================================================
 

@@ -24,7 +24,6 @@ class MultiprocessingCallback(TrainerCallback):
         print(f"PyTorch threads: {torch.get_num_threads()}")
         
     def on_train_end(self, args, state, control, **kwargs):
-        # Cleanup multiprocessing resources
         torch.set_num_threads(1)
 #========================================================================================================================
 
@@ -168,7 +167,6 @@ class MetricsCallback(TrainerCallback):
         current_step = state.global_step
         
         try:
-            # Only process if we haven't recently saved at this step
             if current_step != self.last_eval_step:
                 self.last_eval_step = current_step
                 
@@ -176,7 +174,7 @@ class MetricsCallback(TrainerCallback):
                 latest_logs = state.log_history[-1] if state.log_history else {}
                 training_loss = latest_logs.get("loss", 0)
                 
-                # Prepare metrics dictionary
+                # Prepare metrics
                 new_metrics = {
                     "step": current_step,
                     "epoch": state.epoch,
@@ -185,55 +183,26 @@ class MetricsCallback(TrainerCallback):
                     "validation_loss": metrics.get("eval_loss", 0),
                 }
                 
-                # Add evaluation metrics with proper prefix handling
-                metric_mappings = {
-                    "wer": "wer",
-                    "f1": "f1",
-                    "lwhr": "lwhr",
-                    "lthr": "lthr",
-                    "lwsr": "lwsr",
-                    "ltsr": "ltsr",
-                    "lwdr": "lwdr",
-                    "ltdr": "ltdr",
-                    "lwir": "lwir",
-                    "ltir": "ltir"
-                }
-                
-                # Update metrics with proper prefix handling
-                for metric_key, df_key in metric_mappings.items():
-                    # Check both with and without eval_ prefix
-                    value = metrics.get(f"eval_{metric_key}", metrics.get(metric_key, 0))
-                    new_metrics[df_key] = value
+                # Handle evaluation metrics
+                for key in self.metrics_df.columns:
+                    if key in ["step", "epoch", "timestamp", "training_loss", "validation_loss"]:
+                        continue
+                    # Look for metrics with and without eval_ prefix
+                    value = metrics.get(f"eval_{key}", metrics.get(key, 0))
+                    new_metrics[key] = value
 
-                # Debug prints with memory info
-                print("\nEvaluation Step Summary:")
-                print(f"Step: {current_step}, Epoch: {state.epoch:.2f}")
-                if torch.cuda.is_available():
-                    print(f"GPU Memory: {torch.cuda.memory_allocated()/1e9:.2f}GB")
-                
-                # Append to DataFrame
+                # Add to DataFrame
                 self.metrics_df.loc[len(self.metrics_df)] = new_metrics
                 
                 # Log to TensorBoard with memory cleanup
                 for key, value in new_metrics.items():
                     if isinstance(value, (int, float)) and key not in ["step", "epoch"]:
                         self.writer.add_scalar(f"eval/{key}", value, current_step)
-                self.writer.flush()  # Force write to disk
+                self.writer.flush()
                 
-                # Save metrics to CSV
+                # Save and print
                 self.save_metrics()
-                
-                # Print metrics summary
-                print("\n" + "="*50)
-                print("Metrics Summary:")
-                print(f"Training Loss: {new_metrics['training_loss']:.4f}")
-                print(f"Validation Loss: {new_metrics['validation_loss']:.4f}")
-                print(f"WER: {new_metrics['wer']:.2f}")
-                print(f"F1: {new_metrics['f1']:.2f}")
-                print("\nLaughter Metrics:")
-                print(f"Word Hit Rate: {new_metrics['lwhr']:.2f}")
-                print(f"Token Hit Rate: {new_metrics['lthr']:.2f}")
-                print("="*50 + "\n")
+                self._print_metrics_summary(new_metrics)
 
                 # Save checkpoint with memory management
                 self.save_checkpoint(state, new_metrics)
@@ -274,6 +243,17 @@ class MetricsCallback(TrainerCallback):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
             gc.collect()
+    
+    def _print_metrics_summary(self, metrics):
+        """Print metrics summary"""
+        print("\n =========================================================")
+        print(f"Metrics saved at step {metrics['step']}")
+        print(f"Validation Loss: {metrics['validation_loss']:.4f}")
+        print(f"WER: {metrics['wer']:.2f}")
+        print(f"F1: {metrics['f1']:.2f}")
+        print(f"Laugh Word Hit Rate: {metrics['lwhr']:.2f}")
+        print(f"Laughter Token Hit Rate: {metrics['lthr']:.2f}")
+        print("========================================================\n")
 
     def on_train_end(self, args, state, control, **kwargs):
         """Cleanup on training end"""
