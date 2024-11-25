@@ -28,6 +28,7 @@ from preprocess import split_dataset
 from utils import (
     # for training process
     init_multiprocessing,
+    gpu_config,
     save_model_components,
     prepare_dataset_with_a40,
     load_metrics,
@@ -59,7 +60,7 @@ def initialize_model_config(model_path, cache_dir):
         model_path, 
         cache_dir=cache_dir,
         device_map="auto",
-        low_cpu_mem_usage=True,
+        low_cpu_mem_usage=True
     )
 
     model.config.use_cache = False
@@ -76,8 +77,8 @@ def SpeechLaughWhisper(args):
 
     """
     print("CUDA device name:", torch.cuda.get_device_name(0))
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Device: ", device)
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # print("Device: ", device)
 
     #==========================================================================================================
     #                                       ENABLE MULTIPROCESSING
@@ -85,6 +86,15 @@ def SpeechLaughWhisper(args):
     n_proc = init_multiprocessing()
 
 
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        device = torch.device("cuda")
+
+        gpu_config() #to enable faster training: CuDNN enabled, CuDNN allow_tf32 enabled, CuDNN matmul allow_tf32 enabled
+    else:
+        device = torch.device("cpu")
+    
+    print("Device: ", device)
     #=======================================================================
     #               MODEL CONFIGURATION 
     #=======================================================================
@@ -106,15 +116,11 @@ def SpeechLaughWhisper(args):
     feature_extractor = processor.feature_extractor
     tokenizer = processor.tokenizer
 
-    special_tokens = ["[LAUGHTER]", "[SPEECHLAUGH]"]
+    # special_tokens = ["[LAUGHTER]", "[SPEECHLAUGH]"]
+    special_tokens = ["[LAUGHTER]"] #add only laughter token to tokenizer
     tokenizer.add_tokens(special_tokens)
 
-    # generation_config = processor.generation_config #FIXME: DO WE NEED GENERATION CONFIG?
-    # model.generation_config = generation_config
-
     model.resize_token_embeddings(len(tokenizer))
-    
-    model.to(device) # move model to GPUs
 
 
     #       DATA COLLATOR
@@ -205,13 +211,14 @@ def SpeechLaughWhisper(args):
         tf32=True,
         gradient_checkpointing=True,     # Enable checkpointing
         torch_empty_cache_steps=500, #empty cache every 500 steps
+        torch_compile=True,
 
         metric_for_best_model="wer",
         greater_is_better=False,
         load_best_model_at_end=True,
         report_to=["tensorboard"],
 
-        dataloader_num_workers=16,
+        dataloader_num_workers=4,
         dataloader_pin_memory=True,
         remove_unused_columns=True,
 
