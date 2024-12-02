@@ -65,13 +65,14 @@ def parse_dictionary_file(file_path):
             #           LAUGHTER WORDS
             #=======================================================    
             elif current_section == "laughter":
-                if line.startswith('[laughter-'):
-                    # Extract word between 'laughter-' and ']'
-                    word = line[len('[laughter-'):line.find(']')]
-                    # Clean and reconstruct the word
-                    cleaned_word = clean_laughter_word(word)
-                    if cleaned_word:  # Only add if not empty
-                        laughing_words.add(cleaned_word)
+                laughing_words.add(word)
+                # if line.startswith('[laughter-'):
+                #     # Extract word between 'laughter-' and ']'
+                #     word = line[len('[laughter-'):line.find(']')]
+                #     # Clean and reconstruct the word
+                #     cleaned_word = clean_laughter_word(word)
+                #     if cleaned_word:  # Only add if not empty
+                #         laughing_words.add(cleaned_word)
                 continue
 
             #=======================================================
@@ -109,18 +110,19 @@ def parse_dictionary_file(file_path):
             #           ANOMALOUS WORDS
             #=======================================================    
             elif current_section == "anomalous":
-                # Handle anomalous word format: [wrong/correct] pronunciation
-                if line.startswith('[') and '/' in line:
-                    # Extract the part between [ and ]
-                    bracket_content = line[line.find('[')+1:line.find(']')]
-                    # Split by / and get the second part (correct word)
-                    parts = bracket_content.split('/')
-                    if len(parts) >= 2:
-                        correct_word = parts[1].strip()
-                        # Clean the word before adding to set
-                        cleaned_word = clean_anomalous_word(correct_word)
-                        if cleaned_word:  # Only add if not empty
-                            anomalous_words.add(cleaned_word)
+                anomalous_words.add(word)
+                # # Handle anomalous word format: [wrong/correct] pronunciation
+                # if line.startswith('[') and '/' in line:
+                #     # Extract the part between [ and ]
+                #     bracket_content = line[line.find('[')+1:line.find(']')]
+                #     # Split by / and get the second part (correct word)
+                #     parts = bracket_content.split('/')
+                #     if len(parts) >= 2:
+                #         correct_word = parts[1].strip()
+                #         # Clean the word before adding to set
+                #         cleaned_word = clean_anomalous_word(correct_word)
+                #         if cleaned_word:  # Only add if not empty
+                #             anomalous_words.add(cleaned_word)
             
             #=======================================================
             #           COINAGES
@@ -174,7 +176,7 @@ def load_word_sets(input_dir,
         input_dir (str): Directory containing the pickle files
         set_names (list, optional): List of set names to load. If None, all sets are loaded.
     Returns:
-        dict: Dictionary containing all word sets
+        dict: Dictionary containing all word sets, each set is a set()
     """
     word_sets = {}
     
@@ -205,20 +207,26 @@ def load_word_sets(input_dir,
 if __name__ == "__main__":
     """
     Number of partial words: 6396
-    Number of laughing words: 2110
+    Number of laughing words: 2133
     Number of alternate pronunciations: 0
     Number of hesitation sounds: 0
     Number of proper nouns: 7427
-    Number of anomalous words: 286
+    Number of anomalous words: 344
     Number of coinages: 22647
     """
-    
-    dictionary_path = "../datasets/sw-ms98-dict.text"
     output_dir = "../datasets/word_sets"
-    # word_sets = parse_dictionary_file(dictionary_path)
+    #=======================EXAMPLE FOR SAVING=============================
     
+    # dictionary_path = "../datasets/sw-ms98-dict.text"
+    # word_sets = parse_dictionary_file(dictionary_path)
     # save_word_sets(word_sets, output_dir)
+    #============================================================================   
+    
+    # EXAMPLE USAGE FOR LOADING==============================================:
+    # set_names = ['partial_words']
+    # loaded_word_sets = load_word_sets(output_dir, set_names=set_names)
+    # print(f"Partial words: {loaded_word_sets['partial_words']}")
+    # print(f"Laughing words: {loaded_word_sets['laughing_words']}")
+    # print(f"Coinages: total: {len(loaded_word_sets['coinages'])}")
 
-    # EXAMPLE USAGE:
-    loaded_word_sets = load_word_sets(output_dir, set_names=['coinages'])
-    print(loaded_word_sets)
+    #============================================================================

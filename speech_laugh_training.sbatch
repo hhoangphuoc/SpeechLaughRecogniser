@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=laughtokens-whisper-subset10-16proc-batch16-grad2-0loader-save1000--64G      # Job name
+#SBATCH --job-name=laughtokens-whisper-subset10-no-prefetch      # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
@@ -22,18 +22,16 @@ export PYTHONWARNINGS="ignore"
 #===========================================================
 # MULTIPROCESSING SETTINGS
 #===========================================================
-export MKL_NUM_THREADS=16
-export NUMEXPR_NUM_THREADS=16
-export OMP_NUM_THREADS=16
+# export MKL_NUM_THREADS=8
+# export NUMEXPR_NUM_THREADS=8
+# export OMP_NUM_THREADS=8
 export TOKENIZERS_PARALLELISM=false #disable parallel tokenization when using multiprocessing
 
 #============================================================
 #                       CUDA SETTINGS
 #============================================================
 # Memory optimization for CUDA A40
-# export PYTORCH_CUDA_ALLOC_CONF='max_split_size_mb:512,garbage_collection_threshold:0.8,roundup_power2_divisions:4'
 export NVIDIA_TF32_OVERRIDE=1 # enable TF32 for A40
-
 export CUDA_LAUNCH_BLOCKING=0
 export NCCL_P2P_DISABLE=1
 export CUDA_VISIBLE_DEVICES=0

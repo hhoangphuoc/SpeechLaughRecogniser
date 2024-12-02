@@ -1,7 +1,5 @@
-import pandas as pd
 import numpy as np
 from transformers import WhisperProcessor, WhisperForConditionalGeneration
-import evaluate
 from datasets import load_from_disk
 import jiwer
 import argparse
@@ -12,21 +10,21 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from preprocess.datasets_preprocess import filter_and_match_datasets
-from utils.metrics import track_laugh_word_alignments
-from preprocess.transcript_process import transform_number_words, clean_transcript_sentence
+from preprocess import transform_number_words, transform_alignment_sentence
+from utils import track_laugh_word_alignments
 
 
 #--------------------------------------------------
 # EVALUATE WHISPER
 #--------------------------------------------------
 def evaluate_whisper(
-        source_dataset_path="./datasets/switchboard/token_speechlaugh/switchboard_dataset", 
-        target_dataset_path="./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset",
+        # source_dataset_path="./datasets/switchboard/token_speechlaugh/switchboard_dataset", 
+        # target_dataset_path="./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset",
+        dataset_dir="../datasets/switchboard",
+        dataset_type="speechlaugh", # type of dataset to evaluate: "laugh" or "speechlaugh" or "speech"
         model_name="openai/whisper-small",
         pretrained_model_dir="../ref_models/pre_trained",
-        output_file="./alignment_transcripts/whisper_small_only_laughing_words.txt",
-        dataset_type="word" # type of dataset to evaluate: "word" or "token"
+        output_dir="../alignment_transcripts"
         ):
     """
     Evaluates the Whisper model on a dataset provided in HuggingFace Dataset / CSV file 
@@ -61,8 +59,6 @@ def evaluate_whisper(
     # check GPU availability    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    evaluate_dataset = None
-
     #---------------------------------------
     # LOAD PRETRAINED WHISPER MODEL + PROCESSOR
     #---------------------------------------
@@ -70,31 +66,17 @@ def evaluate_whisper(
     model = WhisperForConditionalGeneration.from_pretrained(model_name, cache_dir=pretrained_model_dir)
     model.to(device)  # Move to GPUs
 
+
     #=========================================================================
     #                           LOAD DATASET
     #=========================================================================
-    token_dataset = load_from_disk(source_dataset_path) # dataset with [SPEECH_LAUGH] and [LAUGHTER] tokens
-    word_dataset = load_from_disk(target_dataset_path) # dataset with laughing words (in UPPERCASE)
-    print(f"Loaded Token Dataset: \n{token_dataset}")
-    print(f"Loaded Word Dataset: \n{word_dataset}")
-
-    #=========================================================================
-    #                           FILTER DATASET
-    #=========================================================================
-    laughter_dataset, laughing_words_dataset = filter_and_match_datasets(token_dataset, word_dataset)
-    print(f"Filtered Laughter Dataset: \n{laughter_dataset}")
-    print(f"Example of Laughter Dataset: \n{laughter_dataset[0]}")
-
-    print(f"Filtered Laughing Words Dataset: \n{laughing_words_dataset}")
-    print(f"Example of Laughing Words Dataset: \n{laughing_words_dataset[0]}")
-
-
-    if dataset_type == "word":
-        evaluate_dataset = laughing_words_dataset
-    elif dataset_type == "token":
-        evaluate_dataset = laughter_dataset
-    else:
-        raise ValueError(f"Invalid dataset type: {dataset_type}. Please specify 'word' or 'token'.")
+    try:
+        dataset_name = f"swb_{dataset_type}"
+        dataset_path = os.path.join(dataset_dir, dataset_name, "switchboard_dataset") #../datasets/switchboard/swb_speechlaugh/switchboard_dataset  
+        evaluate_dataset = load_from_disk(dataset_path)
+        print(f"Loaded Dataset with type: {dataset_type}: \n{evaluate_dataset}")
+    except FileNotFoundError:
+        raise ValueError(f"Dataset not found: {dataset_path}. Please choose the dataset types of 'speechlaugh', 'laugh' or 'speech'.")
 
     #==============================================================================================
     #                       MAIN EVALUATION PROCESS
@@ -103,32 +85,22 @@ def evaluate_whisper(
 
     summary_stats = {
         'wers': [], # word error rates
-
-        # "speech_laugh_accuracy": [], #FIXME - Are there differences speech laugh accuracy and laugh word hit rate?
-        # "laughter_accuracy": [],
-        #------------------LAUGH WORDS------------------
-        "whrs": [], # laugh word hit rates
-        "wrs": [], # laugh word substitution rates
-        "wdr": [], # laugh word deletion rates
-        "wir": [], # laugh word insertion rates
-
-        #------------------LAUGHTER TOKENS------------------
-        "thr": [], # laughter token hit rates
-        "trs": [], # laughter token substitution rates
-        "tdr": [], # laughter token deletion rates
-        "tir": [], # laughter token insertion rates
-
+        'hr': [], # hit rate
+        'sr': [], # substitution rate
+        'dr': [], # deletion rate
+        'ir': [], # insertion rate
     }
 
-    special_tokens = ["[SPEECH_LAUGH]", "[LAUGHTER]"]
+    # special_tokens = ["[LAUGH]"]
+    output_file = os.path.join(output_dir, f"alignment_swb_{dataset_type}.txt")
 
     with open(output_file, "w") as f:
-        f.write(f"Evaluate model - {model_name} --------------- \n\n")
-
+        f.write(f"Evaluate model - {model_name} --------------- \n")
+        f.write(f"Dataset: {dataset_name} \n\n")
         for row in evaluate_dataset:
 
             #----------------------------------------------------------------
-            # NOW PROCESSING AUDIO
+            #                   NOW PROCESSING AUDIO
             #----------------------------------------------------------------
 
             audio_pathname = row['audio']['path'].split("/")[-1]
@@ -149,13 +121,13 @@ def evaluate_whisper(
             #==================================================================================================
             #                                   REF Transcript                                                #   
             #==================================================================================================
-            reference_transcript = row['transcript']
-            if not isinstance(reference_transcript, str) or not reference_transcript.strip():
+            original_transcript = row['transcript'] #TODO: Original transcript with uppercase [LAUGH] for laughter or WORD for speech-laugh
+            if not isinstance(original_transcript, str) or not original_transcript.strip():
                 print(f"Skipping empty or invalid reference transcript for {audio_pathname}")
-                print(f"REF skipped: {reference_transcript}")
+                print(f"ORIGINAL REF skipped: {original_transcript}")
                 continue
 
-            reference_transcript = jiwer.ToLowerCase()(reference_transcript)
+            reference_transcript = jiwer.ToLowerCase()(original_transcript)
             # FIXME: Transform all existing numbers to words - NOT DO IN REF, USE IN HYP WITH REVERSE INSTEAD
             # reference_transcript = transform_number_words(reference_transcript) 
             f.write(f"REF: {reference_transcript} \n")
@@ -179,14 +151,14 @@ def evaluate_whisper(
                 print(f"HYP skipped: {predicted_transcript}")
                 continue 
             
-            predicted_transcript = clean_transcript_sentence(predicted_transcript)
+            predicted_transcript = transform_alignment_sentence(predicted_transcript)
             
             f.write(f"HYP: {predicted_transcript} \n")
             f.write("-------------------------------------------------------\n")
 
-            #--------------------------------
-            #   VISUALIZE THE ALIGNMENT
-            #--------------------------------
+            #=====================================================================================================  
+            #                           VISUALIZE THE ALIGNMENT
+            #=====================================================================================================
             alignment = jiwer.process_words(
                 reference=reference_transcript, 
                 hypothesis=predicted_transcript,
@@ -198,99 +170,87 @@ def evaluate_whisper(
             #=====================================================================================================
             #                               TRACK LAUGH WORD ALIGNMENTS
             #=====================================================================================================
-            laugh_stats = track_laugh_word_alignments(
-                original_reference=row['transcript'], #ORIGINAL WITH UPPERCASE LAUGH WORDS instead of Lowercase ones
-                hypothesis=predicted_transcript, 
-                alignment=alignment
-            )
+            
+            if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
+                laugh_stats = track_laugh_word_alignments(
+                    original_reference=original_transcript, #ORIGINAL WITH UPPERCASE LAUGH WORDS instead of Lowercase ones
+                    hypothesis=predicted_transcript, 
+                    alignment=alignment,
+                    dataset_type=dataset_type
+                )
 
-            #=====================================================================================================
-            #                               WRITE SUMMARY STATISTICS
-            #=====================================================================================================
-            summary_stats['whrs'].append(laugh_stats['laugh_word_hit_rate'])
-            summary_stats['wrs'].append(laugh_stats['laugh_word_substitution_rate'])
-            summary_stats['wdr'].append(laugh_stats['laugh_word_deletion_rate'])
-            summary_stats['wir'].append(laugh_stats['laugh_word_insertion_rate'])
+                #=====================================================================================================
+                #                               WRITE SUMMARY STATISTICS
+                #=====================================================================================================
+                summary_stats['hr'].append(laugh_stats['hr'])
+                summary_stats['sr'].append(laugh_stats['sr'])
+                summary_stats['dr'].append(laugh_stats['dr'])
+                summary_stats['ir'].append(laugh_stats['ir'])
 
-            summary_stats['thr'].append(laugh_stats['laugh_token_hit_rate'])
-            summary_stats['trs'].append(laugh_stats['laugh_token_substitution_rate'])
-            summary_stats['tdr'].append(laugh_stats['laugh_token_deletion_rate'])
-            summary_stats['tir'].append(laugh_stats['laugh_token_insertion_rate'])
+                #===============================================================================================================================
+                #                       WRITE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
+                #===============================================================================================================================
+                f.write("\n========================================== Laugh Word Alignment Details ============================================= \n")
+                f.write(f"{dataset_type.upper()} WORDS: [{', '.join(laugh_stats['laugh_words'])}] \n")
+                f.write("-------------------------------------------------------------------------\n")
 
-
-            #===============================================================================================================================
-            #                       WRITE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
-            #===============================================================================================================================
-            f.write("\n========================================== Laugh Word Alignment Details ============================================= \n")
-
-            f.write(f"Total Laugh Words: {laugh_stats['total_laugh_words']} \n")
-            f.write(f"Total Laughter Tokens: {laugh_stats['total_laughter_tokens']} \n")
-            f.write("---------------------------------\n")
-            f.write(f"SPEECH LAUGH WORDS: [{', '.join(laugh_stats['laugh_words'])}] \n")
-            f.write(f"LAUGHTER TOKENS: [{', '.join(laugh_stats['laughter_tokens'])}] \n")
-            f.write("---------------------------------\n")
-
-            if laugh_stats['hits'] and len(laugh_stats['hits']) > 0:
-                f.write("\n ====== Hits: ====== \n")
-                for hit in laugh_stats['hits']:
-                    f.write(f"- REF: {hit['word']} → HYP: {hit['hyp_word']} "
-                            f"(type: {hit['type']}, ref pos: {hit['ref_pos']}, hyp pos: {hit['hyp_pos']})\n")
-            if laugh_stats['substitutions'] and len(laugh_stats['substitutions']) > 0:
-                f.write("\n ====== Substitutions: ====== \n")
-                for sub in laugh_stats['substitutions']:
-                    f.write(f"- REF: {sub['ref_word']} → HYP: {sub['hyp_word']} "
-                            f"(type: {sub['type']}, ref pos: {sub['ref_pos']}, "
-                            f"hyp pos: {sub['hyp_pos'] if sub['hyp_pos'] is not None else 'N/A'})\n")
-            if laugh_stats['deletions'] and len(laugh_stats['deletions']) > 0:
-                f.write("\n ====== Deletions: ====== \n")
-                for deletion in laugh_stats['deletions']:
-                    f.write(f"- REF: {deletion['word']} "
-                            f"(type: {deletion['type']}, ref pos: {deletion['ref_pos']})\n")
-            if laugh_stats['insertions'] and len(laugh_stats['insertions']) > 0:
-                f.write("\n ====== Insertions: ====== \n")
-                for insertion in laugh_stats['insertions']:
-                    f.write(f"- HYP: {insertion['word']} "
-                            f"(type: {insertion['type']}, hyp pos: {insertion['hyp_pos']})\n")
+                if laugh_stats['hits'] and len(laugh_stats['hits']) > 0:
+                    f.write("\n ====== Hits: ====== \n")
+                    for hit in laugh_stats['hits']:
+                        f.write(f"- REF: {hit['word']} → HYP: {hit['hyp_word']} "
+                                f"(type: {hit['type']}, ref pos: {hit['ref_pos']}, hyp pos: {hit['hyp_pos']})\n")
+                if laugh_stats['substitutions'] and len(laugh_stats['substitutions']) > 0:
+                    f.write("\n ====== Substitutions: ====== \n")
+                    for sub in laugh_stats['substitutions']:
+                        f.write(f"- REF: {sub['ref_word']} → HYP: {sub['hyp_word']} "
+                                f"(type: {sub['type']}, ref pos: {sub['ref_pos']}, "
+                                f"hyp pos: {sub['hyp_pos'] if sub['hyp_pos'] is not None else 'N/A'})\n")
+                if laugh_stats['deletions'] and len(laugh_stats['deletions']) > 0:
+                    f.write("\n ====== Deletions: ====== \n")
+                    for deletion in laugh_stats['deletions']:
+                        f.write(f"- REF: {deletion['word']} "
+                                f"(type: {deletion['type']}, ref pos: {deletion['ref_pos']})\n")
+                if laugh_stats['insertions'] and len(laugh_stats['insertions']) > 0:
+                    f.write("\n ====== Insertions: ====== \n")
+                    for insertion in laugh_stats['insertions']:
+                        f.write(f"- HYP: {insertion['word']} "
+                                f"(type: {insertion['type']}, hyp pos: {insertion['hyp_pos']})\n")
 
             f.write("\n ====== Detailed Alignment: ====== \n")
             f.write(jiwer.visualize_alignment(alignment, show_measures=False, skip_correct=False) + "\n")
             f.write("______________________________________________________________________________________________________________________\n\n")
-        
+    
 
         f.write("=========================== OVERALL METRICS SUMMARY =======================================\n")
         
-        f.write(f"Average WER: {np.mean(summary_stats['wers']):.2f} \n\n")
+        f.write(f"Average WER: {np.mean(summary_stats['wers']) * 100:.2f} \n\n")
 
-        f.write("___________________________________________________________________________________________\n")
-        f.write(f"Avg Laugh Word Detected Rate: {np.mean(summary_stats['whrs']):.2f} \n")
-        f.write(f"Avg Laugh Word Substitution Rate: {np.mean(summary_stats['wrs']):.2f} \n")
-        f.write(f"Avg Laugh Word Deletion Rate: {np.mean(summary_stats['wdr']):.2f} \n")
-        f.write(f"Avg Laugh Word Insertion Rate: {np.mean(summary_stats['wir']):.2f} \n")
-        f.write("___________________________________________________________________________________________\n\n")
-        f.write(f"Avg Laughter Token Hit Rate: {np.mean(summary_stats['thr']):.2f} \n")
-        f.write(f"Avg Laughter Token Substitution Rate: {np.mean(summary_stats['trs']):.2f} \n")
-        f.write(f"Avg Laughter Token Deletion Rate: {np.mean(summary_stats['tdr']):.2f} \n")
-        f.write(f"Avg Laughter Token Insertion Rate: {np.mean(summary_stats['tir']):.2f} \n")
-        f.write("____________________________________________________________________________________________\n")
+        if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
+            f.write("___________________________________________________________________________________________\n")
+            f.write(f"{dataset_type.upper()} Word Hit Rate: {np.mean(summary_stats['hr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Word Substitution Rate: {np.mean(summary_stats['sr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Word Deletion Rate: {np.mean(summary_stats['dr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Word Insertion Rate: {np.mean(summary_stats['ir']) * 100:.2f} \n")
+            f.write("___________________________________________________________________________________________\n\n")
 
 if __name__ == "__main__":
     # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
     parser = argparse.ArgumentParser(description="Evaluate the Whisper model on Switchboard dataset.")
-    parser.add_argument("--source_dataset_path", type=str, required=True, default="./datasets/switchboard/token_speechlaugh/switchboard_dataset", help="Path to the source dataset.")
-    parser.add_argument("--target_dataset_path", type=str, required=True, default="./datasets/switchboard/word_speechlaugh/word_speechlaugh/switchboard_dataset", help="Path to the target dataset.")
+    parser.add_argument("--dataset_dir", type=str, required=True, default="./datasets/switchboard", help="Path to the dataset directory.")
+    parser.add_argument("--dataset_type", type=str, required=True, default="speechlaugh", help="Type of dataset to evaluate: 'speechlaugh' or 'laugh' or 'speech'.")
     parser.add_argument("--model_name", type=str, required=True, default="openai/whisper-small", help="Name of the Whisper model to use.")
     parser.add_argument("--pretrained_model_dir", type=str, required=True, default="../ref_models/pre_trained", help="Path to the pretrained model directory.")
-    parser.add_argument("--output_file", type=str, default="./alignment_transcripts/alignment_whisper_small_laughing_words.txt", help="File to write the alignment transcripts.")
+    parser.add_argument("--output_dir", type=str, default="./alignment_transcripts", help="Directory to write the alignment transcripts.")
 
     args = parser.parse_args()
 
     start_time = time.time()
     evaluate_whisper(
-        source_dataset_path=args.source_dataset_path,
-        target_dataset_path=args.target_dataset_path,
+        dataset_dir=args.dataset_dir,
+        dataset_type=args.dataset_type,
         model_name=args.model_name,
         pretrained_model_dir=args.pretrained_model_dir,
-        output_file=args.output_file
+        output_dir=args.output_dir
     )
     end_time = time.time()
     print(f"Total runtime: {end_time - start_time} seconds")

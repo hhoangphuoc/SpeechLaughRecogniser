@@ -9,10 +9,12 @@ import torch
 def cut_audio_based_on_transcript_segments(
     audio_path, #path to original audio to be segmented
     transcript_lines, #list of tuples: (start_time, end_time, text)
-    padding_time=0.005, #seconds~ 5ms # BE CAREFUL WITH THIS PARAMETER (Before 0.2s is too large)
+    padding_time=0.01, #seconds~ 10ms # BE CAREFUL WITH THIS PARAMETER (Before 0.2s is too large)
     sample_rate=16000,
     data_name="switchboard",
-    audio_segments_directory=""):
+    audio_segments_directory=""
+    ):
+    
     """
     Use to cut audio based on transcript segments,
     and only apply for the dataset which have the transcripts: switchboard, ami

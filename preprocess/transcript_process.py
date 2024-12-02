@@ -7,7 +7,10 @@
 
 import re
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import jiwer
+from preprocess import load_word_sets
 # import openai #for clean and format transcripts
 
 #=========================================================================================================================
@@ -25,10 +28,9 @@ noise_pattern = r"\[noise\]|\[vocalized-noise\]"
 asides_pattern = r"<\w+_aside>" # pattern: <b_aside> or <e_aside>
 
 pronunciation_variant_pattern = r"(\w+)_1" # pattern: word_1
-# coinages_pattern = r"{(\w+)}" # pattern: {word}
-coinages_pattern = r'\{(\w+(?:-\w+)*)\}' # pattern: {brother-in-laws}
+coinages_pattern = r'\{([^}]+)\}'
 
-partialword_pattern = r"\b\w*(?:\[\w+'?\w*\])?-|-\[\w+'?\w*\]\w*\b"
+partialword_pattern = r'\b\w+\[[^\]]+\]-'
 
 laughter_pattern = r"\[laughter\]" #pattern: [laughter]
 speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
@@ -40,15 +42,31 @@ speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 
 #=========================================================================================================================
 
-
 alignment_transformation = jiwer.Compose([
     jiwer.ExpandCommonEnglishContractions(),
-    # jiwer.RemovePunctuation(),
+    jiwer.RemovePunctuation(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
-    jiwer.ToLowerCase(),
+    jiwer.ToLowerCase(), #FIXME- NOT LOWERCASE IN ALIGNMENT
     jiwer.RemoveEmptyStrings(),
 ])
+
+transcript_transformation = jiwer.Compose([
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.RemovePunctuation(),
+    jiwer.RemoveMultipleSpaces(),
+    jiwer.Strip(),
+    jiwer.ToLowerCase(), #FIXME - LOWERCASE IN TRANSCRIPT PROCESSING (BEFORE RETOKENIZATION)
+    jiwer.RemoveEmptyStrings(),
+])
+
+word_sets = load_word_sets(
+    "../datasets/word_sets", 
+    set_names=['partial_words', 'coinages', 'anomalous_words']
+    )
+partialword_set = word_sets['partial_words'] # not contains every partial word :(
+coinages_set = word_sets['coinages'] # not contains every {coinages} :(
+anomalous_words_set = word_sets['anomalous_words'] #format [word1/word2]
 
 def transform_number_words(text, reverse=False):
     """
@@ -119,13 +137,26 @@ def transform_number_words(text, reverse=False):
 def clean_transcript_sentence(sentence):
     """
     Clean and format the transcript text using Jiwer Compose
-    This function mainly used for REF and Hypothesis in the evaluation.
+    This function mainly used for the transcript processing before retokenization.
     Including:
     - Expand common English contractions (e.g., "I'm" -> "I am")
     - Remove multiple spaces
     - Strip the line
     - Remove empty strings
     - Lowercase the line
+    """
+    return transcript_transformation(sentence)
+
+def transform_alignment_sentence(sentence):
+    """
+    Transform the alignment sentence using Jiwer Compose
+    This function is used for alignment processing, i.e. the REF and HYP in the evaluation.
+    Including:
+    - Expand common English contractions (e.g., "I'm" -> "I am")
+    - Remove punctuation (, . ! ?)
+    - Remove multiple spaces
+    - Strip the line
+    - Remove empty strings
     """
     return alignment_transformation(sentence)
 
@@ -134,7 +165,8 @@ def clean_transcript_sentence(sentence):
 #=========================================================================================================================
 def retokenize_transcript_pattern(
         transcript_line,
-        tokenize_speechlaugh = False,
+        # tokenize_speechlaugh = False,
+        retokenize_type = "speechlaugh", # "speechlaugh", "laugh" or "speech"
         ):
     """
     Retokenize the transcript line based on the given pattern.
@@ -144,12 +176,13 @@ def retokenize_transcript_pattern(
     - For the word in the line that matches filler, speech_laugh, noise:
 
         - Remove the partial word
-        - Replace the speech_laugh with the corresponding token:
-            - [SPEECH_LAUGH] if tokenize_speechlaugh is True, otherwise the laughing word
         - Remove the pronunciation variant
         - Remove the coinages
         - Keep the normal word
-
+        - Replace the speech_laugh with the corresponding token:
+            - WORD if retokenize_type="speechlaugh", otherwise skipping it
+        - Replace the laughter with the corresponding token:
+            - [LAUGH] if retokenize_type="laugh", otherwise skipping it
     Args:
         transcript_line (str): A original line of transcript text.
 
@@ -159,32 +192,50 @@ def retokenize_transcript_pattern(
 
     new_line = ""
     for word in transcript_line.split():
+        #============ PATTERN MATCHING AND ADJUST TRANSCRIPT============
         if re.match(noise_pattern, word):
             # remove if [noise], [vocalized-noise]
             continue
-        elif match := re.match(speech_laugh_pattern, word):
-            # if the word is [laughter-...]:
-            # change it to the token [SPEECH_LAUGH] if tokenize_speechlaugh is True
-            # otherwise, change it to the laughing word
-            word = "[SPEECH_LAUGH]" if tokenize_speechlaugh else match.group(1).upper()
-        elif re.match(laughter_pattern, word):
-            # if the word is [laughter]:
-            # change it to the token [LAUGHTER] if tokenize_speechlaugh is True
-            # otherwise, keep it empty
-            word = "[LAUGHTER]" if tokenize_speechlaugh else ""
+        elif match := re.match(partialword_pattern, word) or word in partialword_set:
+            word = "" #removing the partial word
         elif match := re.match(coinages_pattern, word):
-            replace_pattern = match.group(1).replace("-", " ")
-            word = re.sub(coinages_pattern,replace_pattern, word) # {brother-in-laws} -> brother in laws
+            # remove surrounding curly braces
+            word = re.sub(coinages_pattern, r"\1", word)
+        elif word in anomalous_words_set:
+            # anomalous words are [word1/word2]
+            word = re.sub(r"\[|\]", "", word)
+            word = word.split('/')[1]
         elif re.match(pronunciation_variant_pattern, word):
             word = re.sub(r"_1", "", word)
         elif re.match(asides_pattern, word):
             word = re.sub(asides_pattern, "", word) # remove the <b_aside>, <e_aside>
         else:
             word = word # normal word
-        
-        # in the end, remove if it is a partial word
-        word = re.sub(partialword_pattern, "", word)
-        
+        #================================================================   
+
+        #=============== RETOKENIZE SPEECH_LAUGH AND LAUGHTER============
+        if match := re.match(speech_laugh_pattern, word):
+            if retokenize_type == "speechlaugh":
+                # check if the speech-laugh is a form of partial word
+                laughed_word = match.group(1)
+                if re.match(partialword_pattern, laughed_word): 
+                    word = "" #removing the partial word
+                elif re.match(coinages_pattern, laughed_word):
+                    laughed_word = re.sub(coinages_pattern, r"\1", laughed_word)
+                
+                word = laughed_word.upper() #Uppercase the laughing word if retokenize_type=speechlaugh
+            else:
+                word = "" #otherwise removing it
+        elif re.match(laughter_pattern, word):
+            if retokenize_type == "laugh":
+                word = "[LAUGH]" #change it to the token [LAUGH] if retokenize_type=laugh
+            else:
+                word = "" #otherwise removing it
+        #==================================================================   
+        # Finally, remove trailing hyphens (if any)
+        if word.endswith('-'):
+            word = word[:-1]
+
         new_line += word + " "
         # transcript_line = new_line.strip()
     # FINALLY extent the english, remove multiple spaces and strip
@@ -197,7 +248,7 @@ def retokenize_transcript_pattern(
     return transcript_line
 
 #=========================================================================================================================
-# Transcript processing functions for each dataset
+#                           Transcript processing functions for each dataset
 #=========================================================================================================================
 
 #--------------------------------------
@@ -206,7 +257,7 @@ def retokenize_transcript_pattern(
 def process_switchboard_transcript(
         audio_file, 
         transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts',
-        tokenize_speechlaugh = False
+        retokenize_type = "speechlaugh" # "speechlaugh", "laugh" or "speech"
     ):
     """
     Processes a Switchboard transcript file.
@@ -228,7 +279,7 @@ def process_switchboard_transcript(
     each word in the sentence:
         - Remove the partial word
         - Remove the word that only contains [noise] or [vocalized-noise]
-        - Replace the speech_laugh with [SPEECH_LAUGH]
+        - Replace the speech_laugh with WORD or laughter with [LAUGH]
         - Remove the pronunciation variant
         - Remove the coinages
         - Keep the normal word
@@ -275,35 +326,17 @@ def process_switchboard_transcript(
                         continue 
                     text = jiwer.Compose([
                         jiwer.RemoveMultipleSpaces(), #remove multiple spaces
-                        jiwer.Strip(), #strip the line
                         jiwer.ToLowerCase(), #lowercase every words
-                        jiwer.RemoveEmptyStrings(), #if text is empty, remove it
                     ])(text)
 
-# 4. Retokenize the sentence based on the specific patterns
-
+# 4. Retokenize the sentence based on the specific patterns=========================
+# while retokenizing, we uppercase special tokens like [LAUGH] and WORD
                     retokenize_text = retokenize_transcript_pattern(
                         text,
-                        tokenize_speechlaugh=tokenize_speechlaugh
+                        retokenize_type=retokenize_type
                     ) # return the retokenized text (either removed or replaced)
                     new_transcript_lines.append((start_time, end_time, retokenize_text))
             return new_transcript_lines
     except FileNotFoundError:
         print(f"Warning: Transcript file not found: {transcript_path}")
         return None
-
-#--------------------------------
-# Process the AMI dataset transcript
-#--------------------------------
-def process_ami_transcript(transcript_line):
-    """
-    Process the transcript of AMI dataset
-    and return it as a tuple of (start_time, end_time, text)
-    """
-    # lowercase the transcript
-    transcript_line = transcript_line.lower()
-    ami_text = retokenize_transcript_pattern(transcript_line) 
-    return ami_text
-
-
-

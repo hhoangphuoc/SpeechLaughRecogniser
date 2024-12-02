@@ -1,17 +1,15 @@
 #!/bin/bash
-#SBATCH --job-name=align_hit_miss_short_padded_segments          # Job name
-#SBATCH -c 16                                                   # Number of cores
+#SBATCH --job-name=align_swb_laugh_intext                              # Job name
+#SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=8G                                                # Request 8GB memory
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
-#SBATCH --time=5:00:00                                          # Set a walltime limit
+#SBATCH --time=2:00:00                                          # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                              # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl             # Your email address
 
 # Load modules (adjust versions as needed)
-module purge # clean the environment before loading new modules
-module load nvidia/cuda-11.7
-module load nvidia/cuda-11.x_cudnn-8.6
-module load nvidia/cuda-11.x_tensorrt-8.6
+module purge
+module load nvidia/cuda-11.8
 module load nvidia/nvtop
 
 
@@ -60,15 +58,41 @@ source activate .venv
 
 
 
-#=============================================
-# TRY WITH SHORT_PADDED_SWITCHBOARD
-#=============================================
+#===========================================================================================
+#                       TRY WITH SHORT_PADDED_SWITCHBOARD 
+#===========================================================================================
+# - SPEECHLAUGH
 # python evaluate_whisper.py \
-#     --source_dataset_path ../datasets/short_padded_switchboard/token_speechlaugh/switchboard_dataset\
-#     --target_dataset_path ../datasets/short_padded_switchboard/word_speechlaugh/switchboard_dataset\
+#     --dataset_dir ../datasets/switchboard \
+#     --dataset_type speechlaugh \
 #     --model_name openai/whisper-small \
 #     --pretrained_model_dir ../ref_models/pre_trained \
-#     --output_file ../alignment_transcripts/alignment_laughing_word_hit_miss_short_padded.txt \
+#     --output_dir ../alignment_transcripts \
+
+# # - LAUGH
+# python evaluate_whisper.py \
+#     --dataset_dir ../datasets/switchboard \
+#     --dataset_type laugh \
+#     --model_name openai/whisper-small \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts \
+
+# - In-text LAUGH
+python evaluate_whisper.py \
+    --dataset_dir ../datasets/switchboard \
+    --dataset_type laugh_intext \
+    --model_name openai/whisper-small \
+    --pretrained_model_dir ../ref_models/pre_trained \
+    --output_dir ../alignment_transcripts \
+
+# - SPEECH
+# python evaluate_whisper.py \
+#     --dataset_dir ../datasets/switchboard \
+#     --dataset_type speech \
+#     --model_name openai/whisper-small \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts \
+
 #=======================================================================================================
 
 
@@ -76,4 +100,4 @@ source activate .venv
 #=========================================
 # TO PRODUCE ALIGNMENT PLOTS
 #========================================+
-python align_dtw.py
+# python align_dtw.py
