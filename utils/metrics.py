@@ -83,10 +83,10 @@ def track_laugh_word_alignments(
             - substitutions: List of substitutions (incorrectly predicted laughter words/tokens)
             - deletions: List of deletions (laughter words/tokens that are not predicted)
             - insertions: List of insertions (laughter words/tokens that are not in the reference)
-            - hr: Hit Rate (hits / laugh_words)
-            - sr: Substitution Rate (substitutions / laugh_words)
-            - dr: Deletion Rate (deletions / laugh_words)
-            - ir: Insertion Rate (insertions / laugh_words)
+            - thr: Token Hit Rate (laugh_hits / laugh_words)
+            - tsr: Token Substitution Rate (laugh_substitutions / laugh_words)
+            - tdr: Token Deletion Rate (laugh_deletions / laugh_words)
+            - tir: Token Insertion Rate (laugh_insertions / laugh_words)
 
     """
     # Split reference into words while preserving case
@@ -122,22 +122,16 @@ def track_laugh_word_alignments(
     #                   TRACKING HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS
     #============================================================================================
     laugh_stats = {
-        # 'speechlaugh_words': speechlaugh_words,
-        # 'laugh_tokens': laugh_tokens,
-        # 'total_laugh_words': total_laugh_words,
-        # 'total_laughter_tokens': total_laughter_tokens,
         'laugh_words': laugh_words, #NOTE: All the speech-laugh OR [LAUGH] in REF
-        'hits': [],
-        'substitutions': [],
-        'deletions': [],
-        'insertions': [],
+        'laugh_hits': [],
+        'laugh_substitutions': [],
+        'laugh_deletions': [],
+        'laugh_insertions': [],
     }
     #----------------------------------------------------------------------------------------
     # alignment.alignments(): Jiwer WordOutput alignment that contains multiple Alignment Chunks
     # each chunk contains REF and HYP word indices and type of operation
     # Process each alignment chunk
-    # current_ref_pos = 0
-    # current_hyp_pos = 0
     # TYPE OF OPERATIONS IN ALIGNMENT CHUNK: `equal`, `substitute`, `insert`, or `delete`
     for chunk in alignment.alignments[0]:  # First sentence's alignment
 
@@ -148,8 +142,6 @@ def track_laugh_word_alignments(
         chunk_ref_words = ref_words[ref_start:ref_end] if ref_start < len(ref_words) else []
         chunk_hyp_words = hyp_words[hyp_start:hyp_end] if hyp_start < len(hyp_words) else []
 
-        print(f"REF WORDS: {chunk_ref_words} - HYP WORDS: {chunk_hyp_words}\n")
-
         #==================================================================================
         #                           ALIGNMENT CHUNK BY TYPE
         #==================================================================================
@@ -158,7 +150,7 @@ def track_laugh_word_alignments(
             for i, (ref_idx, hyp_idx) in enumerate(zip(range(ref_start, ref_end), 
                                                       range(hyp_start, hyp_end))):
                 if ref_idx in laugh_indices:
-                    laugh_stats['hits'].append({
+                    laugh_stats['laugh_hits'].append({
                         'word': laugh_indices[ref_idx]['word'],
                         'hyp_word': chunk_hyp_words[i],
                         'type': laugh_indices[ref_idx]['type'],
@@ -170,7 +162,7 @@ def track_laugh_word_alignments(
             # Check for substitutions
             for i, ref_idx in enumerate(range(ref_start, ref_end)):
                 if ref_idx in laugh_indices:
-                    laugh_stats['substitutions'].append({
+                    laugh_stats['laugh_substitutions'].append({
                         'ref_word': laugh_indices[ref_idx]['word'],
                         'hyp_word': chunk_hyp_words[i] if i < len(chunk_hyp_words) else None,
                         'type': laugh_indices[ref_idx]['type'],
@@ -181,7 +173,7 @@ def track_laugh_word_alignments(
             # Check for deletions
             for ref_idx in range(ref_start, ref_end):
                 if ref_idx in laugh_indices:
-                    laugh_stats['deletions'].append({
+                    laugh_stats['laugh_deletions'].append({
                         'word': laugh_indices[ref_idx]['word'],
                         'type': laugh_indices[ref_idx]['type'],
                         'ref_pos': ref_idx
@@ -192,7 +184,7 @@ def track_laugh_word_alignments(
                 hyp_word = chunk_hyp_words[i]
                 # Check if HYP word is a speechlaugh or a laughter to be inserted.
                 if hyp_word.isupper() or hyp_word == '[LAUGH]':
-                    laugh_stats['insertions'].append({
+                    laugh_stats['laugh_insertions'].append({
                         'word': hyp_word,
                         'type': 'laugh' if hyp_word == '[LAUGH]' else 'speechlaugh',
                         'hyp_pos': hyp_idx
@@ -200,37 +192,34 @@ def track_laugh_word_alignments(
     #------------------------------------------------------------------------------------------
     
     #=====================================================================================================================================
-    #             HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS PER (REF - HYP) ALIGNMENT CHUNK    
+    #             HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS OF TOKENS PER (REF - HYP) ALIGNMENT CHUNK    
     #=====================================================================================================================================      
-    # total_speechlaugh_words = len(speechlaugh_words)
-    # total_laugh_tokens = len(laugh_tokens)
-    
 
     # #HITS
-    laugh_stats['hr'] = len(laugh_stats['hits']) / len(laugh_stats['laugh_words'])
+    laugh_stats['thr'] = len(laugh_stats['laugh_hits']) / len(laugh_stats['laugh_words'])
     
     #SUBSTITUTIONS
-    laugh_stats['sr'] = len(laugh_stats['substitutions']) / len(laugh_stats['laugh_words'])
+    laugh_stats['tsr'] = len(laugh_stats['laugh_substitutions']) / len(laugh_stats['laugh_words'])
 
     #DELETIONS
-    laugh_stats['dr'] = len(laugh_stats['deletions']) / len(laugh_stats['laugh_words'])
+    laugh_stats['tdr'] = len(laugh_stats['laugh_deletions']) / len(laugh_stats['laugh_words'])
 
     #INSERTIONS
-    laugh_stats['ir'] = len(laugh_stats['insertions']) / len(laugh_stats['laugh_words'])
+    laugh_stats['tir'] = len(laugh_stats['laugh_insertions']) / len(laugh_stats['laugh_words'])
 
     #-------------- LAUGH_STATS FORMAT -----------------
     """
     laugh_stats = {
         'laugh_words': laugh_words,
         # 'laughter_tokens': laughter_tokens,
-        'hits': [],
-        'substitutions': [],
-        'deletions': [],
-        'insertions': [],
-        'hr': 0.0,
-        'sr': 0.0,
-        'dr': 0.0,
-        'ir': 0.0,
+        'laugh_hits': [],
+        'laugh_substitutions': [],
+        'laugh_deletions': [],
+        'laugh_insertions': [],
+        'thr': 0.0,
+        'tsr': 0.0,
+        'tdr': 0.0,
+        'tir': 0.0,
     }
     """
     return laugh_stats

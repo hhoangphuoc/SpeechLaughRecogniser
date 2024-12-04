@@ -75,6 +75,9 @@ def evaluate_whisper(
         dataset_path = os.path.join(dataset_dir, dataset_name, "switchboard_dataset") #../datasets/switchboard/swb_speechlaugh/switchboard_dataset  
         evaluate_dataset = load_from_disk(dataset_path)
         print(f"Loaded Dataset with type: {dataset_type}: \n{evaluate_dataset}")
+
+        # Get 6900 samples from the dataset
+        # evaluate_dataset = evaluate_dataset.select(range(6900))
     except FileNotFoundError:
         raise ValueError(f"Dataset not found: {dataset_path}. Please choose the dataset types of 'speechlaugh', 'laugh' or 'speech'.")
 
@@ -85,14 +88,19 @@ def evaluate_whisper(
 
     summary_stats = {
         'wers': [], # word error rates
-        'hr': [], # hit rate
-        'sr': [], # substitution rate
-        'dr': [], # deletion rate
-        'ir': [], # insertion rate
+        'mers': [], # match error rates
+        'hit_rate': [], # sentence hit rate
+        'substitution_rate': [], # sentence substitution rate
+        'deletion_rate': [], # sentence deletion rate
+        'insertion_rate': [], # sentence insertion rate
+        'thr': [], # token hit rate
+        'tsr': [], # token substitution rate
+        'tdr': [], # token deletion rate
+        'tir': [], # token insertion rate
     }
 
     # special_tokens = ["[LAUGH]"]
-    output_file = os.path.join(output_dir, f"alignment_swb_{dataset_type}.txt")
+    output_file = os.path.join(output_dir, f"alignment_swb_{dataset_type}_large-v2.txt")
 
     with open(output_file, "w") as f:
         f.write(f"Evaluate model - {model_name} --------------- \n")
@@ -165,7 +173,25 @@ def evaluate_whisper(
             )
             # Calculate the metrics
             wer = alignment.wer
+            mer = alignment.mer
             summary_stats['wers'].append(wer)
+            summary_stats['mers'].append(mer)
+
+            #=====================================================================================================  
+            #           GET THE NUMBER OF HITS, SUBSTITUTIONS, INSERTIONS, DELETIONS for each sentences
+            #           AND CALCULATE THE RATES. THESE ARE THE PERFORMANCE OF THE MODEL ON EACH DATASET
+            #=====================================================================================================
+            hits = alignment.hits
+            substitutions = alignment.substitutions
+            insertions = alignment.insertions
+            deletions = alignment.deletions
+
+            total_operations = hits + substitutions + insertions + deletions
+
+            summary_stats['hit_rate'].append(hits / total_operations)
+            summary_stats['substitution_rate'].append(substitutions / total_operations)
+            summary_stats['insertion_rate'].append(insertions / total_operations)
+            summary_stats['deletion_rate'].append(deletions / total_operations)
 
             #=====================================================================================================
             #                               TRACK LAUGH WORD ALIGNMENTS
@@ -180,12 +206,13 @@ def evaluate_whisper(
                 )
 
                 #=====================================================================================================
-                #                               WRITE SUMMARY STATISTICS
+                #                               WRITE SUMMARY TOKENS STATISTICS 
+                #                   HIT RATE, SUBSTITUTION RATE, DELETION RATE, INSERTION RATE    
                 #=====================================================================================================
-                summary_stats['hr'].append(laugh_stats['hr'])
-                summary_stats['sr'].append(laugh_stats['sr'])
-                summary_stats['dr'].append(laugh_stats['dr'])
-                summary_stats['ir'].append(laugh_stats['ir'])
+                summary_stats['thr'].append(laugh_stats['thr']) # token hit rate
+                summary_stats['tsr'].append(laugh_stats['tsr']) # token substitution rate
+                summary_stats['tdr'].append(laugh_stats['tdr']) # token deletion rate
+                summary_stats['tir'].append(laugh_stats['tir']) # token insertion rate
 
                 #===============================================================================================================================
                 #                       WRITE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
@@ -194,43 +221,52 @@ def evaluate_whisper(
                 f.write(f"{dataset_type.upper()} WORDS: [{', '.join(laugh_stats['laugh_words'])}] \n")
                 f.write("-------------------------------------------------------------------------\n")
 
-                if laugh_stats['hits'] and len(laugh_stats['hits']) > 0:
+                if laugh_stats['laugh_hits'] and len(laugh_stats['laugh_hits']) > 0:
                     f.write("\n ====== Hits: ====== \n")
-                    for hit in laugh_stats['hits']:
+                    for hit in laugh_stats['laugh_hits']:
                         f.write(f"- REF: {hit['word']} → HYP: {hit['hyp_word']} "
                                 f"(type: {hit['type']}, ref pos: {hit['ref_pos']}, hyp pos: {hit['hyp_pos']})\n")
-                if laugh_stats['substitutions'] and len(laugh_stats['substitutions']) > 0:
+                if laugh_stats['laugh_substitutions'] and len(laugh_stats['laugh_substitutions']) > 0:
                     f.write("\n ====== Substitutions: ====== \n")
-                    for sub in laugh_stats['substitutions']:
+                    for sub in laugh_stats['laugh_substitutions']:
                         f.write(f"- REF: {sub['ref_word']} → HYP: {sub['hyp_word']} "
                                 f"(type: {sub['type']}, ref pos: {sub['ref_pos']}, "
                                 f"hyp pos: {sub['hyp_pos'] if sub['hyp_pos'] is not None else 'N/A'})\n")
-                if laugh_stats['deletions'] and len(laugh_stats['deletions']) > 0:
+                if laugh_stats['laugh_deletions'] and len(laugh_stats['laugh_deletions']) > 0:
                     f.write("\n ====== Deletions: ====== \n")
-                    for deletion in laugh_stats['deletions']:
+                    for deletion in laugh_stats['laugh_deletions']:
                         f.write(f"- REF: {deletion['word']} "
                                 f"(type: {deletion['type']}, ref pos: {deletion['ref_pos']})\n")
-                if laugh_stats['insertions'] and len(laugh_stats['insertions']) > 0:
+                if laugh_stats['laugh_insertions'] and len(laugh_stats['laugh_insertions']) > 0:
                     f.write("\n ====== Insertions: ====== \n")
-                    for insertion in laugh_stats['insertions']:
+                    for insertion in laugh_stats['laugh_insertions']:
                         f.write(f"- HYP: {insertion['word']} "
                                 f"(type: {insertion['type']}, hyp pos: {insertion['hyp_pos']})\n")
 
             f.write("\n ====== Detailed Alignment: ====== \n")
-            f.write(jiwer.visualize_alignment(alignment, show_measures=False, skip_correct=False) + "\n")
+            f.write(jiwer.visualize_alignment(alignment, show_measures=True, skip_correct=False) + "\n")
             f.write("______________________________________________________________________________________________________________________\n\n")
     
 
         f.write("=========================== OVERALL METRICS SUMMARY =======================================\n")
         
         f.write(f"Average WER: {np.mean(summary_stats['wers']) * 100:.2f} \n\n")
+        f.write(f"Average MER: {np.mean(summary_stats['mers']) * 100:.2f} \n\n") # Match Error Rate
+        
+        f.write("___________________________________________________________________________________________\n")
+
+        f.write(f"Avg Sentence Hit Rate: {np.mean(summary_stats['hit_rate']) * 100:.2f} \n")
+        f.write(f"Avg Sentence Substitution Rate: {np.mean(summary_stats['substitution_rate']) * 100:.2f} \n")
+        f.write(f"Avg Sentence Deletion Rate: {np.mean(summary_stats['deletion_rate']) * 100:.2f} \n")
+        f.write(f"Avg Sentence Insertion Rate: {np.mean(summary_stats['insertion_rate']) * 100:.2f} \n")
+        f.write("___________________________________________________________________________________________\n\n")
 
         if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
             f.write("___________________________________________________________________________________________\n")
-            f.write(f"{dataset_type.upper()} Word Hit Rate: {np.mean(summary_stats['hr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Word Substitution Rate: {np.mean(summary_stats['sr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Word Deletion Rate: {np.mean(summary_stats['dr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Word Insertion Rate: {np.mean(summary_stats['ir']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Hit Rate: {np.mean(summary_stats['thr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Substitution Rate: {np.mean(summary_stats['tsr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Deletion Rate: {np.mean(summary_stats['tdr']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Insertion Rate: {np.mean(summary_stats['tir']) * 100:.2f} \n")
             f.write("___________________________________________________________________________________________\n\n")
 
 if __name__ == "__main__":

@@ -12,21 +12,19 @@ from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtra
 from transformers.trainer_callback import EarlyStoppingCallback
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel   #for distributed training
+import torch.multiprocessing as mp
 from datasets import load_from_disk
 from huggingface_hub import login
 #-----------------------------------------------------------------
 
 # Custom Modules
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
-from modules.TrainerCallbacks import MemoryEfficientCallback, MetricsCallback
-from preprocess import split_dataset
+from modules.TrainerCallbacks import MemoryEfficientCallback, MetricsCallback, MultiprocessingCallback
+from preprocess import split_dataset, transform_number_words, transform_alignment_sentence
 import utils.params as prs
 
 # For metrics and transcript transformation before computing the metrics
-from utils.metrics import track_laugh_word_alignments
-from utils.transcript_process import transform_number_words, alignment_transformation
-
-# Evaluation Metrics------
+from utils import track_laugh_word_alignments
 import pandas as pd
 import evaluate
 import jiwer
@@ -38,8 +36,11 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["PYTHONWARNINGS"] = "ignore"
 warnings.filterwarnings("ignore", category=UserWarning)
 
+# Enable TF32 for faster computation with A40 GPUs=================
 torch.backends.cudnn.enabled = True
-torch.backends.cudnn.benchmark = True
+torch.backends.cudnn.benchmark = False
+torch.backends.cuda.allow_tf32 = True
+torch.backends.cuda.matmul.allow_tf32 = True
 #===================================================================
 
 """
@@ -48,8 +49,11 @@ for the specific task of transcribing recognizing speech laughter, fillers,
 pauses, and other non-speech sounds in conversations.
 """
 
-# Initialise Multiprocessing------------------------------
+#=======================Multiprocessing==============================
+# Initialise Multiprocessing
 multiprocessing.set_start_method("spawn", force=True)
+# Set multiprocessing for Pytorch
+#===================================================================
 
 def SpeechLaughWhisper(args):
     """
@@ -76,30 +80,28 @@ def SpeechLaughWhisper(args):
     processor = WhisperProcessor.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) # processor - combination of feature extractor and tokenizer
     feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #feature extractor
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #tokenizer
-    # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]", "[UH]", "[UM]", "[MM]", "[YEAH]", "[MM-HMM]"]
-    special_tokens = ["[LAUGHTER]", "[SPEECH_LAUGH]"]
+    # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]"]
+    special_tokens = ["[LAUGH]"]
     tokenizer.add_tokens(special_tokens)
     
 
-    # # Pre-trained Model ----------------
-    # FIXME - Replace with the checkpoint
     model = WhisperForConditionalGeneration.from_pretrained(
         args.model_path, 
         cache_dir=args.pretrained_model_dir,
         #parameters for memory optimization
-        torch_dtype=torch.float16,
+        # torch_dtype=torch.float16,
         device_map="auto",
         low_cpu_mem_usage=True,
         )
     #load the model from the checkpoint
     # model = WhisperForConditionalGeneration.from_pretrained(
     #     args.model_output_dir + "fine-tuned-1000steps",
-    #     torch_dtype=torch.float16,
     #     device_map="auto",
     # )
     
     model.resize_token_embeddings(len(tokenizer))
     model.generation_config.forced_decoder_ids = None
+    model.config.use_cache = False # disable caching
     model.to(device) # move model to GPUs
     #-----------------------------------------------------------------------------------------------------------------------
 
@@ -110,7 +112,6 @@ def SpeechLaughWhisper(args):
     # clear GPU cache
     torch.cuda.empty_cache()
 
-    model.config.use_cache = False # disable caching
     #---------------------------------------------------------
 
 
@@ -121,60 +122,9 @@ def SpeechLaughWhisper(args):
         device=device
     )
    
-    
-
     #=================================================================================================
     #                           PREPARE DATASET
     #=================================================================================================
-
-    # Prepare Dataset with Batch_size > 1
-    # def prepare_dataset(examples):
-    #     total_examples = len(examples["audio"])
-    #     with torch.no_grad():  # disable gradient computation when processing the data
-    #         for i in range(total_examples):
-    #             try:
-    #                 example_audio = examples["audio"][i]
-    #                 example_transcript = examples["transcript"][i]
-
-    #                 if example_audio is None or example_transcript is None:
-    #                     print(f"Error in processing example {i}: None audio or transcript")
-    #                     continue
-                
-                
-    #                 # remove the batch dimension such that the input_features is a 2D array:
-    #                 # (n_mels, time_steps)
-    #                 input_features = feature_extractor( 
-    #                     raw_speech=example_audio["array"],
-    #                     sampling_rate=example_audio["sampling_rate"],
-    #                     padding=True,
-    #                     return_tensors="pt",
-    #                 ).input_features#(batch_size, n_mels, time_steps) - remove batch dimension
-                    
-    #                 input_features = input_features.squeeze(0) #(n_mels, time_steps) = (80, audio_time_steps)
-    #                 # Add shape checking
-    #                 print(f"Example {i} - Input features shape: {input_features.shape}") 
-
-    #                 #---------LABELS ----------------------------------------
-    #                 labels = tokenizer(
-    #                     example_transcript, 
-    #                     padding=True,
-    #                     return_tensors="pt",
-    #                 ).input_ids.squeeze(0) #(sequence_length) - remove batch dimension
-
-    #                 # Add shape checking
-    #                 print(f"Example {i} - Labels shape: {labels.shape}")
-
-    #                 batch["input_features"].append(input_features) # each input_features is (80, audio_time_steps) -> List[torch.Tensor(80, audio_time_steps)] or List[List[float]]
-    #                 batch["labels"].append(labels) # each labels is (sequence_length) -> List[torch.Tensor(sequence_length)]
-
-    #             except Exception as e:
-    #                 print(f"Error in processing example {i}: {e}")
-    #                 continue
-    #     # print(f"Successfully processed {success_examples} out of {total_examples} examples")
-    #     # if success_examples == 0:
-    #     #     raise ValueError("No examples were successfully processed!")
-
-    #     return batch
 
     # Prepare Dataset with Batch_size = 1 (single example)\
     # TODO - The problem with `batch_size > 1` right now is that the input_features and labels are list of tensors, not tensors
@@ -215,11 +165,11 @@ def SpeechLaughWhisper(args):
         Returns:
             metrics: dictionary of metrics
         """
+
         pred_ids = pred.predictions.cpu() if isinstance(pred.predictions, torch.Tensor) else pred.predictions
         label_ids = pred.label_ids.cpu() if isinstance(pred.label_ids, torch.Tensor) else pred.label_ids
 
         #-----------------------------------------------------------------------
-
         # replace -100 with the pad_token_id
         label_ids[label_ids == -100] = tokenizer.pad_token_id
 
@@ -230,53 +180,56 @@ def SpeechLaughWhisper(args):
         pred_transcripts = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #HYP transcript
         
         # Transform the transcripts so that they are in the correct format
-        ref_transcripts = alignment_transformation(ref_transcripts) #NOT LOWERCASE
+        ref_transcripts = transform_alignment_sentence(ref_transcripts) #NOT LOWERCASE
 
         # when computing the metrics
         pred_transcripts = transform_number_words(pred_transcripts, reverse=True) #change eg. two zero to twenty
-        pred_transcripts = alignment_transformation(pred_transcripts)
-
-        
+        pred_transcripts = transform_alignment_sentence(pred_transcripts) #LOWERCASE
 
 
         # METRICS TO CALCULATE -------------------------------------------------
         wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
         f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
 
-        # Get alignments
-        alignments = jiwer.process_words(
-            reference=ref_transcripts, 
-            hypothesis=pred_transcripts
-        )
-        
+        # TODO:TRY WITH OTHER METRICS ================================================
         # Track laugh metrics for each transcript pair
-        laugh_metrics = {
-            'lwhr': 0, #Laugh Word Hit Rate
-            'lthr': 0, #Laughter Token Hit Rate
-            'lwsr': 0, #Laugh Word Substitution Rate
-            'ltsr': 0, #Laughter Token Substitution Rate
-            'lwdr': 0, #Laugh Word Deletion Rate
-            'ltdr': 0, #Laughter Token Deletion Rate
-            'lwir': 0, #Laugh Word Insertion Rate
-            'ltir': 0 #Laughter Token Insertion Rate
-        }
+        # laugh_metrics = {
+        #     # 'wer': wer,
+        #     # 'f1': f1,
+        #     'lwhr': 0, #Laugh Word Hit Rate
+        #     'lthr': 0, #Laughter Token Hit Rate
+        #     'lwsr': 0, #Laugh Word Substitution Rate
+        #     'ltsr': 0, #Laughter Token Substitution Rate
+        #     'lwdr': 0, #Laugh Word Deletion Rate
+        #     'ltdr': 0, #Laughter Token Deletion Rate
+        #     'lwir': 0, #Laugh Word Insertion Rate
+        #     'ltir': 0 #Laughter Token Insertion Rate
+        # }
+
+        
+        # alignments = jiwer.process_words(
+        #     reference=ref_transcripts, 
+        #     hypothesis=pred_transcripts
+        # )
         
         # Calculate average laugh metrics across batch
-        for ref, hyp, align in zip(ref_transcripts, pred_transcripts, alignments.alignments):
-            laugh_stats = track_laugh_word_alignments(ref, hyp, align)
-            for metric in laugh_metrics.keys():
-                laugh_metrics[metric] += laugh_stats[metric]
+        # for ref, hyp, align in zip(ref_transcripts, pred_transcripts, alignments.alignments):
+        #     laugh_stats = track_laugh_word_alignments(ref, hyp, align) # will return "lwhr", "lthr", etc.
+        #     for metric in laugh_metrics.keys():
+        #         laugh_metrics[metric] += laugh_stats[metric]
         
         # Average the metrics
-        batch_size = len(ref_transcripts)
-        for metric in laugh_metrics:
-            laugh_metrics[metric] = laugh_metrics[metric] / batch_size * 100  # Convert to percentage
+        # batch_size = len(ref_transcripts)
+        # for metric in laugh_metrics:
+        #     laugh_metrics[metric] = laugh_metrics[metric] / batch_size * 100  # Convert to percentage
+        
+        #==============================================================================
         
         # Combine with existing metrics
         return {
             "wer": wer,
             "f1": f1,
-            **laugh_metrics  # Add all laugh metrics
+            # **laugh_metrics  # Add all laugh metrics
         }
     #--------------------------------------------------------------------------------------------
 
@@ -308,18 +261,13 @@ def SpeechLaughWhisper(args):
         remove_columns=train_dataset.column_names,
         load_from_cache_file=True,
         desc="Preparing Training Dataset",
-        # batched=True,
-        # batch_size=4, #4 - default= 16, small to save memory, could add up to 256 based on the GPU max memory
-    
-    )
+    ).with_format("torch", device=device) #load dataset as Tensor on GPUs
     test_dataset = test_dataset.map(
         prepare_dataset,
         remove_columns=test_dataset.column_names,
         load_from_cache_file=True,
         desc="Preparing Validation Dataset",
-        # batched=True,
-        # batch_size=4,
-    )
+    ).with_format("torch", device=device)
 
     # Verify dataset size
     print(f"Processed training dataset size: {len(train_dataset)}")
@@ -340,45 +288,49 @@ def SpeechLaughWhisper(args):
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
         output_dir=args.model_output_dir,
-
-        #Training Configs--------------------------------
-        per_device_train_batch_size=4, #8 - default batch size = 16, could add up to 256 based on the GPU max memory
-        gradient_accumulation_steps=4, #4 - default = 8 increase the batch size by accumulating gradients
-        learning_rate=args.lr, #1e-5
-        weight_decay=0.01,
-        max_steps=args.max_steps, #default = 5000 - change based on the number of epochs
-        warmup_steps=args.warmup_steps, #800
         logging_dir=args.log_dir,
+
+        
+        #Training Configs--------------------------------
+        per_device_train_batch_size=4, 
+        gradient_accumulation_steps=4, 
+        learning_rate=1e-4, #1e-5
+        weight_decay=0.01,
+        max_steps=5000, 
+        warmup_steps=800,
+
 
         # Evaluation Configs--------------------------------
         eval_strategy="steps",
         per_device_eval_batch_size=2,
-        eval_steps=1000, #evaluate the model every 1000 steps - Executed compute_metrics()
+        eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
+        save_steps=500,
+        save_strategy="steps",
+        logging_steps=50,
+        save_total_limit=10, #save the last 10 checkpoints
+        
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",
         greater_is_better=False,
+        remove_unused_columns=False,
         resume_from_checkpoint=None,
         #-----------------------------------------------------
 
         # Computations efficiency--------------------------------
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
+        tf32=True, #use TensorFloat32 for faster computation
+        torch_empty_cache_steps=500, #clear CUDA memory cache at checkpoints
         #-----------------------------------------------------
 
         # Dataloader Configs--------------------------------
-        dataloader_num_workers=4, #default = 4 - can change larger if possible
-        dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
-        dataloader_persistent_workers=False, #keep the workers alive for multiple training loops
-        dataloader_prefetch_factor=1, #number of batches to prefetch from the dataloader (1 for reduce memory usage)
-        dataloader_drop_last=True, #drop the last incomplete batch
+        # dataloader_num_workers=4, #default = 4 - can change larger if possible
+        # dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
+        # dataloader_persistent_workers=True, #keep the workers alive for multiple training loops
+        # dataloader_drop_last=True, #drop the last incomplete batch
         
-        #-----------------------------------------------------
-        remove_unused_columns=False,
-        logging_steps=100,
-        save_steps=1000,
-        save_strategy="steps",
-        save_total_limit=2, #save the last 2 checkpoints
+
         # push_to_hub=True,   
     )
 
@@ -395,8 +347,9 @@ def SpeechLaughWhisper(args):
     metrics_callback = MetricsCallback(
         output_dir=args.log_dir, # ./checkpoints
         save_steps=1000,
-        model_name="speechlaugh_subset10_from_original" #model name to saved to corresponding checkpoint
+        model_name="speechlaugh_subset10" #model name to saved to corresponding checkpoint
     )
+    # multiprocessing_callback = MultiprocessingCallback(num_proc=4)
     #--------------------------------------------------------------------------------------------
 
     trainer = Seq2SeqTrainer(
@@ -482,14 +435,14 @@ if __name__ == "__main__":
     parser.add_argument("--evaluate_dir", default="./evaluate", type=str, required=False, help="Path to the evaluation directory")
 
     # Training Configs
-    parser.add_argument("--batch_size", default=8, type=int, required=False, help="Batch size for training")
-    parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
-    # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
-    parser.add_argument("--num_workers", default=4, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
-    parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
-    parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
-    parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
-    parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
+    # parser.add_argument("--batch_size", default=8, type=int, required=False, help="Batch size for training")
+    # parser.add_argument("--grad_steps", default=8, type=int, required=False, help="Number of gradient accumulation steps, which increase the batch size without extend the memory usage")
+    # # parser.add_argument("--num_train_epochs", default=2, type=int, required=False, help="Number of training epochs")
+    # parser.add_argument("--num_workers", default=4, type=int, required=False, help="number of workers to use for data loading, can change based on the number of cores")
+    # parser.add_argument("--warmup_steps", default=800, type=int, required=False, help="Number of warmup steps")
+    # parser.add_argument("--save_steps", default=1000, type=int, required=False, help="Number of steps to save the model")
+    # parser.add_argument("--max_steps", default=5000, type=int, required=False, help="Maximum number of training steps")
+    # parser.add_argument("--lr", default=1e-5, type=float, required=False, help="Learning rate for training")
     #------------------------------------------------------------------------------
     args = parser.parse_args()
 

@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import librosa
 from tqdm import tqdm
 import pandas as pd
@@ -14,11 +15,14 @@ from preprocess import (
     process_switchboard_transcript, 
     cut_audio_based_on_transcript_segments,
     filter_laughter_dataset,
-    filter_intext_laughter_dataset,
     filter_speech_laugh_dataset,
-    filter_speech_dataset
+    filter_speech_dataset,
+    # push_dataset_to_hub
 )
 import utils.params as prs
+
+load_dotenv()
+hf_token = os.environ.get("HUGGINGFACE_TOKEN")
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -133,8 +137,8 @@ def switchboard_to_ds(
             switchboard_dataset = filter_speech_dataset(switchboard_dataset)    
         elif retokenize_type == "laugh":
             switchboard_dataset = filter_laughter_dataset(
-                dataset=switchboard_dataset,
-                intext=True # filter out the sentences that only contain [LAUGH]    
+                dataset=switchboard_dataset
+                # intext=True # filter out the sentences that only contain [LAUGH]    
             )
 
         #=======================================================================================================================================
@@ -166,6 +170,7 @@ if __name__ == "__main__":
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the HuggingFace Dataset. Better for training")
     parser.add_argument("--retokenize_type", type=str, default="speechlaugh", help="Decide whether to retokenize to [LAUGH] or WORD, or normal speech")     # ARGUMENTS FOR SPECIAL PROCESSING
 
+    # parser.add_argument("--push_to_hf", type=bool, default=False, help="Whether or not to push the dataset to HuggingFace")
 #-------------------------------------------------------------------------------------------------------------
 
     args = parser.parse_args()
@@ -177,12 +182,10 @@ if __name__ == "__main__":
     if not args.skip_process:
         for data_name in args.data_names:
             if data_name == "switchboard":
-                # /deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/short_padded_segments/
+                # /deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/swb_speechlaugh/
                 audio_segment_dir = os.path.join(
                     global_data_dir, 
                     "switchboard_data", 
-                    # "short_padded_segments"
-                    # "swb_laugh"
                     args.audio_segment_name
                 ) #FIXME: Change back to audio_segments
   
@@ -191,12 +194,12 @@ if __name__ == "__main__":
                     dataset_dir = os.path.join(dataset_dir, "swb_speechlaugh")
                 elif args.retokenize_type == "laugh":
                     print("Processing Laugh Switchboard... (special token: [LAUGH])")
-                    dataset_dir = os.path.join(dataset_dir, "swb_laugh")
+                    dataset_dir = os.path.join(dataset_dir, "swb_laugh_intext") #FIXME: change back to `swb_laugh`
                 elif args.retokenize_type == "speech":
                     print("Processing Normal Speech Switchboard... (special token: None)")
                     dataset_dir = os.path.join(dataset_dir, "swb_speech")
                 print(f"Process with: \n -Audio segment directory: {audio_segment_dir}; \n -Data directory: {dataset_dir}")
-                df = switchboard_to_ds(
+                swb_dataset = switchboard_to_ds(
                     data_name = data_name,
                     audio_dir=os.path.join(global_data_dir, "switchboard_data", "switchboard","audio_wav"),
                     transcript_dir=os.path.join(global_data_dir, "switchboard_data", "switchboard","transcripts"),
@@ -206,3 +209,6 @@ if __name__ == "__main__":
                     to_csv = args.to_csv,
                     retokenize_type=args.retokenize_type,
                 )
+
+                print(f"Successfully processed [{args.retokenize_type}] Switchboard dataset: {swb_dataset}")
+                print("================================================================")
