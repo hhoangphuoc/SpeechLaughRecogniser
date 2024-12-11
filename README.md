@@ -50,7 +50,6 @@ path=/deepstore/datasets/hmi/speechlaugh-corpus/vocalsound_data/audio_16k
 $ export HF_DATASETS_CACHE="../data/huggingface_data"
 
 # or change to the global datasets
-
 $ export HF_DATASETS_CACHE="/deepstore/datasets/hmi/speechlaugh-corpus/huggingface_data"
 
 ```
@@ -61,4 +60,38 @@ $ export HF_DATASETS_CACHE="/deepstore/datasets/hmi/speechlaugh-corpus/huggingfa
 - fsd50k_noisy: "sps44/fsdnoisy18k"
 - audioset: "benjamin-paine/audio-set-16khz"
 
-3.
+## Preprocessing
+
+## Datasets Uses for Training
+After preprocessing, we have seperated, cleaned, retokenized and stored the datasets in 3 seperate datasets, corresponding to 3 types of token using for training and evaluation, they are:
+- `switchboard_speech`
+```bash
+path=/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/swb_speech
+```
+
+- `switchboard_laugh`
+```python
+path=/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/swb_laugh
+
+"Laughter dataset with `intext = True`": Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 6900
+})
+```
+
+- `switchboard_speechlaugh`
+```python
+path=/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/swb_speechlaugh
+
+"Speech-laugh dataset": Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 7672
+})
+```
+
+## Training
+> To check disusage of models directory, datasets in global storage, navigate to the storage and use `du` command.
+```bash
+cd /path/to/storage
+du -sh * | sort -hr
+```

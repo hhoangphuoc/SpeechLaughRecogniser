@@ -76,8 +76,9 @@ def evaluate_whisper(
         evaluate_dataset = load_from_disk(dataset_path)
         print(f"Loaded Dataset with type: {dataset_type}: \n{evaluate_dataset}")
 
-        # Get 6900 samples from the dataset
-        # evaluate_dataset = evaluate_dataset.select(range(6900))
+        # FIXME:Get 6900 samples from the dataset
+        evaluate_dataset = evaluate_dataset.select(range(6900))
+    
     except FileNotFoundError:
         raise ValueError(f"Dataset not found: {dataset_path}. Please choose the dataset types of 'speechlaugh', 'laugh' or 'speech'.")
 
@@ -87,16 +88,12 @@ def evaluate_whisper(
     # wers = []
 
     summary_stats = {
-        'wers': [], # word error rates
-        'mers': [], # match error rates
-        'hit_rate': [], # sentence hit rate
-        'substitution_rate': [], # sentence substitution rate
-        'deletion_rate': [], # sentence deletion rate
-        'insertion_rate': [], # sentence insertion rate
-        'thr': [], # token hit rate
-        'tsr': [], # token substitution rate
-        'tdr': [], # token deletion rate
-        'tir': [], # token insertion rate
+        "total_TH": 0,
+        "total_TS": 0,
+        "total_TD": 0,
+        "total_TI": 0,
+        "total_token_operations": 0,
+
     }
 
     # special_tokens = ["[LAUGH]"]
@@ -105,8 +102,11 @@ def evaluate_whisper(
     with open(output_file, "w") as f:
         f.write(f"Evaluate model - {model_name} --------------- \n")
         f.write(f"Dataset: {dataset_name} \n\n")
-        for row in evaluate_dataset:
 
+        ref_transcripts = []
+        hyp_transcripts = []
+        
+        for row in evaluate_dataset:
             #----------------------------------------------------------------
             #                   NOW PROCESSING AUDIO
             #----------------------------------------------------------------
@@ -136,9 +136,8 @@ def evaluate_whisper(
                 continue
 
             reference_transcript = jiwer.ToLowerCase()(original_transcript)
-            # FIXME: Transform all existing numbers to words - NOT DO IN REF, USE IN HYP WITH REVERSE INSTEAD
-            # reference_transcript = transform_number_words(reference_transcript) 
             f.write(f"REF: {reference_transcript} \n")
+            ref_transcripts.append(reference_transcript)
 
             #==================================================================================================
             #                                       HYP Transcript                                             #
@@ -162,111 +161,135 @@ def evaluate_whisper(
             predicted_transcript = transform_alignment_sentence(predicted_transcript)
             
             f.write(f"HYP: {predicted_transcript} \n")
+            hyp_transcripts.append(predicted_transcript)
+
             f.write("-------------------------------------------------------\n")
 
-            #=====================================================================================================  
-            #                           VISUALIZE THE ALIGNMENT
-            #=====================================================================================================
-            alignment = jiwer.process_words(
+            
+
+            # #=====================================================================================================  
+            # #                           VISUALIZE THE PAIR ALIGNMENT
+            # #=====================================================================================================
+            pair_alignment = jiwer.process_words(
                 reference=reference_transcript, 
                 hypothesis=predicted_transcript,
             )
-            # Calculate the metrics
-            wer = alignment.wer
-            mer = alignment.mer
-            summary_stats['wers'].append(wer)
-            summary_stats['mers'].append(mer)
 
-            #=====================================================================================================  
-            #           GET THE NUMBER OF HITS, SUBSTITUTIONS, INSERTIONS, DELETIONS for each sentences
-            #           AND CALCULATE THE RATES. THESE ARE THE PERFORMANCE OF THE MODEL ON EACH DATASET
-            #=====================================================================================================
-            hits = alignment.hits
-            substitutions = alignment.substitutions
-            insertions = alignment.insertions
-            deletions = alignment.deletions
+            #FIXME: CALCULATE THE ALIGNMENT OF TOKEN IN PAIR OF SENTENCES, 
+            # TO GET THE NUMBER OF TOKENS HITS, SUBSTITUTIONS, INSERTIONS, DELETIONS
+            # AND CALCULATE THE RATES. THESE ARE THE PERFORMANCE OF THE MODEL ON EACH DATASET   
 
-            total_operations = hits + substitutions + insertions + deletions
+            f.write(jiwer.visualize_alignment(pair_alignment, show_measures=False, skip_correct=False) + "\n")
 
-            summary_stats['hit_rate'].append(hits / total_operations)
-            summary_stats['substitution_rate'].append(substitutions / total_operations)
-            summary_stats['insertion_rate'].append(insertions / total_operations)
-            summary_stats['deletion_rate'].append(deletions / total_operations)
-
-            #=====================================================================================================
-            #                               TRACK LAUGH WORD ALIGNMENTS
-            #=====================================================================================================
+            # #=====================================================================================================
+            # #                               TRACK LAUGH WORD ALIGNMENTS
+            # #=====================================================================================================
             
             if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
                 laugh_stats = track_laugh_word_alignments(
                     original_reference=original_transcript, #ORIGINAL WITH UPPERCASE LAUGH WORDS instead of Lowercase ones
                     hypothesis=predicted_transcript, 
-                    alignment=alignment,
+                    alignment=pair_alignment,
                     dataset_type=dataset_type
-                )
-
-                #=====================================================================================================
-                #                               WRITE SUMMARY TOKENS STATISTICS 
-                #                   HIT RATE, SUBSTITUTION RATE, DELETION RATE, INSERTION RATE    
-                #=====================================================================================================
-                summary_stats['thr'].append(laugh_stats['thr']) # token hit rate
-                summary_stats['tsr'].append(laugh_stats['tsr']) # token substitution rate
-                summary_stats['tdr'].append(laugh_stats['tdr']) # token deletion rate
-                summary_stats['tir'].append(laugh_stats['tir']) # token insertion rate
+                ) # return the number of hits, substitutions, deletions, insertions for each pair
 
                 #===============================================================================================================================
-                #                       WRITE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
+                #                       VISUALIZE ALIGNMENT DETAILS (HITS, SUBSTITUTIONS, DELETIONS, INSERTIONS)
                 #===============================================================================================================================
                 f.write("\n========================================== Laugh Word Alignment Details ============================================= \n")
                 f.write(f"{dataset_type.upper()} WORDS: [{', '.join(laugh_stats['laugh_words'])}] \n")
                 f.write("-------------------------------------------------------------------------\n")
 
-                if laugh_stats['laugh_hits'] and len(laugh_stats['laugh_hits']) > 0:
+                # TH: NUMBER OF TOKENS HITS 
+                th_count = len(laugh_stats['TH']) if laugh_stats['TH'] else 0
+                summary_stats['total_TH'] += th_count #FIXME: ADD TO TOTAL HITS
+
+                #Visualise Hits (TH)
+                if th_count > 0:
                     f.write("\n ====== Hits: ====== \n")
-                    for hit in laugh_stats['laugh_hits']:
+                    for hit in laugh_stats['TH']:
                         f.write(f"- REF: {hit['word']} → HYP: {hit['hyp_word']} "
                                 f"(type: {hit['type']}, ref pos: {hit['ref_pos']}, hyp pos: {hit['hyp_pos']})\n")
-                if laugh_stats['laugh_substitutions'] and len(laugh_stats['laugh_substitutions']) > 0:
+
+                #------------------------------------------------------------------------------------------------   
+                
+                # TS: NUMBER OF TOKENS SUBSTITUTIONS
+                ts_count = len(laugh_stats['TS']) if laugh_stats['TS'] else 0
+                summary_stats['total_TS'] += ts_count #FIXME: ADD TO TOTAL SUBSTITUTIONS
+
+                #Visualise Substitutions (TS)
+                if ts_count > 0:
                     f.write("\n ====== Substitutions: ====== \n")
-                    for sub in laugh_stats['laugh_substitutions']:
+                    for sub in laugh_stats['TS']:
                         f.write(f"- REF: {sub['ref_word']} → HYP: {sub['hyp_word']} "
                                 f"(type: {sub['type']}, ref pos: {sub['ref_pos']}, "
                                 f"hyp pos: {sub['hyp_pos'] if sub['hyp_pos'] is not None else 'N/A'})\n")
-                if laugh_stats['laugh_deletions'] and len(laugh_stats['laugh_deletions']) > 0:
+
+                #------------------------------------------------------------------------------------------------
+    
+                # TD: NUMBER OF TOKENS DELETIONS
+                td_count = len(laugh_stats['TD']) if laugh_stats['TD'] else 0
+                summary_stats['total_TD'] += td_count #FIXME: ADD TO TOTAL DELETIONS
+
+                #Visualise Deletions (TD)
+                if td_count > 0:
                     f.write("\n ====== Deletions: ====== \n")
-                    for deletion in laugh_stats['laugh_deletions']:
+                    for deletion in laugh_stats['TD']:
                         f.write(f"- REF: {deletion['word']} "
                                 f"(type: {deletion['type']}, ref pos: {deletion['ref_pos']})\n")
-                if laugh_stats['laugh_insertions'] and len(laugh_stats['laugh_insertions']) > 0:
+
+                #------------------------------------------------------------------------------------------------   
+
+                # TI: NUMBER OF TOKENS INSERTIONS
+                ti_count = len(laugh_stats['TI']) if laugh_stats['TI'] else 0
+                summary_stats['total_TI'] += ti_count #FIXME: ADD TO TOTAL INSERTIONS
+
+                #Visualise Insertions (TI)
+                if ti_count > 0:
                     f.write("\n ====== Insertions: ====== \n")
-                    for insertion in laugh_stats['laugh_insertions']:
+                    for insertion in laugh_stats['TI']:
                         f.write(f"- HYP: {insertion['word']} "
                                 f"(type: {insertion['type']}, hyp pos: {insertion['hyp_pos']})\n")
 
-            f.write("\n ====== Detailed Alignment: ====== \n")
-            f.write(jiwer.visualize_alignment(alignment, show_measures=True, skip_correct=False) + "\n")
-            f.write("______________________________________________________________________________________________________________________\n\n")
-    
+                #------------------------------------------------------------------------------------------------ 
+                # TOTAL TOKEN OPERATIONS
+                total_token_operations = th_count + ts_count + td_count + ti_count
+                summary_stats['total_token_operations'] += total_token_operations
+            else:
+                continue   
+        f.write("______________________________________________________________________________________________________________________\n\n")
+
+        alignment = jiwer.process_words(
+            reference=ref_transcripts, 
+            hypothesis=hyp_transcripts,
+        )
+
 
         f.write("=========================== OVERALL METRICS SUMMARY =======================================\n")
         
-        f.write(f"Average WER: {np.mean(summary_stats['wers']) * 100:.2f} \n\n")
-        f.write(f"Average MER: {np.mean(summary_stats['mers']) * 100:.2f} \n\n") # Match Error Rate
-        
+        f.write(f"Percentage WER: {alignment.wer * 100:.2f} \n\n")
+        f.write(f"Percentage MER: {alignment.mer * 100:.2f} \n\n") # Match Error Rate
+        f.write("___________________________________________________________________________________________\n")
+        # TOTAL OPERATIONS OF ALL DATASET
+        hits, substitutions, deletions, insertions = alignment.hits, alignment.substitutions, alignment.deletions, alignment.insertions
+        total_operations = hits + substitutions + deletions + insertions
+        f.write(f"Total Operations: {total_operations} \n")
+
+        f.write(f"Percentage Hits: {hits / total_operations * 100:.2f} \n")
+        f.write(f"Percentage Substitutions: {substitutions / total_operations * 100:.2f} \n")
+        f.write(f"Percentage Deletions: {deletions / total_operations * 100:.2f} \n")
+        f.write(f"Percentage Insertions: {insertions / total_operations * 100:.2f} \n")
+
         f.write("___________________________________________________________________________________________\n")
 
-        f.write(f"Avg Sentence Hit Rate: {np.mean(summary_stats['hit_rate']) * 100:.2f} \n")
-        f.write(f"Avg Sentence Substitution Rate: {np.mean(summary_stats['substitution_rate']) * 100:.2f} \n")
-        f.write(f"Avg Sentence Deletion Rate: {np.mean(summary_stats['deletion_rate']) * 100:.2f} \n")
-        f.write(f"Avg Sentence Insertion Rate: {np.mean(summary_stats['insertion_rate']) * 100:.2f} \n")
-        f.write("___________________________________________________________________________________________\n\n")
-
         if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
+            # TOTAL TOKEN OPERATIONS OF ALL DATASET
+            f.write(f"Total Token Operations: {summary_stats['total_token_operations']} \n")
             f.write("___________________________________________________________________________________________\n")
-            f.write(f"{dataset_type.upper()} Token Hit Rate: {np.mean(summary_stats['thr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Token Substitution Rate: {np.mean(summary_stats['tsr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Token Deletion Rate: {np.mean(summary_stats['tdr']) * 100:.2f} \n")
-            f.write(f"{dataset_type.upper()} Token Insertion Rate: {np.mean(summary_stats['tir']) * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Hit Rate: {summary_stats['total_TH'] / summary_stats['total_token_operations'] * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Substitution Rate: {summary_stats['total_TS'] / summary_stats['total_token_operations'] * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Deletion Rate: {summary_stats['total_TD'] / summary_stats['total_token_operations'] * 100:.2f} \n")
+            f.write(f"{dataset_type.upper()} Token Insertion Rate: {summary_stats['total_TI'] / summary_stats['total_token_operations'] * 100:.2f} \n")
             f.write("___________________________________________________________________________________________\n\n")
 
 if __name__ == "__main__":

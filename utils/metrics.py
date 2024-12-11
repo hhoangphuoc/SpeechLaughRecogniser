@@ -123,15 +123,12 @@ def track_laugh_word_alignments(
     #============================================================================================
     laugh_stats = {
         'laugh_words': laugh_words, #NOTE: All the speech-laugh OR [LAUGH] in REF
-        'laugh_hits': [],
-        'laugh_substitutions': [],
-        'laugh_deletions': [],
-        'laugh_insertions': [],
+        'TH': [],
+        'TS': [],
+        'TD': [],
+        'TI': [],
     }
     #----------------------------------------------------------------------------------------
-    # alignment.alignments(): Jiwer WordOutput alignment that contains multiple Alignment Chunks
-    # each chunk contains REF and HYP word indices and type of operation
-    # Process each alignment chunk
     # TYPE OF OPERATIONS IN ALIGNMENT CHUNK: `equal`, `substitute`, `insert`, or `delete`
     for chunk in alignment.alignments[0]:  # First sentence's alignment
 
@@ -150,7 +147,7 @@ def track_laugh_word_alignments(
             for i, (ref_idx, hyp_idx) in enumerate(zip(range(ref_start, ref_end), 
                                                       range(hyp_start, hyp_end))):
                 if ref_idx in laugh_indices:
-                    laugh_stats['laugh_hits'].append({
+                    laugh_stats['TH'].append({
                         'word': laugh_indices[ref_idx]['word'],
                         'hyp_word': chunk_hyp_words[i],
                         'type': laugh_indices[ref_idx]['type'],
@@ -162,7 +159,7 @@ def track_laugh_word_alignments(
             # Check for substitutions
             for i, ref_idx in enumerate(range(ref_start, ref_end)):
                 if ref_idx in laugh_indices:
-                    laugh_stats['laugh_substitutions'].append({
+                    laugh_stats['TS'].append({
                         'ref_word': laugh_indices[ref_idx]['word'],
                         'hyp_word': chunk_hyp_words[i] if i < len(chunk_hyp_words) else None,
                         'type': laugh_indices[ref_idx]['type'],
@@ -173,7 +170,7 @@ def track_laugh_word_alignments(
             # Check for deletions
             for ref_idx in range(ref_start, ref_end):
                 if ref_idx in laugh_indices:
-                    laugh_stats['laugh_deletions'].append({
+                    laugh_stats['TD'].append({
                         'word': laugh_indices[ref_idx]['word'],
                         'type': laugh_indices[ref_idx]['type'],
                         'ref_pos': ref_idx
@@ -184,7 +181,7 @@ def track_laugh_word_alignments(
                 hyp_word = chunk_hyp_words[i]
                 # Check if HYP word is a speechlaugh or a laughter to be inserted.
                 if hyp_word.isupper() or hyp_word == '[LAUGH]':
-                    laugh_stats['laugh_insertions'].append({
+                    laugh_stats['TI'].append({
                         'word': hyp_word,
                         'type': 'laugh' if hyp_word == '[LAUGH]' else 'speechlaugh',
                         'hyp_pos': hyp_idx
@@ -196,30 +193,16 @@ def track_laugh_word_alignments(
     #=====================================================================================================================================      
 
     # #HITS
-    laugh_stats['thr'] = len(laugh_stats['laugh_hits']) / len(laugh_stats['laugh_words'])
-    
-    #SUBSTITUTIONS
-    laugh_stats['tsr'] = len(laugh_stats['laugh_substitutions']) / len(laugh_stats['laugh_words'])
-
-    #DELETIONS
-    laugh_stats['tdr'] = len(laugh_stats['laugh_deletions']) / len(laugh_stats['laugh_words'])
-
-    #INSERTIONS
-    laugh_stats['tir'] = len(laugh_stats['laugh_insertions']) / len(laugh_stats['laugh_words'])
 
     #-------------- LAUGH_STATS FORMAT -----------------
     """
     laugh_stats = {
         'laugh_words': laugh_words,
         # 'laughter_tokens': laughter_tokens,
-        'laugh_hits': [],
-        'laugh_substitutions': [],
-        'laugh_deletions': [],
-        'laugh_insertions': [],
-        'thr': 0.0,
-        'tsr': 0.0,
-        'tdr': 0.0,
-        'tir': 0.0,
+        'TH': [],
+        'TS': [],
+        'TD': [],
+        'TI': [],
     }
     """
     return laugh_stats

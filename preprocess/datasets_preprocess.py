@@ -47,8 +47,7 @@ def filter_laughter_dataset(
     Filter dataset that only have sentences that contain laughter special token
     which is [LAUGH]. If `intext` is True, filter out the sentences that only contain [LAUGH], the sentence would include both [LAUGH] and other words.
     """
-    print("Get only laughter dataset...")
-    
+    print("FILTERING LAUGH-ONLY DATASET...")
     # if intext:
     #     print(f"`intext = {intext}`. Filter sentences that contain both [LAUGH] and other words")
     #     laughter_filter = lambda x: '[LAUGH]' in x['transcript'] and not x['transcript'].replace('[LAUGH]', '').strip()
@@ -67,12 +66,11 @@ def filter_speech_laugh_dataset(dataset):
     Filter dataset that only have sentences that contain speechlaugh special token
     which is word in uppercase. For example: YOU, WORD, KNOW, WHAT, etc.
     """
-    print("Get only speechlaugh dataset...")
+    print("FILTERING SPEECHLAUGH DATASET...")
     speech_laugh_filter = lambda x: any(word.isupper() for word in x['transcript'].split())
     swb_speechlaugh_dataset = dataset.filter(speech_laugh_filter)
     print(f"Speech-laugh dataset: {swb_speechlaugh_dataset}")
-    # print the first 10 rows
-    print(swb_speechlaugh_dataset.select(range(10)))
+    print(swb_speechlaugh_dataset[0])
     return swb_speechlaugh_dataset
 #===================================================================================
 
@@ -80,12 +78,11 @@ def filter_speech_dataset(dataset):
     """
     Filter dataset that only have sentences that do not contain speechlaugh or laughter special tokens
     """
-    print("Get only speech dataset...")
+    print("FILTERING SPEECH-ONLY DATASET...")
     speech_filter = lambda x: not any(word.isupper() or word=='[LAUGH]' for word in x['transcript'].split())
     swb_speech_dataset = dataset.filter(speech_filter)
     print(f"Speech dataset: {swb_speech_dataset}")
-    # print the first 10 rows
-    print(swb_speech_dataset.select(range(10)))
+    print(swb_speech_dataset[0])
     return swb_speech_dataset
 
 #==========================================================================

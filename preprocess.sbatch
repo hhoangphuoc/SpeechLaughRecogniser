@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=preprocess_swb_laugh_intext         # Job name
+#SBATCH --job-name=preprocess_swb_speech         # Job name
 #SBATCH -c 16                                               # Number of cores
 #SBATCH --mem=10G                                            # Request 10GB memory
 #SBATCH --gres=gpu:ampere:1                                 # Request 1 GPU
@@ -26,21 +26,12 @@ source activate .venv
 # Run your script with the appropriate arguments
 
 #---------------------------------------------#
-# PREPROCESS WITH SPEECH_LAUGH TOKENIZATION
-#---------------------------------------------#
-# for token [SPEECH_LAUGH]
-# python preprocess.py \
-#     --data_names switchboard \
-#     --csv_dir ./datasets/short_padded_switchboard/ \
-#     --to_dataset True \
-#     --to_csv True \
-#     --tokenize_speechlaugh True \
-#---------------------------------------------#
-
-#---------------------------------------------#
 #                   PREPROCESS
 #---------------------------------------------#
-# for special token for speech-laugh: WORD
+
+#----------------
+# SPEECHLAUGH
+#----------------
 # python data_preprocess.py \
 #     --data_names switchboard \
 #     --dataset_dir ./datasets/switchboard/ \
@@ -50,7 +41,9 @@ source activate .venv
 #     --audio_segment_name swb_speechlaugh \
     # --push_to_hf True \
 #---------------------------------------------#
-# for special token for laugh: [LAUGH]
+#----------------
+#     LAUGH
+#----------------
 # python data_preprocess.py \
 #     --data_names switchboard \
 #     --dataset_dir ./datasets/switchboard/ \
@@ -60,23 +53,38 @@ source activate .venv
 #     --audio_segment_name swb_laugh \
 #     # --push_to_hf True \
 
-# For [LAUGH] in text
-python data_preprocess.py \
-    --data_names switchboard \
-    --dataset_dir ./datasets/switchboard/ \
-    --to_dataset True \
-    --to_csv True \
-    --retokenize_type laugh\
-    --audio_segment_name swb_laugh_intext \
-
-#---------------------------------------------#
-# for normal speech: no special token
+#----------------
+# LAUGH-INTEXT
+#----------------
 # python data_preprocess.py \
 #     --data_names switchboard \
 #     --dataset_dir ./datasets/switchboard/ \
 #     --to_dataset True \
 #     --to_csv True \
-#     --retokenize_type speech \
-#     --audio_segment_name swb_speech \
-    # --push_to_hf True \
+#     --retokenize_type laugh\
+#     --audio_segment_name swb_laugh_intext \
+
+#---------------------------------------------#
+#----------------
+# SPEECH-ONLY
+#----------------
+python data_preprocess.py \
+    --data_names switchboard \
+    --dataset_dir ./datasets/switchboard/ \
+    --to_dataset True \
+    --to_csv True \
+    --retokenize_type speech \
+    --audio_segment_name swb_speech \
+#---------------------------------------------#
+
+#---------------------------------------------#
+#----------------
+# ALL SWITCHBOARD
+#----------------
+# python data_preprocess.py \
+#     --data_names switchboard \
+#     --dataset_dir ./datasets/switchboard/ \
+#     --to_dataset True \
+#     --to_csv True \
+#     --audio_segment_name swb_all \
 #---------------------------------------------#

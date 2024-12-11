@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=eval_swb_speech_only_large-v2                  # Job name
+#SBATCH --job-name=eval_swb_speech_large-v2-6900                  # Job name
 #SBATCH -c 8                                                   # Number of cores
-#SBATCH --mem=16G                                                # Request 8GB memory
+#SBATCH --mem=10G                                                # Request 8GB memory
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
-#SBATCH --time=48:00:00                                          # Set a walltime limit
+#SBATCH --time=10:00:00                                          # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                              # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl             # Your email address
 
@@ -62,12 +62,12 @@ source activate .venv
 #                       TRY WITH SHORT_PADDED_SWITCHBOARD 
 #===========================================================================================
 # - SPEECHLAUGH
-python evaluate_whisper.py \
-    --dataset_dir ../datasets/switchboard \
-    --dataset_type speechlaugh \
-    --model_name openai/whisper-large-v2 \
-    --pretrained_model_dir ../ref_models/pre_trained \
-    --output_dir ../alignment_transcripts \
+# python evaluate_whisper.py \
+#     --dataset_dir ../datasets/switchboard \
+#     --dataset_type speechlaugh \
+#     --model_name openai/whisper-large-v2 \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts \
 # ==========================================================================================
 
 # # - LAUGH

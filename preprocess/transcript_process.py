@@ -49,6 +49,11 @@ alignment_transformation = jiwer.Compose([
     jiwer.Strip(),
     jiwer.ToLowerCase(), #FIXME- NOT LOWERCASE IN ALIGNMENT
     jiwer.RemoveEmptyStrings(),
+    jiwer.SubstituteWords({
+        "uhhuh": "uh-huh",
+        "mmhmm": "um-hmm",
+        "umhum": "um-hum",
+    })
 ])
 
 transcript_transformation = jiwer.Compose([
@@ -165,8 +170,6 @@ def transform_alignment_sentence(sentence):
 #=========================================================================================================================
 def retokenize_transcript_pattern(
         transcript_line,
-        # tokenize_speechlaugh = False,
-        retokenize_type = "speechlaugh", # "speechlaugh", "laugh" or "speech"
         ):
     """
     Retokenize the transcript line based on the given pattern.
@@ -211,26 +214,25 @@ def retokenize_transcript_pattern(
             word = re.sub(asides_pattern, "", word) # remove the <b_aside>, <e_aside>
         else:
             word = word # normal word
-        #================================================================   
-
-        #=============== RETOKENIZE SPEECH_LAUGH AND LAUGHTER============
+        #=============================== RETOKENIZE SPEECH_LAUGH AND LAUGHTER=================================
         if match := re.match(speech_laugh_pattern, word):
-            if retokenize_type == "speechlaugh":
+            # if retokenize_type == "speechlaugh":
                 # check if the speech-laugh is a form of partial word
-                laughed_word = match.group(1)
-                if re.match(partialword_pattern, laughed_word): 
-                    word = "" #removing the partial word
-                elif re.match(coinages_pattern, laughed_word):
-                    laughed_word = re.sub(coinages_pattern, r"\1", laughed_word)
-                
-                word = laughed_word.upper() #Uppercase the laughing word if retokenize_type=speechlaugh
-            else:
-                word = "" #otherwise removing it
+            laughed_word = match.group(1)
+            if re.match(partialword_pattern, laughed_word): 
+                word = "" #removing the partial word
+            elif re.match(coinages_pattern, laughed_word):
+                laughed_word = re.sub(coinages_pattern, r"\1", laughed_word)
+            
+            word = laughed_word.upper() #Uppercase the laughing word if retokenize_type=speechlaugh
+            # else:
+            #     word = "" #otherwise removing it
         elif re.match(laughter_pattern, word):
-            if retokenize_type == "laugh":
-                word = "[LAUGH]" #change it to the token [LAUGH] if retokenize_type=laugh
-            else:
-                word = "" #otherwise removing it
+            word = "[LAUGH]"
+            # if retokenize_type == "laugh":
+            #     word = "[LAUGH]" #change it to the token [LAUGH] if retokenize_type=laugh
+            # else:
+            #     word = "" #otherwise removing it
         #==================================================================   
         # Finally, remove trailing hyphens (if any)
         if word.endswith('-'):
@@ -257,7 +259,6 @@ def retokenize_transcript_pattern(
 def process_switchboard_transcript(
         audio_file, 
         transcript_dir='/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/transcripts',
-        retokenize_type = "speechlaugh" # "speechlaugh", "laugh" or "speech"
     ):
     """
     Processes a Switchboard transcript file.
@@ -331,9 +332,10 @@ def process_switchboard_transcript(
 
 # 4. Retokenize the sentence based on the specific patterns=========================
 # while retokenizing, we uppercase special tokens like [LAUGH] and WORD
+# we do this for every transcript sentence, regardless of any sub-datasets
                     retokenize_text = retokenize_transcript_pattern(
                         text,
-                        retokenize_type=retokenize_type
+                        # retokenize_type=retokenize_type
                     ) # return the retokenized text (either removed or replaced)
                     new_transcript_lines.append((start_time, end_time, retokenize_text))
             return new_transcript_lines

@@ -17,7 +17,6 @@ from preprocess import (
     filter_laughter_dataset,
     filter_speech_laugh_dataset,
     filter_speech_dataset,
-    # push_dataset_to_hub
 )
 import utils.params as prs
 
@@ -63,7 +62,7 @@ def switchboard_to_ds(
     batch_sr = [],
     batch_transcript=[],
     dataset_dir = "../datasets/switchboard/",
-    retokenize_type = "speechlaugh",
+    retokenize_type = None, #default:all data - can splitted: speechlaugh, laugh or speech
     to_csv = False,
     to_dataset = False,
 ):
@@ -78,6 +77,8 @@ def switchboard_to_ds(
         transcript_dir (str): Path to the root directory containing transcript subfolders.
         batch_audio (list): List of path to audio file segments
         batch_transcript (list): List of transcript segments
+        dataset_dir (str): The directory to dataset
+        retokenize_type: The dataset type for retokenize the paralinguistic event: speechlaugh or laugh. Type can be selected: "speechlaugh", "laugh" or "speech"
 
     Returns:
         - switchboard_dataset (HuggingFace Dataset): Dataset object containing the audio and transcript data
@@ -92,7 +93,6 @@ def switchboard_to_ds(
             transcript_lines = process_switchboard_transcript(
                 audio_file,
                 transcript_dir=transcript_dir,
-                retokenize_type=retokenize_type
             )
             # ==================================== THE TRANSCRIPT LINES CAN HAVE 3 TYPE ==========================================
             #                           1. just speech - normal transcript that has no special token  
@@ -140,7 +140,6 @@ def switchboard_to_ds(
                 dataset=switchboard_dataset
                 # intext=True # filter out the sentences that only contain [LAUGH]    
             )
-
         #=======================================================================================================================================
 
         # Save the dataset to disk
@@ -149,7 +148,6 @@ def switchboard_to_ds(
             num_proc=8 # working on CPU so try num_proc=8 for 8 cores
         )
     if to_csv:
-        # csv_path = os.path.join(dataset_dir, data_name)
         os.makedirs(dataset_dir, exist_ok=True)
         output_file = os.path.join(dataset_dir, f"{data_name}.csv") #../datasets/switchboard.csv
         df.to_csv(output_file, index=False)
@@ -168,7 +166,7 @@ if __name__ == "__main__":
     
     parser.add_argument("--to_csv", type=bool, default=False, help="Save the processed data to csv. Better for visualisation")
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the HuggingFace Dataset. Better for training")
-    parser.add_argument("--retokenize_type", type=str, default="speechlaugh", help="Decide whether to retokenize to [LAUGH] or WORD, or normal speech")     # ARGUMENTS FOR SPECIAL PROCESSING
+    parser.add_argument("--retokenize_type", type=str, default=None, help="Decide whether to retokenize to [LAUGH] or WORD, or normal speech")     # ARGUMENTS FOR SPECIAL PROCESSING
 
     # parser.add_argument("--push_to_hf", type=bool, default=False, help="Whether or not to push the dataset to HuggingFace")
 #-------------------------------------------------------------------------------------------------------------
@@ -198,6 +196,11 @@ if __name__ == "__main__":
                 elif args.retokenize_type == "speech":
                     print("Processing Normal Speech Switchboard... (special token: None)")
                     dataset_dir = os.path.join(dataset_dir, "swb_speech")
+                else:
+                    print("Using all Switchboard Data (incl. special token: [LAUGH], WORD)")
+                    dataset_dir = os.path.join(dataset_dir, "swb_all")
+                
+
                 print(f"Process with: \n -Audio segment directory: {audio_segment_dir}; \n -Data directory: {dataset_dir}")
                 swb_dataset = switchboard_to_ds(
                     data_name = data_name,
