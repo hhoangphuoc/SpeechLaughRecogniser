@@ -11,7 +11,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from preprocess import transform_number_words, transform_alignment_sentence
-from utils import track_laugh_word_alignments
+from utils import evaluate_token_alignments
 
 
 #--------------------------------------------------
@@ -186,7 +186,7 @@ def evaluate_whisper(
             # #=====================================================================================================
             
             if dataset_type == "speechlaugh" or dataset_type == "laugh" or dataset_type == "laugh_intext":
-                laugh_stats = track_laugh_word_alignments(
+                laugh_stats = evaluate_token_alignments(
                     original_reference=original_transcript, #ORIGINAL WITH UPPERCASE LAUGH WORDS instead of Lowercase ones
                     hypothesis=predicted_transcript, 
                     alignment=pair_alignment,

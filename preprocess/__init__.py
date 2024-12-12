@@ -5,7 +5,7 @@ from .transcript_dictionary_preprocess import (
 )
 
 from .datasets_preprocess import (
-    filter_and_match_datasets,
+    combined_dataset,
     filter_laughter_dataset,
     filter_speech_laugh_dataset,
     filter_speech_dataset,
@@ -32,7 +32,7 @@ __all__ = [
     'load_word_sets',
     
     # datasets_preprocess.py
-    'filter_and_match_datasets',
+    'combined_dataset',
     'filter_laughter_dataset',
     'filter_speech_laugh_dataset',
     'filter_speech_dataset',

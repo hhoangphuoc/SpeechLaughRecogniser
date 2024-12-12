@@ -35,10 +35,10 @@ partialword_pattern = r'\b\w+\[[^\]]+\]-'
 laughter_pattern = r"\[laughter\]" #pattern: [laughter]
 speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 
-# TOBE CONSIDERED FOR RETOKENIZATION ------------------------
+# ===========================TOBE CONSIDERED FOR RETOKENIZATION =============================================== 
 #filler_pattern = r"\b(uh|um|mm|uh[ -]huh|ah|oh|hmm+)\b"
 # vocalsound_pattern = r"\b([laughter]|[cough]|[sigh]|[sniff]|[throatclearing]|[sneeze])\b"
-#-----------------------------------------------------------------------------------------------#
+#=========================================================================================================================  
 
 #=========================================================================================================================
 
@@ -51,7 +51,7 @@ alignment_transformation = jiwer.Compose([
     jiwer.RemoveEmptyStrings(),
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
-        "mmhmm": "um-hmm",
+        "mmhmm": "um-hum",
         "umhum": "um-hum",
     })
 ])

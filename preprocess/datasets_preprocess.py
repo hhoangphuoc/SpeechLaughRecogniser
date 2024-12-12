@@ -1,44 +1,36 @@
+import os
 from datasets import DatasetDict, concatenate_datasets
 from datasets import load_from_disk
 from huggingface_hub import login, HfApi, create_repo
+
+
+def combined_dataset(dataset_dir, save_dataset=False):
+    """
+    Combine all the datasets in the dataset_dir and return a single dataset
+    """
+    print("Combining all the datasets in the dataset_dir...")
+    print(f"Dataset directory: {dataset_dir}")
+    print(f"Datasets in the directory: {os.listdir(dataset_dir)}")
+
+    combined_dataset = concatenate_datasets([load_from_disk(os.path.join(dataset_dir, dataset_type, "switchboard_dataset")) for dataset_type in os.listdir(dataset_dir)])
+    
+    # if lowercase_speechlaugh:
+    #     print("Lowercasing speechlaugh...")
+    #     combined_dataset = combined_dataset.map(
+    #         lambda x: {"transcript": x["transcript"].lower()},
+    #         remove_columns=combined_dataset.column_names,
+    #         load_from_cache_file=True,
+    #         desc="Lowercasing speechlaugh",
+    #     )
+    print(f"Combined dataset: {combined_dataset}")
+    if save_dataset:
+        combined_dataset.save_to_disk(os.path.join(dataset_dir, "swb_full"))
+        print(f"Combined dataset SAVED to {os.path.join(dataset_dir, 'swb_full')}")
+    return combined_dataset
+
 #==========================================================================
 #                           FILTER AND MATCH DATASETS
 #==========================================================================
-def filter_and_match_datasets(source_token_dataset, target_word_dataset):
-    """
-    Filter dataset for laughs words and match with another dataset based on audio filenames.
-    The intention of this function is to get the subset of all the rows contains 
-    [SPEECH_LAUGH] and [LAUGHTER] words in the transcript column 
-    and match with another dataset which instead the [SPEECH_LAUGH] is annotated as a laughing word
-
-    This match is ensure we can extract the sub-dataset with only the laughing words
-    and using it for evaluation and alignment by WER
-    
-    Args:
-        source_token_dataset: HuggingFace dataset containing transcript column with [SPEECH_LAUGH] token
-        target_word_dataset: Dataset to filter based on matching audio paths
-        
-    Returns:
-        tuple: (laugh_dataset, laughing_words_dataset) in which:
-        - laugh_dataset: HuggingFace dataset containing transcript column with [SPEECH_LAUGH] token
-        - laughing_words_dataset: HuggingFace dataset containing transcript with laughing words
-    """
-    # Filter rows containing laugh markers
-    laugh_filter = lambda x: '[SPEECH_LAUGH]' in x['transcript'] or '[LAUGH]' in x['transcript']
-    laugh_dataset = source_token_dataset.filter(laugh_filter)
-    
-    # Extract filenames from laugh dataset audio paths
-    laugh_filenames = set()
-
-    for audio_data in laugh_dataset:
-        laugh_filenames.add(audio_data['audio']['path'])
-    
-    # Filter other dataset based on matching filenames
-    filename_filter = lambda x: x['audio']['path'] in laugh_filenames
-    laughing_words_dataset = target_word_dataset.filter(filename_filter)
-    
-    return laugh_dataset, laughing_words_dataset
-
 def filter_laughter_dataset(
         dataset
         # intext=False

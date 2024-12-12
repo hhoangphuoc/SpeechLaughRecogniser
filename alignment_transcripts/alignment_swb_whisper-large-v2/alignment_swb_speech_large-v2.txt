@@ -228,12 +228,12 @@ Audio Segment: sw02325A_13237075_133735125.wav
  - Start at: 13237075 - End at: 133735125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02325A_13735575_139541875.wav 
 
@@ -2139,12 +2139,12 @@ Audio Segment: sw02089A_95439375_967405.wav
  - Start at: 95439375 - End at: 967405 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02089A_99068_1000505.wav 
 
@@ -2438,12 +2438,12 @@ Audio Segment: sw02089A_235455375_236266125.wav
  - Start at: 235455375 - End at: 236266125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02089A_240697_249823125.wav 
 
@@ -2854,11 +2854,11 @@ Audio Segment: sw02089A_41431725_415146.wav
  - Start at: 41431725 - End at: 415146 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02089A_41931225_420180625.wav 
@@ -3036,12 +3036,12 @@ Audio Segment: sw02089A_498528875_4992335.wav
  - Start at: 498528875 - End at: 4992335 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02089A_50498575_5060455.wav 
 
@@ -3140,12 +3140,12 @@ Audio Segment: sw02089A_5578505_559338875.wav
  - Start at: 5578505 - End at: 559338875 
 
 REF: uh-huh yeah 
-HYP: uhhuh yeah 
+HYP: uh-huh yeah 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh yeah
-HYP:  uhhuh yeah
-          S     
+HYP: uh-huh yeah
+                
 
 Audio Segment: sw02089A_568704875_572276375.wav 
 
@@ -3231,11 +3231,11 @@ Audio Segment: sw04357B_9756625_11404625.wav
  - Start at: 9756625 - End at: 11404625 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04357B_11404625_144495.wav 
@@ -3244,11 +3244,11 @@ Audio Segment: sw04357B_11404625_144495.wav
  - Start at: 11404625 - End at: 144495 
 
 REF: uh-huh because you could not take care of her anymore huh 
-HYP: mmhmm because you could not take care of her anymore huh 
+HYP: um-hum because you could not take care of her anymore huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh because you could not take care of her anymore huh
-HYP:  mmhmm because you could not take care of her anymore huh
+HYP: um-hum because you could not take care of her anymore huh
           S                                                   
 
 Audio Segment: sw04357B_15587625_18139.wav 
@@ -3426,12 +3426,12 @@ Audio Segment: sw04357B_89740125_90985125.wav
  - Start at: 89740125 - End at: 90985125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04357B_116174875_117439875.wav 
 
@@ -3439,11 +3439,11 @@ Audio Segment: sw04357B_116174875_117439875.wav
  - Start at: 116174875 - End at: 117439875 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04357B_119817_121232125.wav 
@@ -3543,11 +3543,11 @@ Audio Segment: sw04357B_1767505_177694375.wav
  - Start at: 1767505 - End at: 177694375 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04357B_189761875_1916915.wav 
@@ -3556,11 +3556,11 @@ Audio Segment: sw04357B_189761875_1916915.wav
  - Start at: 189761875 - End at: 1916915 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04357B_199481625_20221875.wav 
@@ -3686,11 +3686,11 @@ Audio Segment: sw04357B_28735775_28896175.wav
  - Start at: 28735775 - End at: 28896175 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04357B_29021025_293995375.wav 
@@ -4258,12 +4258,12 @@ Audio Segment: sw02008B_28219875_2965125.wav
  - Start at: 28219875 - End at: 2965125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02008B_3148225_33876.wav 
 
@@ -4271,12 +4271,12 @@ Audio Segment: sw02008B_3148225_33876.wav
  - Start at: 3148225 - End at: 33876 
 
 REF: and uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
-REF:   and uh-huh
-HYP: uhhuh ******
-         S      D
+REF: and uh-huh
+HYP: *** uh-huh
+       D       
 
 Audio Segment: sw02008B_38273125_39749875.wav 
 
@@ -4284,12 +4284,12 @@ Audio Segment: sw02008B_38273125_39749875.wav
  - Start at: 38273125 - End at: 39749875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02008B_42272375_5521975.wav 
 
@@ -4349,12 +4349,12 @@ Audio Segment: sw02008B_78264625_7958225.wav
  - Start at: 78264625 - End at: 7958225 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02008B_7958225_81117125.wav 
 
@@ -4362,12 +4362,12 @@ Audio Segment: sw02008B_7958225_81117125.wav
  - Start at: 7958225 - End at: 81117125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02008B_82340125_83789125.wav 
 
@@ -4375,12 +4375,12 @@ Audio Segment: sw02008B_82340125_83789125.wav
  - Start at: 82340125 - End at: 83789125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02008B_86170125_8913375.wav 
 
@@ -4388,12 +4388,12 @@ Audio Segment: sw02008B_86170125_8913375.wav
  - Start at: 86170125 - End at: 8913375 
 
 REF: right right accessories uh-huh 
-HYP: right right accessories uhhuh 
+HYP: right right accessories uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: right right accessories uh-huh
-HYP: right right accessories  uhhuh
-                                  S
+HYP: right right accessories uh-huh
+                                   
 
 Audio Segment: sw02008B_96558125_9801725.wav 
 
@@ -4492,12 +4492,12 @@ Audio Segment: sw02008B_158218625_16075475.wav
  - Start at: 158218625 - End at: 16075475 
 
 REF: uh-huh well see i live in virginia 
-HYP: uhhuh well see i live in virginia 
+HYP: uh-huh well see i live in virginia 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh well see i live in virginia
-HYP:  uhhuh well see i live in virginia
-          S                            
+HYP: uh-huh well see i live in virginia
+                                       
 
 Audio Segment: sw02008B_162827125_164153875.wav 
 
@@ -4531,12 +4531,12 @@ Audio Segment: sw02008B_185468125_187000875.wav
  - Start at: 185468125 - End at: 187000875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02008B_19108325_1926375.wav 
 
@@ -4544,12 +4544,12 @@ Audio Segment: sw02008B_19108325_1926375.wav
  - Start at: 19108325 - End at: 1926375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02008B_1926375_197404375.wav 
 
@@ -4583,12 +4583,12 @@ Audio Segment: sw02008B_20768325_209061.wav
  - Start at: 20768325 - End at: 209061 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03252B_00_1295125.wav 
 
@@ -4882,12 +4882,12 @@ Audio Segment: sw03336B_60139375_61553125.wav
  - Start at: 60139375 - End at: 61553125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03336B_6460025_66015125.wav 
 
@@ -5142,12 +5142,12 @@ Audio Segment: sw03336B_180032875_181441125.wav
  - Start at: 180032875 - End at: 181441125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03336B_18379025_1952075.wav 
 
@@ -5792,12 +5792,12 @@ Audio Segment: sw04031A_281732_283202125.wav
  - Start at: 281732 - End at: 283202125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03298A_00_5762875.wav 
 
@@ -5948,12 +5948,12 @@ Audio Segment: sw03298A_9493_96193.wav
  - Start at: 9493 - End at: 96193 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03298A_10138575_102841.wav 
 
@@ -6468,12 +6468,12 @@ Audio Segment: sw04155A_3484875_36275.wav
  - Start at: 3484875 - End at: 36275 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_392185_40771625.wav 
 
@@ -6481,12 +6481,12 @@ Audio Segment: sw04155A_392185_40771625.wav
  - Start at: 392185 - End at: 40771625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_40771625_42507.wav 
 
@@ -6507,12 +6507,12 @@ Audio Segment: sw04155A_46543375_478195.wav
  - Start at: 46543375 - End at: 478195 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_5365475_54918.wav 
 
@@ -6572,12 +6572,12 @@ Audio Segment: sw04155A_8166725_83332.wav
  - Start at: 8166725 - End at: 83332 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_10259125_105458375.wav 
 
@@ -6637,12 +6637,12 @@ Audio Segment: sw04155A_12814575_129393625.wav
  - Start at: 12814575 - End at: 129393625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_147984375_149268625.wav 
 
@@ -6650,12 +6650,12 @@ Audio Segment: sw04155A_147984375_149268625.wav
  - Start at: 147984375 - End at: 149268625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_1544845_15577725.wav 
 
@@ -6767,12 +6767,12 @@ Audio Segment: sw04155A_203516125_204826.wav
  - Start at: 203516125 - End at: 204826 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_208565_209891375.wav 
 
@@ -6949,12 +6949,12 @@ Audio Segment: sw04155A_284251625_28564975.wav
  - Start at: 284251625 - End at: 28564975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_28564975_2874175.wav 
 
@@ -6962,12 +6962,12 @@ Audio Segment: sw04155A_28564975_2874175.wav
  - Start at: 28564975 - End at: 2874175 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04155A_289876375_291140125.wav 
 
@@ -7014,12 +7014,12 @@ Audio Segment: sw03134A_27468625_28852.wav
  - Start at: 27468625 - End at: 28852 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_3956325_41115625.wav 
 
@@ -7027,12 +7027,12 @@ Audio Segment: sw03134A_3956325_41115625.wav
  - Start at: 3956325 - End at: 41115625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_4357025_46271375.wav 
 
@@ -7443,12 +7443,12 @@ Audio Segment: sw03134A_236866_238292125.wav
  - Start at: 236866 - End at: 238292125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_24168825_243123875.wav 
 
@@ -7456,12 +7456,12 @@ Audio Segment: sw03134A_24168825_243123875.wav
  - Start at: 24168825 - End at: 243123875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_247130875_249617125.wav 
 
@@ -7664,12 +7664,12 @@ Audio Segment: sw03134A_347460125_34889225.wav
  - Start at: 347460125 - End at: 34889225 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_34997775_352824.wav 
 
@@ -7690,12 +7690,12 @@ Audio Segment: sw03134A_352824_355249.wav
  - Start at: 352824 - End at: 355249 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03134A_357442125_359138375.wav 
 
@@ -7872,12 +7872,12 @@ Audio Segment: sw03134A_431944125_433270125.wav
  - Start at: 431944125 - End at: 433270125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03134A_4398785_44195225.wav 
 
@@ -8262,12 +8262,12 @@ Audio Segment: sw03050A_229405375_231407875.wav
  - Start at: 229405375 - End at: 231407875 
 
 REF: uh-huh right 
-HYP: uhhuh right 
+HYP: uh-huh right 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh right
-HYP:  uhhuh right
-          S      
+HYP: uh-huh right
+                 
 
 Audio Segment: sw03050A_237167625_239000625.wav 
 
@@ -8340,11 +8340,11 @@ Audio Segment: sw03050A_275494125_276778.wav
  - Start at: 275494125 - End at: 276778 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03050A_278995875_282643625.wav 
@@ -8951,12 +8951,12 @@ Audio Segment: sw03219B_249417375_250904125.wav
  - Start at: 249417375 - End at: 250904125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03219B_261378625_2713915.wav 
 
@@ -10056,11 +10056,11 @@ Audio Segment: sw03621B_66414125_67728.wav
  - Start at: 66414125 - End at: 67728 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03621B_7222325_767185.wav 
@@ -10615,12 +10615,12 @@ Audio Segment: sw02807B_5349325_54648625.wav
  - Start at: 5349325 - End at: 54648625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_5739525_58437125.wav 
 
@@ -10628,12 +10628,12 @@ Audio Segment: sw02807B_5739525_58437125.wav
  - Start at: 5739525 - End at: 58437125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_6038_6216025.wav 
 
@@ -10667,12 +10667,12 @@ Audio Segment: sw02807B_79118375_8036675.wav
  - Start at: 79118375 - End at: 8036675 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_93609625_946375.wav 
 
@@ -10680,12 +10680,12 @@ Audio Segment: sw02807B_93609625_946375.wav
  - Start at: 93609625 - End at: 946375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_99208625_100797125.wav 
 
@@ -10771,12 +10771,12 @@ Audio Segment: sw02807B_148518375_14953875.wav
  - Start at: 148518375 - End at: 14953875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_156002875_15805925.wav 
 
@@ -10914,12 +10914,12 @@ Audio Segment: sw02807B_23443775_235224125.wav
  - Start at: 23443775 - End at: 235224125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_243053875_244112375.wav 
 
@@ -10927,12 +10927,12 @@ Audio Segment: sw02807B_243053875_244112375.wav
  - Start at: 243053875 - End at: 244112375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_24937975_251179375.wav 
 
@@ -11122,12 +11122,12 @@ Audio Segment: sw02807B_3421_343296625.wav
  - Start at: 3421 - End at: 343296625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_3505095_351850625.wav 
 
@@ -11135,12 +11135,12 @@ Audio Segment: sw02807B_3505095_351850625.wav
  - Start at: 3505095 - End at: 351850625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_354871875_356570125.wav 
 
@@ -11239,12 +11239,12 @@ Audio Segment: sw02807B_414356125_415778625.wav
  - Start at: 414356125 - End at: 415778625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_415778625_41899.wav 
 
@@ -11525,12 +11525,12 @@ Audio Segment: sw02807B_509345125_511130875.wav
  - Start at: 509345125 - End at: 511130875 
 
 REF: um-hum well 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum well
-HYP:  mmhmm ****
-          S    D
+HYP: um-hum ****
+               D
 
 Audio Segment: sw02807B_511130875_515246375.wav 
 
@@ -11590,12 +11590,12 @@ Audio Segment: sw02807B_5418695_542997875.wav
  - Start at: 5418695 - End at: 542997875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_54652_550678625.wav 
 
@@ -11616,12 +11616,12 @@ Audio Segment: sw02807B_55782_558960375.wav
  - Start at: 55782 - End at: 558960375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_563958_56504625.wav 
 
@@ -11642,12 +11642,12 @@ Audio Segment: sw02807B_573679125_57479125.wav
  - Start at: 573679125 - End at: 57479125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02807B_57851225_57979825.wav 
 
@@ -11655,11 +11655,11 @@ Audio Segment: sw02807B_57851225_57979825.wav
  - Start at: 57851225 - End at: 57979825 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02807B_582814_595418375.wav 
@@ -11759,12 +11759,12 @@ Audio Segment: sw03745B_46477875_47572375.wav
  - Start at: 46477875 - End at: 47572375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03745B_72448_73649375.wav 
 
@@ -11785,12 +11785,12 @@ Audio Segment: sw03745B_94096_9560975.wav
  - Start at: 94096 - End at: 9560975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03745B_1062515_107828.wav 
 
@@ -12383,12 +12383,12 @@ Audio Segment: sw04488B_235149_236246625.wav
  - Start at: 235149 - End at: 236246625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04488B_236246625_23817925.wav 
 
@@ -14879,12 +14879,12 @@ Audio Segment: sw03814A_75323_76828.wav
  - Start at: 75323 - End at: 76828 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03814A_8025425_82699375.wav 
 
@@ -14918,12 +14918,12 @@ Audio Segment: sw03814A_86361375_8773875.wav
  - Start at: 86361375 - End at: 8773875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03814A_93878375_97655125.wav 
 
@@ -14957,12 +14957,12 @@ Audio Segment: sw03814A_111169125_112561375.wav
  - Start at: 111169125 - End at: 112561375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03814A_1135805_115445625.wav 
 
@@ -14970,12 +14970,12 @@ Audio Segment: sw03814A_1135805_115445625.wav
  - Start at: 1135805 - End at: 115445625 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03814A_115445625_1167595.wav 
 
@@ -14983,12 +14983,12 @@ Audio Segment: sw03814A_115445625_1167595.wav
  - Start at: 115445625 - End at: 1167595 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03814A_1167595_119372875.wav 
 
@@ -15009,12 +15009,12 @@ Audio Segment: sw03814A_121413625_12281875.wav
  - Start at: 121413625 - End at: 12281875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03814A_131078875_132906125.wav 
 
@@ -15022,12 +15022,12 @@ Audio Segment: sw03814A_131078875_132906125.wav
  - Start at: 131078875 - End at: 132906125 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03814A_13570275_136978375.wav 
 
@@ -15035,12 +15035,12 @@ Audio Segment: sw03814A_13570275_136978375.wav
  - Start at: 13570275 - End at: 136978375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03814A_13855125_140887.wav 
 
@@ -15048,12 +15048,12 @@ Audio Segment: sw03814A_13855125_140887.wav
  - Start at: 13855125 - End at: 140887 
 
 REF: hm um-hum 
-HYP: oh mmhmm 
+HYP: oh um-hum 
 -------------------------------------------------------
 sentence 1
 REF: hm um-hum
-HYP: oh  mmhmm
-      S      S
+HYP: oh um-hum
+      S       
 
 Audio Segment: sw03814A_144272_145488625.wav 
 
@@ -15074,12 +15074,12 @@ Audio Segment: sw03814A_14650625_147484875.wav
  - Start at: 14650625 - End at: 147484875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03814A_148917125_1551715.wav 
 
@@ -15113,12 +15113,12 @@ Audio Segment: sw03814A_179630875_1815585.wav
  - Start at: 179630875 - End at: 1815585 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03814A_183052875_186168125.wav 
 
@@ -15139,12 +15139,12 @@ Audio Segment: sw03814A_188133375_190279.wav
  - Start at: 188133375 - End at: 190279 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw03814A_190279_20216175.wav 
 
@@ -15334,12 +15334,12 @@ Audio Segment: sw03468A_42767375_48461875.wav
  - Start at: 42767375 - End at: 48461875 
 
 REF: uh-huh it is and well i was fortunate at the time i had a job that uh i uh 
-HYP: uhhuh it is well i was fortunate at the time i had a job that i 
+HYP: uh-huh it is well i was fortunate at the time i had a job that i 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh it is and well i was fortunate at the time i had a job that uh i uh
-HYP:  uhhuh it is *** well i was fortunate at the time i had a job that ** i **
-          S         D                                                    D    D
+HYP: uh-huh it is *** well i was fortunate at the time i had a job that ** i **
+                    D                                                    D    D
 
 Audio Segment: sw03468A_48461875_607525.wav 
 
@@ -15438,12 +15438,12 @@ Audio Segment: sw03468A_12120275_122360375.wav
  - Start at: 12120275 - End at: 122360375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03468A_123424625_129778.wav 
 
@@ -15607,12 +15607,12 @@ Audio Segment: sw03468A_243307125_2446645.wav
  - Start at: 243307125 - End at: 2446645 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03468A_248134875_25010325.wav 
 
@@ -15724,12 +15724,12 @@ Audio Segment: sw03468A_27897_281717625.wav
  - Start at: 27897 - End at: 281717625 
 
 REF: yeah uh-huh 
-HYP: yeah uhhuh 
+HYP: yeah uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: yeah uh-huh
-HYP: yeah  uhhuh
-               S
+HYP: yeah uh-huh
+                
 
 Audio Segment: sw03468A_28361575_28569.wav 
 
@@ -15932,12 +15932,12 @@ Audio Segment: sw02632A_7188925_75432375.wav
  - Start at: 7188925 - End at: 75432375 
 
 REF: um-hum did you notice a big difference 
-HYP: mmhmm did you notice a big difference 
+HYP: um-hum did you notice a big difference 
 -------------------------------------------------------
 sentence 1
 REF: um-hum did you notice a big difference
-HYP:  mmhmm did you notice a big difference
-          S                                
+HYP: um-hum did you notice a big difference
+                                           
 
 Audio Segment: sw02632A_770025_79402875.wav 
 
@@ -15958,12 +15958,12 @@ Audio Segment: sw02632A_91501875_9312425.wav
  - Start at: 91501875 - End at: 9312425 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02632A_9545675_96977.wav 
 
@@ -15971,12 +15971,12 @@ Audio Segment: sw02632A_9545675_96977.wav
  - Start at: 9545675 - End at: 96977 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02632A_96977_98316125.wav 
 
@@ -16192,12 +16192,12 @@ Audio Segment: sw02632A_198715375_20122775.wav
  - Start at: 198715375 - End at: 20122775 
 
 REF: um-hum i see 
-HYP: mmhmm i see 
+HYP: um-hum i see 
 -------------------------------------------------------
 sentence 1
 REF: um-hum i see
-HYP:  mmhmm i see
-          S      
+HYP: um-hum i see
+                 
 
 Audio Segment: sw02632A_20299075_212113375.wav 
 
@@ -17934,12 +17934,12 @@ Audio Segment: sw02886A_1663615_167570875.wav
  - Start at: 1663615 - End at: 167570875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02886A_16857175_16979175.wav 
 
@@ -18831,12 +18831,12 @@ Audio Segment: sw02430B_213414125_214497375.wav
  - Start at: 213414125 - End at: 214497375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02430B_2179985_22358725.wav 
 
@@ -18870,12 +18870,12 @@ Audio Segment: sw02430B_23300625_23397925.wav
  - Start at: 23300625 - End at: 23397925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02430B_237028625_238198.wav 
 
@@ -18961,12 +18961,12 @@ Audio Segment: sw02430B_281650375_285082375.wav
  - Start at: 281650375 - End at: 285082375 
 
 REF: uh-huh that is absolutely true 
-HYP: uhhuh yes that is absolutely true 
+HYP: uh-huh yes that is absolutely true 
 -------------------------------------------------------
 sentence 1
-REF: ***** uh-huh that is absolutely true
-HYP: uhhuh    yes that is absolutely true
-         I      S                        
+REF: uh-huh *** that is absolutely true
+HYP: uh-huh yes that is absolutely true
+              I                        
 
 Audio Segment: sw02430B_285082375_29126925.wav 
 
@@ -19390,12 +19390,12 @@ Audio Segment: sw02554B_86654375_88001875.wav
  - Start at: 86654375 - End at: 88001875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_9358075_9513.wav 
 
@@ -19507,12 +19507,12 @@ Audio Segment: sw02554B_143163625_14434325.wav
  - Start at: 143163625 - End at: 14434325 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_15104525_15297475.wav 
 
@@ -19533,12 +19533,12 @@ Audio Segment: sw02554B_174005125_175285375.wav
  - Start at: 174005125 - End at: 175285375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_175285375_179752625.wav 
 
@@ -19611,12 +19611,12 @@ Audio Segment: sw02554B_21356575_215592125.wav
  - Start at: 21356575 - End at: 215592125 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw02554B_215592125_217019375.wav 
 
@@ -19637,12 +19637,12 @@ Audio Segment: sw02554B_221154375_2223105.wav
  - Start at: 221154375 - End at: 2223105 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_223357_224462875.wav 
 
@@ -19728,12 +19728,12 @@ Audio Segment: sw02554B_25860275_259887375.wav
  - Start at: 25860275 - End at: 259887375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_2634015_264984625.wav 
 
@@ -19845,12 +19845,12 @@ Audio Segment: sw02554B_30551_3073665.wav
  - Start at: 30551 - End at: 3073665 
 
 REF: uh-huh absolutely 
-HYP: uhhuh absolutely 
+HYP: uh-huh absolutely 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh absolutely
-HYP:  uhhuh absolutely
-          S           
+HYP: uh-huh absolutely
+                      
 
 Audio Segment: sw02554B_3073665_308801125.wav 
 
@@ -19884,12 +19884,12 @@ Audio Segment: sw02554B_33176925_334097875.wav
  - Start at: 33176925 - End at: 334097875 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw02554B_334097875_336985375.wav 
 
@@ -19936,12 +19936,12 @@ Audio Segment: sw02554B_356113125_357440375.wav
  - Start at: 356113125 - End at: 357440375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_36211475_363651125.wav 
 
@@ -19975,12 +19975,12 @@ Audio Segment: sw02554B_368690625_369932875.wav
  - Start at: 368690625 - End at: 369932875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_373756875_375038375.wav 
 
@@ -20079,12 +20079,12 @@ Audio Segment: sw02554B_4167795_41782075.wav
  - Start at: 4167795 - End at: 41782075 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_423458125_4249195.wav 
 
@@ -20144,12 +20144,12 @@ Audio Segment: sw02554B_455837_4570885.wav
  - Start at: 455837 - End at: 4570885 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_45978475_46135825.wav 
 
@@ -20274,12 +20274,12 @@ Audio Segment: sw02554B_503230875_504936.wav
  - Start at: 503230875 - End at: 504936 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_506403375_507616375.wav 
 
@@ -20326,12 +20326,12 @@ Audio Segment: sw02554B_520494125_52190875.wav
  - Start at: 520494125 - End at: 52190875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02554B_52190875_525207625.wav 
 
@@ -20378,12 +20378,12 @@ Audio Segment: sw02554B_54294725_544643625.wav
  - Start at: 54294725 - End at: 544643625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02554B_555257625_556530875.wav 
 
@@ -20469,12 +20469,12 @@ Audio Segment: sw02554B_597735_599005.wav
  - Start at: 597735 - End at: 599005 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_05515_252625.wav 
 
@@ -20742,12 +20742,12 @@ Audio Segment: sw02928B_21365525_214438.wav
  - Start at: 21365525 - End at: 214438 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_22484325_225778375.wav 
 
@@ -20755,12 +20755,12 @@ Audio Segment: sw02928B_22484325_225778375.wav
  - Start at: 22484325 - End at: 225778375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_240307875_2416665.wav 
 
@@ -20768,12 +20768,12 @@ Audio Segment: sw02928B_240307875_2416665.wav
  - Start at: 240307875 - End at: 2416665 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_2416665_246624125.wav 
 
@@ -20885,12 +20885,12 @@ Audio Segment: sw02928B_324660375_325571625.wav
  - Start at: 324660375 - End at: 325571625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_342699375_343570375.wav 
 
@@ -20950,12 +20950,12 @@ Audio Segment: sw02928B_403706375_40459.wav
  - Start at: 403706375 - End at: 40459 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_413579_41436075.wav 
 
@@ -20963,12 +20963,12 @@ Audio Segment: sw02928B_413579_41436075.wav
  - Start at: 413579 - End at: 41436075 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_42828075_430107.wav 
 
@@ -21028,12 +21028,12 @@ Audio Segment: sw02928B_50358575_50482625.wav
  - Start at: 50358575 - End at: 50482625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_529203_53001175.wav 
 
@@ -21041,12 +21041,12 @@ Audio Segment: sw02928B_529203_53001175.wav
  - Start at: 529203 - End at: 53001175 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02928B_53807825_53885075.wav 
 
@@ -23719,11 +23719,11 @@ Audio Segment: sw03602A_29739625_3107525.wav
  - Start at: 29739625 - End at: 3107525 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw03602A_3107525_3271375.wav 
@@ -23836,12 +23836,12 @@ Audio Segment: sw03602A_86813_88152375.wav
  - Start at: 86813 - End at: 88152375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03602A_91888375_93217875.wav 
 
@@ -23849,12 +23849,12 @@ Audio Segment: sw03602A_91888375_93217875.wav
  - Start at: 91888375 - End at: 93217875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03602A_93217875_9512275.wav 
 
@@ -23914,12 +23914,12 @@ Audio Segment: sw03602A_116114_11738525.wav
  - Start at: 116114 - End at: 11738525 
 
 REF: oh no 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
-REF:    oh no
-HYP: uhhuh **
-         S  D
+REF:     oh no
+HYP: uh-huh **
+          S  D
 
 Audio Segment: sw03602A_120030375_1239065.wav 
 
@@ -24057,11 +24057,11 @@ Audio Segment: sw03602A_190145875_191455375.wav
  - Start at: 190145875 - End at: 191455375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw03602A_19320075_194994.wav 
@@ -24460,12 +24460,12 @@ Audio Segment: sw02458A_124129375_125500875.wav
  - Start at: 124129375 - End at: 125500875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02458A_129283875_1307.wav 
 
@@ -24486,12 +24486,12 @@ Audio Segment: sw02458A_1355925_137037875.wav
  - Start at: 1355925 - End at: 137037875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02458A_165012875_16640925.wav 
 
@@ -24577,12 +24577,12 @@ Audio Segment: sw02458A_251998_253086875.wav
  - Start at: 251998 - End at: 253086875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02458A_25913875_260689.wav 
 
@@ -24746,12 +24746,12 @@ Audio Segment: sw02458A_396353875_39777125.wav
  - Start at: 396353875 - End at: 39777125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02458A_399286125_401158375.wav 
 
@@ -24850,12 +24850,12 @@ Audio Segment: sw02458A_486526875_4877705.wav
  - Start at: 486526875 - End at: 4877705 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02458A_52771275_528883.wav 
 
@@ -26800,12 +26800,12 @@ Audio Segment: sw02690A_1447875_146209125.wav
  - Start at: 1447875 - End at: 146209125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02690A_156159375_164869375.wav 
 
@@ -27671,12 +27671,12 @@ Audio Segment: sw04707A_145043875_146547125.wav
  - Start at: 145043875 - End at: 146547125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04707A_146547125_149301.wav 
 
@@ -28373,12 +28373,12 @@ Audio Segment: sw03683B_25915_371375.wav
  - Start at: 25915 - End at: 371375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03683B_5383_8727.wav 
 
@@ -28828,12 +28828,12 @@ Audio Segment: sw03683B_289981625_29132925.wav
  - Start at: 289981625 - End at: 29132925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03683B_296987875_299458.wav 
 
@@ -28919,12 +28919,12 @@ Audio Segment: sw03953B_2660325_279225.wav
  - Start at: 2660325 - End at: 279225 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03953B_302345_31493.wav 
 
@@ -28932,12 +28932,12 @@ Audio Segment: sw03953B_302345_31493.wav
  - Start at: 302345 - End at: 31493 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03953B_3873975_4001175.wav 
 
@@ -28945,12 +28945,12 @@ Audio Segment: sw03953B_3873975_4001175.wav
  - Start at: 3873975 - End at: 4001175 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03953B_41171375_4230725.wav 
 
@@ -30102,12 +30102,12 @@ Audio Segment: sw03837B_24948375_2745675.wav
  - Start at: 24948375 - End at: 2745675 
 
 REF: uh-huh was really great 
-HYP: mmhmm it was really great 
+HYP: um-hum it was really great 
 -------------------------------------------------------
 sentence 1
-REF: ***** uh-huh was really great
-HYP: mmhmm     it was really great
-         I      S                 
+REF: ****** uh-huh was really great
+HYP: um-hum     it was really great
+          I      S                 
 
 Audio Segment: sw03837B_30827625_388275.wav 
 
@@ -30388,11 +30388,11 @@ Audio Segment: sw03837B_148608875_149598.wav
  - Start at: 148608875 - End at: 149598 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03837B_149598_15275975.wav 
@@ -30440,12 +30440,12 @@ Audio Segment: sw03837B_16417075_1654285.wav
  - Start at: 16417075 - End at: 1654285 
 
 REF: um 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
-REF:    um
-HYP: mmhmm
-         S
+REF:     um
+HYP: um-hum
+          S
 
 Audio Segment: sw03837B_16854325_17820225.wav 
 
@@ -30635,11 +30635,11 @@ Audio Segment: sw03837B_2800435_28150825.wav
  - Start at: 2800435 - End at: 28150825 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03837B_28150825_284369375.wav 
@@ -30661,12 +30661,12 @@ Audio Segment: sw03837B_28694925_2880305.wav
  - Start at: 28694925 - End at: 2880305 
 
 REF: um 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
-REF:    um
-HYP: mmhmm
-         S
+REF:     um
+HYP: um-hum
+          S
 
 Audio Segment: sw03837B_293752875_294943.wav 
 
@@ -30700,12 +30700,12 @@ Audio Segment: sw02611B_106195_1216025.wav
  - Start at: 106195 - End at: 1216025 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02611B_27564875_293075.wav 
 
@@ -30869,12 +30869,12 @@ Audio Segment: sw02611B_15141275_152856125.wav
  - Start at: 15141275 - End at: 152856125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02611B_16347325_165101.wav 
 
@@ -31064,12 +31064,12 @@ Audio Segment: sw02611B_281471375_282811.wav
  - Start at: 281471375 - End at: 282811 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02611B_2895265_29157375.wav 
 
@@ -31259,12 +31259,12 @@ Audio Segment: sw02611B_434408625_43639375.wav
  - Start at: 434408625 - End at: 43639375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02611B_446541375_45469075.wav 
 
@@ -31376,12 +31376,12 @@ Audio Segment: sw02611B_511208375_512636.wav
  - Start at: 511208375 - End at: 512636 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02611B_529255625_53149175.wav 
 
@@ -31415,12 +31415,12 @@ Audio Segment: sw02611B_55422325_55581025.wav
  - Start at: 55422325 - End at: 55581025 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02611B_57731725_579187375.wav 
 
@@ -31493,12 +31493,12 @@ Audio Segment: sw03481A_29043625_3020525.wav
  - Start at: 29043625 - End at: 3020525 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03481A_44574_473405.wav 
 
@@ -31597,12 +31597,12 @@ Audio Segment: sw03481A_92152_93613.wav
  - Start at: 92152 - End at: 93613 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03481A_11044725_117523375.wav 
 
@@ -31636,12 +31636,12 @@ Audio Segment: sw03481A_12750025_128524.wav
  - Start at: 12750025 - End at: 128524 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03481A_132604625_1339025.wav 
 
@@ -31649,12 +31649,12 @@ Audio Segment: sw03481A_132604625_1339025.wav
  - Start at: 132604625 - End at: 1339025 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03481A_1339025_140548125.wav 
 
@@ -31740,12 +31740,12 @@ Audio Segment: sw03481A_179531125_181368125.wav
  - Start at: 179531125 - End at: 181368125 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03481A_18299275_184056.wav 
 
@@ -31753,12 +31753,12 @@ Audio Segment: sw03481A_18299275_184056.wav
  - Start at: 18299275 - End at: 184056 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03481A_18678625_18791175.wav 
 
@@ -32338,12 +32338,12 @@ Audio Segment: sw03999A_163182375_164559875.wav
  - Start at: 163182375 - End at: 164559875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03999A_1670285_168452875.wav 
 
@@ -32377,12 +32377,12 @@ Audio Segment: sw03999A_187624_1886765.wav
  - Start at: 187624 - End at: 1886765 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03999A_189868_190763.wav 
 
@@ -32403,12 +32403,12 @@ Audio Segment: sw03999A_191539375_192254125.wav
  - Start at: 191539375 - End at: 192254125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03999A_19346075_19449225.wav 
 
@@ -32442,12 +32442,12 @@ Audio Segment: sw03999A_222039_22335.wav
  - Start at: 222039 - End at: 22335 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03999A_227754_22951325.wav 
 
@@ -32611,11 +32611,11 @@ Audio Segment: sw04628A_32541_34112125.wav
  - Start at: 32541 - End at: 34112125 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw04628A_421665_43664875.wav 
@@ -32819,11 +32819,11 @@ Audio Segment: sw04628A_223067875_224570375.wav
  - Start at: 223067875 - End at: 224570375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw04628A_232129875_233716125.wav 
@@ -32897,11 +32897,11 @@ Audio Segment: sw04628A_2619595_263527375.wav
  - Start at: 2619595 - End at: 263527375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw04628A_265688875_276263875.wav 
@@ -33287,12 +33287,12 @@ Audio Segment: sw03649A_224415_248605.wav
  - Start at: 224415 - End at: 248605 
 
 REF: mountains uh-huh 
-HYP: man uhhuh 
+HYP: man uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: mountains uh-huh
-HYP:       man  uhhuh
-             S      S
+HYP:       man uh-huh
+             S       
 
 Audio Segment: sw03649A_28905875_3256575.wav 
 
@@ -33326,12 +33326,12 @@ Audio Segment: sw03649A_48424625_5144575.wav
  - Start at: 48424625 - End at: 5144575 
 
 REF: uh-huh do you have any other reunions 
-HYP: uhhuh do you have any other reunions 
+HYP: uh-huh do you have any other reunions 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh do you have any other reunions
-HYP:  uhhuh do you have any other reunions
-          S                               
+HYP: uh-huh do you have any other reunions
+                                          
 
 Audio Segment: sw03649A_6736875_68896.wav 
 
@@ -33352,12 +33352,12 @@ Audio Segment: sw03649A_76556875_78223875.wav
  - Start at: 76556875 - End at: 78223875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03649A_87689375_896095.wav 
 
@@ -33391,12 +33391,12 @@ Audio Segment: sw03649A_96916875_995865.wav
  - Start at: 96916875 - End at: 995865 
 
 REF: oh oh uh-huh 
-HYP: oh oh uhhuh 
+HYP: oh oh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh oh uh-huh
-HYP: oh oh  uhhuh
-                S
+HYP: oh oh uh-huh
+                 
 
 Audio Segment: sw03649A_101702875_10332625.wav 
 
@@ -33456,12 +33456,12 @@ Audio Segment: sw03649A_1410095_148379125.wav
  - Start at: 1410095 - End at: 148379125 
 
 REF: uh-huh uh-huh yeah but but that is but the one that we go up to bear lake with my family is 
-HYP: uhhuh uhhuh yeah but the one that we go up to bear lake with my family is 
+HYP: uh-huh uh-huh yeah but the one that we go up to bear lake with my family is 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh uh-huh yeah but but that is but the one that we go up to bear lake with my family is
-HYP:  uhhuh  uhhuh yeah *** *** **** ** but the one that we go up to bear lake with my family is
-          S      S        D   D    D  D                                                         
+HYP: uh-huh uh-huh yeah but *** **** ** *** the one that we go up to bear lake with my family is
+                              D    D  D   D                                                     
 
 Audio Segment: sw03649A_148379125_154453375.wav 
 
@@ -33508,12 +33508,12 @@ Audio Segment: sw03649A_180728_183334125.wav
  - Start at: 180728 - End at: 183334125 
 
 REF: oh uh-huh 
-HYP: oh uhhuh 
+HYP: oh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh uh-huh
-HYP: oh  uhhuh
-             S
+HYP: oh uh-huh
+              
 
 Audio Segment: sw03649A_191548625_194814.wav 
 
@@ -33521,12 +33521,12 @@ Audio Segment: sw03649A_191548625_194814.wav
  - Start at: 191548625 - End at: 194814 
 
 REF: uh-huh uh-huh 
-HYP: uhhuh uhhuh 
+HYP: uh-huh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh uh-huh
-HYP:  uhhuh  uhhuh
-          S      S
+HYP: uh-huh uh-huh
+                  
 
 Audio Segment: sw03649A_212763625_21428225.wav 
 
@@ -33547,12 +33547,12 @@ Audio Segment: sw03649A_21543225_216681625.wav
  - Start at: 21543225 - End at: 216681625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03649A_21785425_219152375.wav 
 
@@ -33560,11 +33560,11 @@ Audio Segment: sw03649A_21785425_219152375.wav
  - Start at: 21785425 - End at: 219152375 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03649A_219152375_231620125.wav 
@@ -33612,12 +33612,12 @@ Audio Segment: sw03649A_24025575_24155925.wav
  - Start at: 24025575 - End at: 24155925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03649A_24155925_254175875.wav 
 
@@ -33651,12 +33651,12 @@ Audio Segment: sw03649A_26098625_262319875.wav
  - Start at: 26098625 - End at: 262319875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03649A_266975_274398.wav 
 
@@ -33976,12 +33976,12 @@ Audio Segment: sw02577A_155553625_156796.wav
  - Start at: 155553625 - End at: 156796 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02577A_158197125_1596765.wav 
 
@@ -33989,12 +33989,12 @@ Audio Segment: sw02577A_158197125_1596765.wav
  - Start at: 158197125 - End at: 1596765 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02577A_169848875_171220625.wav 
 
@@ -34002,11 +34002,11 @@ Audio Segment: sw02577A_169848875_171220625.wav
  - Start at: 169848875 - End at: 171220625 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02577A_173157_174523.wav 
@@ -35744,11 +35744,11 @@ Audio Segment: sw03400B_5165425_52966.wav
  - Start at: 5165425 - End at: 52966 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03400B_59951875_62195375.wav 
@@ -35796,11 +35796,11 @@ Audio Segment: sw03400B_77308375_78881625.wav
  - Start at: 77308375 - End at: 78881625 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03400B_80086625_82719625.wav 
@@ -36589,12 +36589,12 @@ Audio Segment: sw03394B_21302875_22715375.wav
  - Start at: 21302875 - End at: 22715375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03394B_26671875_2810875.wav 
 
@@ -36641,12 +36641,12 @@ Audio Segment: sw03394B_43473125_44841.wav
  - Start at: 43473125 - End at: 44841 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03394B_44841_46556125.wav 
 
@@ -36797,12 +36797,12 @@ Audio Segment: sw03394B_135140625_1367675.wav
  - Start at: 135140625 - End at: 1367675 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03394B_1367675_138418125.wav 
 
@@ -36823,12 +36823,12 @@ Audio Segment: sw03394B_139904375_141225375.wav
  - Start at: 139904375 - End at: 141225375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03394B_145922125_147922875.wav 
 
@@ -36888,12 +36888,12 @@ Audio Segment: sw03394B_22274675_224130375.wav
  - Start at: 22274675 - End at: 224130375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03394B_225601_228823125.wav 
 
@@ -37070,12 +37070,12 @@ Audio Segment: sw04059B_5399625_6615125.wav
  - Start at: 5399625 - End at: 6615125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04059B_9151875_10510875.wav 
 
@@ -37096,12 +37096,12 @@ Audio Segment: sw04059B_13210625_14415125.wav
  - Start at: 13210625 - End at: 14415125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04059B_2103325_22382875.wav 
 
@@ -37291,12 +37291,12 @@ Audio Segment: sw04059B_106015125_107314625.wav
  - Start at: 106015125 - End at: 107314625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04059B_109153625_1105045.wav 
 
@@ -37759,12 +37759,12 @@ Audio Segment: sw04291B_5362225_548545.wav
  - Start at: 5362225 - End at: 548545 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_60519_618275.wav 
 
@@ -37772,12 +37772,12 @@ Audio Segment: sw04291B_60519_618275.wav
  - Start at: 60519 - End at: 618275 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_7184675_73150125.wav 
 
@@ -37785,12 +37785,12 @@ Audio Segment: sw04291B_7184675_73150125.wav
  - Start at: 7184675 - End at: 73150125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_78534625_81935125.wav 
 
@@ -37837,12 +37837,12 @@ Audio Segment: sw04291B_102174_103987625.wav
  - Start at: 102174 - End at: 103987625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_1094375_121631125.wav 
 
@@ -37928,12 +37928,12 @@ Audio Segment: sw04291B_165088875_166480125.wav
  - Start at: 165088875 - End at: 166480125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_16944275_170653875.wav 
 
@@ -37941,12 +37941,12 @@ Audio Segment: sw04291B_16944275_170653875.wav
  - Start at: 16944275 - End at: 170653875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_177643375_179079625.wav 
 
@@ -37954,12 +37954,12 @@ Audio Segment: sw04291B_177643375_179079625.wav
  - Start at: 177643375 - End at: 179079625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_18400425_185365375.wav 
 
@@ -37967,12 +37967,12 @@ Audio Segment: sw04291B_18400425_185365375.wav
  - Start at: 18400425 - End at: 185365375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_188511_189986375.wav 
 
@@ -37993,12 +37993,12 @@ Audio Segment: sw04291B_19623125_197516625.wav
  - Start at: 19623125 - End at: 197516625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_200853875_202219375.wav 
 
@@ -38006,12 +38006,12 @@ Audio Segment: sw04291B_200853875_202219375.wav
  - Start at: 200853875 - End at: 202219375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_20555575_206922125.wav 
 
@@ -38019,12 +38019,12 @@ Audio Segment: sw04291B_20555575_206922125.wav
  - Start at: 20555575 - End at: 206922125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_21435375_21560275.wav 
 
@@ -38032,12 +38032,12 @@ Audio Segment: sw04291B_21435375_21560275.wav
  - Start at: 21435375 - End at: 21560275 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_2217255_222932625.wav 
 
@@ -38058,12 +38058,12 @@ Audio Segment: sw04291B_2287215_230169125.wav
  - Start at: 2287215 - End at: 230169125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_24238775_243693125.wav 
 
@@ -38084,12 +38084,12 @@ Audio Segment: sw04291B_24542_246755875.wav
  - Start at: 24542 - End at: 246755875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_249078_250785125.wav 
 
@@ -38149,12 +38149,12 @@ Audio Segment: sw04291B_276541625_278002.wav
  - Start at: 276541625 - End at: 278002 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04291B_278002_281934.wav 
 
@@ -38955,12 +38955,12 @@ Audio Segment: sw02262B_5246975_53458.wav
  - Start at: 5246975 - End at: 53458 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02262B_594245_60902875.wav 
 
@@ -39150,11 +39150,11 @@ Audio Segment: sw02262B_17037025_171399.wav
  - Start at: 17037025 - End at: 171399 
 
 REF: huh-uh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: huh-uh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_182671375_183765375.wav 
@@ -39163,11 +39163,11 @@ Audio Segment: sw02262B_182671375_183765375.wav
  - Start at: 182671375 - End at: 183765375 
 
 REF: huh-uh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: huh-uh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_188128875_189265375.wav 
@@ -39189,12 +39189,12 @@ Audio Segment: sw02262B_193897875_195159875.wav
  - Start at: 193897875 - End at: 195159875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_205633125_206904125.wav 
 
@@ -39202,12 +39202,12 @@ Audio Segment: sw02262B_205633125_206904125.wav
  - Start at: 205633125 - End at: 206904125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_215546875_22822175.wav 
 
@@ -39254,12 +39254,12 @@ Audio Segment: sw02262B_246583_248108875.wav
  - Start at: 246583 - End at: 248108875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_248108875_25816175.wav 
 
@@ -39280,12 +39280,12 @@ Audio Segment: sw02262B_262444375_263882875.wav
  - Start at: 262444375 - End at: 263882875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_263882875_265022875.wav 
 
@@ -39293,12 +39293,12 @@ Audio Segment: sw02262B_263882875_265022875.wav
  - Start at: 263882875 - End at: 265022875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02262B_267855125_2689425.wav 
 
@@ -39319,11 +39319,11 @@ Audio Segment: sw02262B_271204_272300875.wav
  - Start at: 271204 - End at: 272300875 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_281831_282969875.wav 
@@ -39332,12 +39332,12 @@ Audio Segment: sw02262B_281831_282969875.wav
  - Start at: 281831 - End at: 282969875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_284373625_2856.wav 
 
@@ -39345,12 +39345,12 @@ Audio Segment: sw02262B_284373625_2856.wav
  - Start at: 284373625 - End at: 2856 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_286709375_288493.wav 
 
@@ -39475,12 +39475,12 @@ Audio Segment: sw02262B_35264875_353760875.wav
  - Start at: 35264875 - End at: 353760875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02262B_362343625_363818875.wav 
 
@@ -39527,11 +39527,11 @@ Audio Segment: sw02262B_389791375_39114775.wav
  - Start at: 389791375 - End at: 39114775 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_39273825_393941625.wav 
@@ -39566,12 +39566,12 @@ Audio Segment: sw02262B_404801_406355625.wav
  - Start at: 404801 - End at: 406355625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02262B_40820775_414683.wav 
 
@@ -39748,11 +39748,11 @@ Audio Segment: sw02262B_507869875_5095005.wav
  - Start at: 507869875 - End at: 5095005 
 
 REF: huh-uh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: huh-uh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_51597725_5172935.wav 
@@ -39787,11 +39787,11 @@ Audio Segment: sw02262B_5376525_53909425.wav
  - Start at: 5376525 - End at: 53909425 
 
 REF: huh-uh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: huh-uh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02262B_53909425_548159.wav 
@@ -40528,12 +40528,12 @@ Audio Segment: sw03038B_32191825_323312.wav
  - Start at: 32191825 - End at: 323312 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_329411625_330841625.wav 
 
@@ -40554,12 +40554,12 @@ Audio Segment: sw03038B_330841625_332102.wav
  - Start at: 330841625 - End at: 332102 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03038B_34592175_3476995.wav 
 
@@ -40567,12 +40567,12 @@ Audio Segment: sw03038B_34592175_3476995.wav
  - Start at: 34592175 - End at: 3476995 
 
 REF: oh i see uh-huh 
-HYP: oh i see uhhuh 
+HYP: oh i see uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh i see uh-huh
-HYP: oh i see  uhhuh
-                   S
+HYP: oh i see uh-huh
+                    
 
 Audio Segment: sw03038B_357064_35847525.wav 
 
@@ -40580,12 +40580,12 @@ Audio Segment: sw03038B_357064_35847525.wav
  - Start at: 357064 - End at: 35847525 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_36141275_363284375.wav 
 
@@ -40606,12 +40606,12 @@ Audio Segment: sw03038B_373608_375107.wav
  - Start at: 373608 - End at: 375107 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_376624625_378307.wav 
 
@@ -40619,12 +40619,12 @@ Audio Segment: sw03038B_376624625_378307.wav
  - Start at: 376624625 - End at: 378307 
 
 REF: oh i see uh-huh 
-HYP: oh i see uhhuh 
+HYP: oh i see uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh i see uh-huh
-HYP: oh i see  uhhuh
-                   S
+HYP: oh i see uh-huh
+                    
 
 Audio Segment: sw03038B_398218125_399552875.wav 
 
@@ -40645,12 +40645,12 @@ Audio Segment: sw03038B_40826575_409701.wav
  - Start at: 40826575 - End at: 409701 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_410851375_412154125.wav 
 
@@ -40658,12 +40658,12 @@ Audio Segment: sw03038B_410851375_412154125.wav
  - Start at: 410851375 - End at: 412154125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_415104125_4164695.wav 
 
@@ -40684,12 +40684,12 @@ Audio Segment: sw03038B_420071_421351625.wav
  - Start at: 420071 - End at: 421351625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03038B_4242115_42588725.wav 
 
@@ -40697,12 +40697,12 @@ Audio Segment: sw03038B_4242115_42588725.wav
  - Start at: 4242115 - End at: 42588725 
 
 REF: right uh-huh 
-HYP: right uhhuh 
+HYP: right uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: right uh-huh
-HYP: right  uhhuh
-                S
+HYP: right uh-huh
+                 
 
 Audio Segment: sw03038B_447046875_449649125.wav 
 
@@ -40918,12 +40918,12 @@ Audio Segment: sw03271A_185813875_1874055.wav
  - Start at: 185813875 - End at: 1874055 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03271A_196199125_197478875.wav 
 
@@ -40931,12 +40931,12 @@ Audio Segment: sw03271A_196199125_197478875.wav
  - Start at: 196199125 - End at: 197478875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03271A_20683075_212806.wav 
 
@@ -40970,12 +40970,12 @@ Audio Segment: sw03271A_249065_25071575.wav
  - Start at: 249065 - End at: 25071575 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03271A_2570255_261778375.wav 
 
@@ -41230,12 +41230,12 @@ Audio Segment: sw03315A_104534_105973875.wav
  - Start at: 104534 - End at: 105973875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03315A_11599475_11803125.wav 
 
@@ -41386,12 +41386,12 @@ Audio Segment: sw03315A_184628875_186248625.wav
  - Start at: 184628875 - End at: 186248625 
 
 REF: oh uh-huh 
-HYP: wow uhhuh 
+HYP: wow uh-huh 
 -------------------------------------------------------
 sentence 1
 REF:  oh uh-huh
-HYP: wow  uhhuh
-       S      S
+HYP: wow uh-huh
+       S       
 
 Audio Segment: sw03315A_189835875_19186675.wav 
 
@@ -41412,12 +41412,12 @@ Audio Segment: sw03315A_19186675_193481625.wav
  - Start at: 19186675 - End at: 193481625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03315A_19615275_197407125.wav 
 
@@ -41464,12 +41464,12 @@ Audio Segment: sw03315A_215651875_21713875.wav
  - Start at: 215651875 - End at: 21713875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03315A_22512875_22725775.wav 
 
@@ -41503,12 +41503,12 @@ Audio Segment: sw03315A_236152375_2376245.wav
  - Start at: 236152375 - End at: 2376245 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03315A_24439875_245877.wav 
 
@@ -41646,12 +41646,12 @@ Audio Segment: sw04374A_15115875_16297125.wav
  - Start at: 15115875 - End at: 16297125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04374A_24889625_26125875.wav 
 
@@ -41659,12 +41659,12 @@ Audio Segment: sw04374A_24889625_26125875.wav
  - Start at: 24889625 - End at: 26125875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04374A_2829475_29547375.wav 
 
@@ -42608,12 +42608,12 @@ Audio Segment: sw04210A_239163125_240237125.wav
  - Start at: 239163125 - End at: 240237125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04210A_241442_243113125.wav 
 
@@ -43141,12 +43141,12 @@ Audio Segment: sw02387A_335757_3368105.wav
  - Start at: 335757 - End at: 3368105 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02387A_344741125_346204125.wav 
 
@@ -43167,12 +43167,12 @@ Audio Segment: sw02387A_350003375_3515845.wav
  - Start at: 350003375 - End at: 3515845 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02387A_352952_354301125.wav 
 
@@ -43895,12 +43895,12 @@ Audio Segment: sw03073B_32181875_33436625.wav
  - Start at: 32181875 - End at: 33436625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_36742875_38755375.wav 
 
@@ -43921,12 +43921,12 @@ Audio Segment: sw03073B_41923375_43121625.wav
  - Start at: 41923375 - End at: 43121625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_471905_49068875.wav 
 
@@ -43973,12 +43973,12 @@ Audio Segment: sw03073B_665645_67665625.wav
  - Start at: 665645 - End at: 67665625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_70355_71434875.wav 
 
@@ -43986,12 +43986,12 @@ Audio Segment: sw03073B_70355_71434875.wav
  - Start at: 70355 - End at: 71434875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_7370975_75187375.wav 
 
@@ -44077,12 +44077,12 @@ Audio Segment: sw03073B_103141125_1039235.wav
  - Start at: 103141125 - End at: 1039235 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_10557525_1063805.wav 
 
@@ -44129,12 +44129,12 @@ Audio Segment: sw03073B_136928_13839775.wav
  - Start at: 136928 - End at: 13839775 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_151001_152411.wav 
 
@@ -44155,12 +44155,12 @@ Audio Segment: sw03073B_15801575_159561625.wav
  - Start at: 15801575 - End at: 159561625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_168169875_170433125.wav 
 
@@ -44207,12 +44207,12 @@ Audio Segment: sw03073B_235932375_23716225.wav
  - Start at: 235932375 - End at: 23716225 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_251857125_252811875.wav 
 
@@ -44220,12 +44220,12 @@ Audio Segment: sw03073B_251857125_252811875.wav
  - Start at: 251857125 - End at: 252811875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03073B_254154875_255201625.wav 
 
@@ -44337,11 +44337,11 @@ Audio Segment: sw03073B_319686375_3211.wav
  - Start at: 319686375 - End at: 3211 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03073B_34028775_3428015.wav 
@@ -44454,12 +44454,12 @@ Audio Segment: sw03073B_41004175_413812125.wav
  - Start at: 41004175 - End at: 413812125 
 
 REF: uh-huh no i like that no i will watch game show kind of stuff but 
-HYP: uhhuh no i like that now i watch game show kind of stuff but 
+HYP: uh-huh no i like that now i watch game show kind of stuff but 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh no i like that  no i will watch game show kind of stuff but
-HYP:  uhhuh no i like that now i **** watch game show kind of stuff but
-          S                  S      D                                  
+HYP: uh-huh no i like that now i **** watch game show kind of stuff but
+                             S      D                                  
 
 Audio Segment: sw03073B_420547625_4217255.wav 
 
@@ -44675,12 +44675,12 @@ Audio Segment: sw02229B_145501875_147072.wav
  - Start at: 145501875 - End at: 147072 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02229B_161309125_16539125.wav 
 
@@ -44766,12 +44766,12 @@ Audio Segment: sw02229B_231609375_233158.wav
  - Start at: 231609375 - End at: 233158 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02229B_24262525_244216375.wav 
 
@@ -44792,12 +44792,12 @@ Audio Segment: sw02229B_248268_249794125.wav
  - Start at: 248268 - End at: 249794125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02229B_25791925_260076.wav 
 
@@ -45611,11 +45611,11 @@ Audio Segment: sw02185B_54995_72395.wav
  - Start at: 54995 - End at: 72395 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw02185B_19188875_20992125.wav 
@@ -46547,12 +46547,12 @@ Audio Segment: sw04176B_83712625_85133.wav
  - Start at: 83712625 - End at: 85133 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04176B_9051_9185175.wav 
 
@@ -46560,12 +46560,12 @@ Audio Segment: sw04176B_9051_9185175.wav
  - Start at: 9051 - End at: 9185175 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04176B_1124735_114289375.wav 
 
@@ -46833,11 +46833,11 @@ Audio Segment: sw04176B_264866_266088875.wav
  - Start at: 264866 - End at: 266088875 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04176B_26915725_270281625.wav 
@@ -46989,12 +46989,12 @@ Audio Segment: sw03196A_81435_83013625.wav
  - Start at: 81435 - End at: 83013625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03196A_846995_90341375.wav 
 
@@ -47041,12 +47041,12 @@ Audio Segment: sw03196A_112108875_113579125.wav
  - Start at: 112108875 - End at: 113579125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03196A_121441125_122959.wav 
 
@@ -47210,12 +47210,12 @@ Audio Segment: sw03196A_248264625_2497665.wav
  - Start at: 248264625 - End at: 2497665 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03196A_2497665_250885375.wav 
 
@@ -47327,12 +47327,12 @@ Audio Segment: sw02060A_5973375_6733.wav
  - Start at: 5973375 - End at: 6733 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02060A_175515_19367625.wav 
 
@@ -47561,12 +47561,12 @@ Audio Segment: sw02060A_162812_1644425.wav
  - Start at: 162812 - End at: 1644425 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02060A_166121625_17573375.wav 
 
@@ -48146,12 +48146,12 @@ Audio Segment: sw04093A_146761375_147651875.wav
  - Start at: 146761375 - End at: 147651875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04093A_155531375_156848125.wav 
 
@@ -48198,11 +48198,11 @@ Audio Segment: sw04093A_186425125_187596.wav
  - Start at: 186425125 - End at: 187596 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04093A_194906875_1958585.wav 
@@ -48289,12 +48289,12 @@ Audio Segment: sw04093A_248835875_24987125.wav
  - Start at: 248835875 - End at: 24987125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04093A_253016875_2539045.wav 
 
@@ -49056,12 +49056,12 @@ Audio Segment: sw03678A_89508375_9086475.wav
  - Start at: 89508375 - End at: 9086475 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03678A_9086475_9697225.wav 
 
@@ -49108,11 +49108,11 @@ Audio Segment: sw03678A_117509875_11898775.wav
  - Start at: 117509875 - End at: 11898775 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03678A_11898775_12622375.wav 
@@ -49160,12 +49160,12 @@ Audio Segment: sw03678A_14214_1446695.wav
  - Start at: 14214 - End at: 1446695 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03678A_1446695_150934.wav 
 
@@ -49238,11 +49238,11 @@ Audio Segment: sw03678A_182840625_18426.wav
  - Start at: 182840625 - End at: 18426 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03678A_1881945_189940375.wav 
@@ -49264,12 +49264,12 @@ Audio Segment: sw03678A_194942625_196501875.wav
  - Start at: 194942625 - End at: 196501875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03678A_196501875_206208125.wav 
 
@@ -49342,12 +49342,12 @@ Audio Segment: sw03678A_2328355_234142.wav
  - Start at: 2328355 - End at: 234142 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03678A_2351445_23633175.wav 
 
@@ -49355,11 +49355,11 @@ Audio Segment: sw03678A_2351445_23633175.wav
  - Start at: 2351445 - End at: 23633175 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03678A_24239375_245378125.wav 
@@ -50252,12 +50252,12 @@ Audio Segment: sw02422A_37492075_376226625.wav
  - Start at: 37492075 - End at: 376226625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02422A_37813525_379372.wav 
 
@@ -50330,12 +50330,12 @@ Audio Segment: sw02422A_417063125_418371875.wav
  - Start at: 417063125 - End at: 418371875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02422A_4239725_427716625.wav 
 
@@ -51240,12 +51240,12 @@ Audio Segment: sw03431B_82573625_83886625.wav
  - Start at: 82573625 - End at: 83886625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03431B_94608625_9678475.wav 
 
@@ -51318,12 +51318,12 @@ Audio Segment: sw03431B_114728875_11604275.wav
  - Start at: 114728875 - End at: 11604275 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03431B_1208835_12731875.wav 
 
@@ -51487,12 +51487,12 @@ Audio Segment: sw03431B_192847625_19417075.wav
  - Start at: 192847625 - End at: 19417075 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03431B_206123375_208965875.wav 
 
@@ -52137,12 +52137,12 @@ Audio Segment: sw03555B_369495_3891025.wav
  - Start at: 369495 - End at: 3891025 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03555B_3994325_411635.wav 
 
@@ -52332,12 +52332,12 @@ Audio Segment: sw03555B_132947625_13657325.wav
  - Start at: 132947625 - End at: 13657325 
 
 REF: uh-huh yeah 
-HYP: uhhuh yeah 
+HYP: uh-huh yeah 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh yeah
-HYP:  uhhuh yeah
-          S     
+HYP: uh-huh yeah
+                
 
 Audio Segment: sw03555B_138933625_147983.wav 
 
@@ -52371,12 +52371,12 @@ Audio Segment: sw03555B_156727125_158259125.wav
  - Start at: 156727125 - End at: 158259125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03555B_1654185_173253125.wav 
 
@@ -52423,12 +52423,12 @@ Audio Segment: sw03555B_19088725_192122875.wav
  - Start at: 19088725 - End at: 192122875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03555B_19387175_195282.wav 
 
@@ -52540,12 +52540,12 @@ Audio Segment: sw03555B_23716175_238271375.wav
  - Start at: 23716175 - End at: 238271375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03555B_248165_249594375.wav 
 
@@ -52553,12 +52553,12 @@ Audio Segment: sw03555B_248165_249594375.wav
  - Start at: 248165 - End at: 249594375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03555B_259099625_261554125.wav 
 
@@ -52618,12 +52618,12 @@ Audio Segment: sw04698B_2323875_24452875.wav
  - Start at: 2323875 - End at: 24452875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04698B_3777775_3904575.wav 
 
@@ -52982,12 +52982,12 @@ Audio Segment: sw04698B_26120075_26248575.wav
  - Start at: 26120075 - End at: 26248575 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04698B_267529375_269078625.wav 
 
@@ -53294,12 +53294,12 @@ Audio Segment: sw03887A_145531875_14671925.wav
  - Start at: 145531875 - End at: 14671925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03887A_152683625_15405425.wav 
 
@@ -53593,12 +53593,12 @@ Audio Segment: sw04736A_92932125_94332875.wav
  - Start at: 92932125 - End at: 94332875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04736A_1147575_120266625.wav 
 
@@ -53775,12 +53775,12 @@ Audio Segment: sw04736A_288608875_290011875.wav
  - Start at: 288608875 - End at: 290011875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_0440125_44545.wav 
 
@@ -53801,12 +53801,12 @@ Audio Segment: sw03757A_219335_23333.wav
  - Start at: 219335 - End at: 23333 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_32216625_33574.wav 
 
@@ -53905,12 +53905,12 @@ Audio Segment: sw03757A_106598125_107961625.wav
  - Start at: 106598125 - End at: 107961625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_117793625_11914075.wav 
 
@@ -53918,12 +53918,12 @@ Audio Segment: sw03757A_117793625_11914075.wav
  - Start at: 117793625 - End at: 11914075 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_121996_12375175.wav 
 
@@ -53957,12 +53957,12 @@ Audio Segment: sw03757A_128394_129791875.wav
  - Start at: 128394 - End at: 129791875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_142243_144330875.wav 
 
@@ -54009,12 +54009,12 @@ Audio Segment: sw03757A_174382125_17575775.wav
  - Start at: 174382125 - End at: 17575775 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_1804705_181797625.wav 
 
@@ -54061,12 +54061,12 @@ Audio Segment: sw03757A_188687_19008925.wav
  - Start at: 188687 - End at: 19008925 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_19194925_193337875.wav 
 
@@ -54074,12 +54074,12 @@ Audio Segment: sw03757A_19194925_193337875.wav
  - Start at: 19194925 - End at: 193337875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_203524125_2048775.wav 
 
@@ -54087,12 +54087,12 @@ Audio Segment: sw03757A_203524125_2048775.wav
  - Start at: 203524125 - End at: 2048775 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_208618875_21147975.wav 
 
@@ -54113,12 +54113,12 @@ Audio Segment: sw03757A_21147975_213158375.wav
  - Start at: 21147975 - End at: 213158375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_214492625_216094.wav 
 
@@ -54282,12 +54282,12 @@ Audio Segment: sw03757A_2923365_293722625.wav
  - Start at: 2923365 - End at: 293722625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03757A_295473_2968245.wav 
 
@@ -54347,12 +54347,12 @@ Audio Segment: sw02469A_621705_635335.wav
  - Start at: 621705 - End at: 635335 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_64615625_66109875.wav 
 
@@ -54360,12 +54360,12 @@ Audio Segment: sw02469A_64615625_66109875.wav
  - Start at: 64615625 - End at: 66109875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_7265375_73970625.wav 
 
@@ -54373,12 +54373,12 @@ Audio Segment: sw02469A_7265375_73970625.wav
  - Start at: 7265375 - End at: 73970625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_7999825_81527125.wav 
 
@@ -54399,12 +54399,12 @@ Audio Segment: sw02469A_84418_86006.wav
  - Start at: 84418 - End at: 86006 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_86006_8776525.wav 
 
@@ -54425,12 +54425,12 @@ Audio Segment: sw02469A_90618_92157375.wav
  - Start at: 90618 - End at: 92157375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_92157375_102995625.wav 
 
@@ -54477,12 +54477,12 @@ Audio Segment: sw02469A_17941625_18136825.wav
  - Start at: 17941625 - End at: 18136825 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_18136825_18331325.wav 
 
@@ -54503,12 +54503,12 @@ Audio Segment: sw02469A_19649_197942125.wav
  - Start at: 19649 - End at: 197942125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_204522875_205815625.wav 
 
@@ -54516,12 +54516,12 @@ Audio Segment: sw02469A_204522875_205815625.wav
  - Start at: 204522875 - End at: 205815625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_207182375_20849475.wav 
 
@@ -54672,12 +54672,12 @@ Audio Segment: sw02469A_3109345_312222875.wav
  - Start at: 3109345 - End at: 312222875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_314402375_315792625.wav 
 
@@ -54802,12 +54802,12 @@ Audio Segment: sw02469A_38551075_386821875.wav
  - Start at: 38551075 - End at: 386821875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_388574375_3901395.wav 
 
@@ -54828,12 +54828,12 @@ Audio Segment: sw02469A_39615825_397570125.wav
  - Start at: 39615825 - End at: 397570125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_400003625_4016565.wav 
 
@@ -54893,12 +54893,12 @@ Audio Segment: sw02469A_442704_444015625.wav
  - Start at: 442704 - End at: 444015625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_445075875_44660425.wav 
 
@@ -54919,12 +54919,12 @@ Audio Segment: sw02469A_447436625_448886125.wav
  - Start at: 447436625 - End at: 448886125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02469A_4508755_4523115.wav 
 
@@ -54971,12 +54971,12 @@ Audio Segment: sw02469A_480638_48179075.wav
  - Start at: 480638 - End at: 48179075 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_490444125_4998785.wav 
 
@@ -55010,12 +55010,12 @@ Audio Segment: sw02469A_52138975_522608875.wav
  - Start at: 52138975 - End at: 522608875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02469A_537083625_538769625.wav 
 
@@ -55920,12 +55920,12 @@ Audio Segment: sw02815A_24711875_2493755.wav
  - Start at: 24711875 - End at: 2493755 
 
 REF: yeah uh-huh 
-HYP: yeah uhhuh 
+HYP: yeah uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: yeah uh-huh
-HYP: yeah  uhhuh
-               S
+HYP: yeah uh-huh
+                
 
 Audio Segment: sw02815A_25142075_252862125.wav 
 
@@ -55972,12 +55972,12 @@ Audio Segment: sw02815A_26276875_263991375.wav
  - Start at: 26276875 - End at: 263991375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_265492125_27383575.wav 
 
@@ -56011,12 +56011,12 @@ Audio Segment: sw02815A_290394_29166825.wav
  - Start at: 290394 - End at: 29166825 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_29476075_296650375.wav 
 
@@ -56076,12 +56076,12 @@ Audio Segment: sw02815A_317474875_3186985.wav
  - Start at: 317474875 - End at: 3186985 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_323484375_326618875.wav 
 
@@ -56115,12 +56115,12 @@ Audio Segment: sw02815A_340148875_341637625.wav
  - Start at: 340148875 - End at: 341637625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_34279125_345152875.wav 
 
@@ -56323,12 +56323,12 @@ Audio Segment: sw02815A_456008625_4572315.wav
  - Start at: 456008625 - End at: 4572315 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_466651625_469006125.wav 
 
@@ -56544,12 +56544,12 @@ Audio Segment: sw02815A_588342_589621375.wav
  - Start at: 588342 - End at: 589621375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02815A_59074525_59226475.wav 
 
@@ -56856,12 +56856,12 @@ Audio Segment: sw03806B_11935675_12056875.wav
  - Start at: 11935675 - End at: 12056875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03806B_13692075_13811925.wav 
 
@@ -56869,12 +56869,12 @@ Audio Segment: sw03806B_13692075_13811925.wav
  - Start at: 13692075 - End at: 13811925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03806B_1469485_155292875.wav 
 
@@ -57207,12 +57207,12 @@ Audio Segment: sw02620B_1184525_13414125.wav
  - Start at: 1184525 - End at: 13414125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02620B_21917625_2346375.wav 
 
@@ -57402,12 +57402,12 @@ Audio Segment: sw02620B_149459875_151009625.wav
  - Start at: 149459875 - End at: 151009625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02620B_1524965_153826875.wav 
 
@@ -57571,12 +57571,12 @@ Audio Segment: sw02620B_243315125_245107.wav
  - Start at: 243315125 - End at: 245107 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02620B_253495_259738.wav 
 
@@ -57636,12 +57636,12 @@ Audio Segment: sw02620B_295780375_2972625.wav
  - Start at: 295780375 - End at: 2972625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02620B_3015765_306480625.wav 
 
@@ -57818,12 +57818,12 @@ Audio Segment: sw02620B_374963625_376733625.wav
  - Start at: 374963625 - End at: 376733625 
 
 REF: uh-huh 
-HYP: mmhmm all right 
+HYP: um-hum all right 
 -------------------------------------------------------
 sentence 1
-REF: ***** *** uh-huh
-HYP: mmhmm all  right
-         I   I      S
+REF: ****** *** uh-huh
+HYP: um-hum all  right
+          I   I      S
 
 Audio Segment: sw02620B_376733625_37936525.wav 
 
@@ -57870,12 +57870,12 @@ Audio Segment: sw03962B_2459_25921.wav
  - Start at: 2459 - End at: 25921 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03962B_30744_369965.wav 
 
@@ -57896,12 +57896,12 @@ Audio Segment: sw03962B_4124_42460625.wav
  - Start at: 4124 - End at: 42460625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03962B_4440775_54871125.wav 
 
@@ -57935,11 +57935,11 @@ Audio Segment: sw03962B_6402075_65409375.wav
  - Start at: 6402075 - End at: 65409375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw03962B_804035_81873625.wav 
@@ -58091,12 +58091,12 @@ Audio Segment: sw03962B_14884675_151781.wav
  - Start at: 14884675 - End at: 151781 
 
 REF: yes sure 
-HYP: uhhuh yeah sure well you have got half a string quartet there 
+HYP: uh-huh yeah sure well you have got half a string quartet there 
 -------------------------------------------------------
 sentence 1
-REF: *****  yes sure **** *** **** *** **** * ****** ******* *****
-HYP: uhhuh yeah sure well you have got half a string quartet there
-         I    S         I   I    I   I    I I      I       I     I
+REF: ******  yes sure **** *** **** *** **** * ****** ******* *****
+HYP: uh-huh yeah sure well you have got half a string quartet there
+          I    S         I   I    I   I    I I      I       I     I
 
 Audio Segment: sw03962B_155137_159584375.wav 
 
@@ -58325,12 +58325,12 @@ Audio Segment: sw02744B_10429625_11101125.wav
  - Start at: 10429625 - End at: 11101125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02744B_22801875_23629625.wav 
 
@@ -58468,12 +58468,12 @@ Audio Segment: sw02744B_834325_8435375.wav
  - Start at: 834325 - End at: 8435375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02744B_8672675_913665.wav 
 
@@ -58624,12 +58624,12 @@ Audio Segment: sw02744B_16593025_166445125.wav
  - Start at: 16593025 - End at: 166445125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02744B_172249875_1738645.wav 
 
@@ -58832,12 +58832,12 @@ Audio Segment: sw02744B_253646625_25433825.wav
  - Start at: 253646625 - End at: 25433825 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02744B_26017175_2613375.wav 
 
@@ -58845,12 +58845,12 @@ Audio Segment: sw02744B_26017175_2613375.wav
  - Start at: 26017175 - End at: 2613375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02744B_264362_266184625.wav 
 
@@ -59495,11 +59495,11 @@ Audio Segment: sw04903B_24669875_26303625.wav
  - Start at: 24669875 - End at: 26303625 
 
 REF: huh-uh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: huh-uh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04903B_3845575_45334125.wav 
@@ -60145,12 +60145,12 @@ Audio Segment: sw02894B_15014275_151647875.wav
  - Start at: 15014275 - End at: 151647875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02894B_154656375_156186875.wav 
 
@@ -60197,12 +60197,12 @@ Audio Segment: sw02894B_178288625_180690875.wav
  - Start at: 178288625 - End at: 180690875 
 
 REF: um-hum that is nice to hear 
-HYP: mmhmm that is nice to hear 
+HYP: um-hum that is nice to hear 
 -------------------------------------------------------
 sentence 1
 REF: um-hum that is nice to hear
-HYP:  mmhmm that is nice to hear
-          S                     
+HYP: um-hum that is nice to hear
+                                
 
 Audio Segment: sw02894B_1818765_183311375.wav 
 
@@ -60223,12 +60223,12 @@ Audio Segment: sw02894B_184751125_186149.wav
  - Start at: 184751125 - End at: 186149 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_188398625_191428.wav 
 
@@ -60470,12 +60470,12 @@ Audio Segment: sw02894B_327905625_32969.wav
  - Start at: 327905625 - End at: 32969 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_32969_332890125.wav 
 
@@ -60522,12 +60522,12 @@ Audio Segment: sw02894B_344652125_346033625.wav
  - Start at: 344652125 - End at: 346033625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_3475775_349154.wav 
 
@@ -60769,12 +60769,12 @@ Audio Segment: sw02894B_435938375_437732125.wav
  - Start at: 435938375 - End at: 437732125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_437732125_4397725.wav 
 
@@ -60847,12 +60847,12 @@ Audio Segment: sw02894B_47531675_477405625.wav
  - Start at: 47531675 - End at: 477405625 
 
 REF: oh yeah uh-huh 
-HYP: oh yeah uhhuh 
+HYP: oh yeah uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh yeah uh-huh
-HYP: oh yeah  uhhuh
-                  S
+HYP: oh yeah uh-huh
+                   
 
 Audio Segment: sw02894B_478863875_485656.wav 
 
@@ -60977,12 +60977,12 @@ Audio Segment: sw02894B_546417125_548016.wav
  - Start at: 546417125 - End at: 548016 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_55744325_559081125.wav 
 
@@ -61042,12 +61042,12 @@ Audio Segment: sw02894B_578553875_580054375.wav
  - Start at: 578553875 - End at: 580054375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_580054375_5814775.wav 
 
@@ -61055,12 +61055,12 @@ Audio Segment: sw02894B_580054375_5814775.wav
  - Start at: 580054375 - End at: 5814775 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02894B_5814775_582819125.wav 
 
@@ -61172,11 +61172,11 @@ Audio Segment: sw04147B_521545_534395.wav
  - Start at: 521545 - End at: 534395 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04147B_70162125_7165325.wav 
@@ -61198,11 +61198,11 @@ Audio Segment: sw04147B_727475_7398525.wav
  - Start at: 727475 - End at: 7398525 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw04147B_927195_9477225.wav 
@@ -62966,12 +62966,12 @@ Audio Segment: sw03126B_4210825_44616375.wav
  - Start at: 4210825 - End at: 44616375 
 
 REF: uh-huh pretty much 
-HYP: uhhuh pretty much 
+HYP: uh-huh pretty much 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh pretty much
-HYP:  uhhuh pretty much
-          S            
+HYP: uh-huh pretty much
+                       
 
 Audio Segment: sw03126B_44616375_48209375.wav 
 
@@ -63486,12 +63486,12 @@ Audio Segment: sw03126B_359595875_360753625.wav
  - Start at: 359595875 - End at: 360753625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03126B_36862525_3700645.wav 
 
@@ -63746,12 +63746,12 @@ Audio Segment: sw02051A_5962075_60911375.wav
  - Start at: 5962075 - End at: 60911375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_69565875_71161125.wav 
 
@@ -63785,12 +63785,12 @@ Audio Segment: sw02051A_7837825_79710125.wav
  - Start at: 7837825 - End at: 79710125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_828385_8555025.wav 
 
@@ -63824,12 +63824,12 @@ Audio Segment: sw02051A_1254525_1269765.wav
  - Start at: 1254525 - End at: 1269765 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_1269765_128656875.wav 
 
@@ -63850,11 +63850,11 @@ Audio Segment: sw02051A_148516125_149834375.wav
  - Start at: 148516125 - End at: 149834375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02051A_151394875_152703125.wav 
@@ -63863,12 +63863,12 @@ Audio Segment: sw02051A_151394875_152703125.wav
  - Start at: 151394875 - End at: 152703125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_156590875_158027375.wav 
 
@@ -63902,12 +63902,12 @@ Audio Segment: sw02051A_166406875_16769675.wav
  - Start at: 166406875 - End at: 16769675 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_18634175_187711875.wav 
 
@@ -63915,12 +63915,12 @@ Audio Segment: sw02051A_18634175_187711875.wav
  - Start at: 18634175 - End at: 187711875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_199227_200753625.wav 
 
@@ -63941,12 +63941,12 @@ Audio Segment: sw02051A_206203625_20765325.wav
  - Start at: 206203625 - End at: 20765325 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_2156535_22663575.wav 
 
@@ -64006,12 +64006,12 @@ Audio Segment: sw02051A_246477_248222125.wav
  - Start at: 246477 - End at: 248222125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_248222125_2494875.wav 
 
@@ -64032,12 +64032,12 @@ Audio Segment: sw02051A_25971825_2611675.wav
  - Start at: 25971825 - End at: 2611675 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_274338125_275656375.wav 
 
@@ -64045,12 +64045,12 @@ Audio Segment: sw02051A_274338125_275656375.wav
  - Start at: 274338125 - End at: 275656375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_28612825_287439.wav 
 
@@ -64058,12 +64058,12 @@ Audio Segment: sw02051A_28612825_287439.wav
  - Start at: 28612825 - End at: 287439 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_3020175_3033685.wav 
 
@@ -64071,12 +64071,12 @@ Audio Segment: sw02051A_3020175_3033685.wav
  - Start at: 3020175 - End at: 3033685 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_3033685_30468125.wav 
 
@@ -64149,12 +64149,12 @@ Audio Segment: sw02051A_373334625_3745465.wav
  - Start at: 373334625 - End at: 3745465 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_377585875_378967625.wav 
 
@@ -64175,12 +64175,12 @@ Audio Segment: sw02051A_381500375_382768.wav
  - Start at: 381500375 - End at: 382768 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_384133_38578825.wav 
 
@@ -64201,12 +64201,12 @@ Audio Segment: sw02051A_418088625_419347125.wav
  - Start at: 418088625 - End at: 419347125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_42392_428020375.wav 
 
@@ -64240,12 +64240,12 @@ Audio Segment: sw02051A_434294625_435729375.wav
  - Start at: 434294625 - End at: 435729375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_451557625_45275925.wav 
 
@@ -64253,12 +64253,12 @@ Audio Segment: sw02051A_451557625_45275925.wav
  - Start at: 451557625 - End at: 45275925 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_458681625_459966625.wav 
 
@@ -64266,12 +64266,12 @@ Audio Segment: sw02051A_458681625_459966625.wav
  - Start at: 458681625 - End at: 459966625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_467998_47237.wav 
 
@@ -64331,12 +64331,12 @@ Audio Segment: sw02051A_505150625_50648325.wav
  - Start at: 505150625 - End at: 50648325 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_520325_521782125.wav 
 
@@ -64357,12 +64357,12 @@ Audio Segment: sw02051A_535637_537153375.wav
  - Start at: 535637 - End at: 537153375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02051A_556827375_558444875.wav 
 
@@ -64383,12 +64383,12 @@ Audio Segment: sw02051A_571825625_573638625.wav
  - Start at: 571825625 - End at: 573638625 
 
 REF: huh uh-huh 
-HYP: okay uhhuh 
+HYP: okay uh-huh 
 -------------------------------------------------------
 sentence 1
 REF:  huh uh-huh
-HYP: okay  uhhuh
-        S      S
+HYP: okay uh-huh
+        S       
 
 Audio Segment: sw02051A_5827335_583953.wav 
 
@@ -64396,12 +64396,12 @@ Audio Segment: sw02051A_5827335_583953.wav
  - Start at: 5827335 - End at: 583953 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02051A_59219_5943045.wav 
 
@@ -65254,12 +65254,12 @@ Audio Segment: sw03009B_591595_6046025.wav
  - Start at: 591595 - End at: 6046025 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03009B_6046025_62715875.wav 
 
@@ -65358,12 +65358,12 @@ Audio Segment: sw03009B_120256625_1230435.wav
  - Start at: 120256625 - End at: 1230435 
 
 REF: oh uh-huh uh-huh 
-HYP: oh uhhuh 
+HYP: oh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: oh uh-huh uh-huh
-HYP: oh  uhhuh ******
-             S      D
+HYP: oh uh-huh ******
+                    D
 
 Audio Segment: sw03009B_134680875_1420495.wav 
 
@@ -65423,12 +65423,12 @@ Audio Segment: sw03009B_19761725_19980125.wav
  - Start at: 19761725 - End at: 19980125 
 
 REF: uh-huh uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh uh-huh
-HYP:  uhhuh ******
-          S      D
+HYP: uh-huh ******
+                 D
 
 Audio Segment: sw03009B_20802925_20922.wav 
 
@@ -65891,12 +65891,12 @@ Audio Segment: sw02253B_75675_770215.wav
  - Start at: 75675 - End at: 770215 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02253B_9163275_95058875.wav 
 
@@ -66060,12 +66060,12 @@ Audio Segment: sw02253B_193389_194876.wav
  - Start at: 193389 - End at: 194876 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02253B_194876_199400125.wav 
 
@@ -67581,12 +67581,12 @@ Audio Segment: sw04068B_5478825_5619175.wav
  - Start at: 5478825 - End at: 5619175 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04068B_65460375_66778625.wav 
 
@@ -67919,12 +67919,12 @@ Audio Segment: sw04221A_110995_12370125.wav
  - Start at: 110995 - End at: 12370125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04221A_1750175_20133125.wav 
 
@@ -67945,12 +67945,12 @@ Audio Segment: sw04221A_2318275_24507625.wav
  - Start at: 2318275 - End at: 24507625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04221A_29758625_3102125.wav 
 
@@ -68023,12 +68023,12 @@ Audio Segment: sw04221A_54569375_55805.wav
  - Start at: 54569375 - End at: 55805 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04221A_61912375_65263375.wav 
 
@@ -68348,12 +68348,12 @@ Audio Segment: sw04221A_187886125_188861625.wav
  - Start at: 187886125 - End at: 188861625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04221A_199557625_202603125.wav 
 
@@ -68374,12 +68374,12 @@ Audio Segment: sw04221A_210192875_212490125.wav
  - Start at: 210192875 - End at: 212490125 
 
 REF: uh-huh um 
-HYP: uhhuh um 
+HYP: uh-huh um 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh um
-HYP:  uhhuh um
-          S   
+HYP: uh-huh um
+              
 
 Audio Segment: sw04221A_213501875_21627875.wav 
 
@@ -68413,12 +68413,12 @@ Audio Segment: sw04221A_232223375_235175625.wav
  - Start at: 232223375 - End at: 235175625 
 
 REF: uh-huh you do not stand very carefully 
-HYP: uhhuh you have to stand very carefully 
+HYP: uh-huh you have to stand very carefully 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh you   do not stand very carefully
-HYP:  uhhuh you have  to stand very carefully
-          S        S   S                     
+HYP: uh-huh you have  to stand very carefully
+                   S   S                     
 
 Audio Segment: sw04221A_24554325_247954.wav 
 
@@ -68426,12 +68426,12 @@ Audio Segment: sw04221A_24554325_247954.wav
  - Start at: 24554325 - End at: 247954 
 
 REF: uh-huh uh-huh 
-HYP: uhhuh uhhuh 
+HYP: uh-huh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh uh-huh
-HYP:  uhhuh  uhhuh
-          S      S
+HYP: uh-huh uh-huh
+                  
 
 Audio Segment: sw04221A_252678375_25769425.wav 
 
@@ -69193,12 +69193,12 @@ Audio Segment: sw03088A_401941375_40314825.wav
  - Start at: 401941375 - End at: 40314825 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03088A_405942_407200875.wav 
 
@@ -69687,12 +69687,12 @@ Audio Segment: sw03324A_138251375_13963125.wav
  - Start at: 138251375 - End at: 13963125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03324A_14445875_146124.wav 
 
@@ -69791,12 +69791,12 @@ Audio Segment: sw03324A_188645875_190049875.wav
  - Start at: 188645875 - End at: 190049875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03324A_191997625_1933645.wav 
 
@@ -69830,12 +69830,12 @@ Audio Segment: sw03324A_2142285_2155585.wav
  - Start at: 2142285 - End at: 2155585 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03324A_22637775_22784125.wav 
 
@@ -69908,12 +69908,12 @@ Audio Segment: sw03324A_266394125_26774775.wav
  - Start at: 266394125 - End at: 26774775 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03324A_283198375_284573.wav 
 
@@ -70311,12 +70311,12 @@ Audio Segment: sw03061A_4454125_54835.wav
  - Start at: 4454125 - End at: 54835 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_713525_807.wav 
 
@@ -70415,12 +70415,12 @@ Audio Segment: sw03061A_83422625_90573625.wav
  - Start at: 83422625 - End at: 90573625 
 
 REF: uh-huh oh well i was wondering if you got your dog originally as a pet for them or just because you would had dogs before or 
-HYP: uhhuh oh i was wondering if you got your dog originally as a pet for them or just because you had dogs before 
+HYP: uh-huh oh i was wondering if you got your dog originally as a pet for them or just because you had dogs before 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh oh well i was wondering if you got your dog originally as a pet for them or just because you would had dogs before or
-HYP:  uhhuh oh **** i was wondering if you got your dog originally as a pet for them or just because you ***** had dogs before **
-          S       D                                                                                          D                  D
+HYP: uh-huh oh **** i was wondering if you got your dog originally as a pet for them or just because you ***** had dogs before **
+                  D                                                                                          D                  D
 
 Audio Segment: sw03061A_93911_95617875.wav 
 
@@ -70454,12 +70454,12 @@ Audio Segment: sw03061A_105184875_10614925.wav
  - Start at: 105184875 - End at: 10614925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_107513_10982025.wav 
 
@@ -70597,12 +70597,12 @@ Audio Segment: sw03061A_20417925_205365875.wav
  - Start at: 20417925 - End at: 205365875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_205365875_20720675.wav 
 
@@ -70714,12 +70714,12 @@ Audio Segment: sw03061A_306248625_307466375.wav
  - Start at: 306248625 - End at: 307466375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_307466375_310263875.wav 
 
@@ -70753,12 +70753,12 @@ Audio Segment: sw03061A_33049325_3324235.wav
  - Start at: 33049325 - End at: 3324235 
 
 REF: ah 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
-REF:    ah
-HYP: uhhuh
-         S
+REF:     ah
+HYP: uh-huh
+          S
 
 Audio Segment: sw03061A_334217125_335496375.wav 
 
@@ -70792,12 +70792,12 @@ Audio Segment: sw03061A_340574_344046125.wav
  - Start at: 340574 - End at: 344046125 
 
 REF: uh-huh i guess i have heard that uh-huh 
-HYP: uhhuh i guess i have heard that uhhuh 
+HYP: uh-huh i guess i have heard that uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh i guess i have heard that uh-huh
-HYP:  uhhuh i guess i have heard that  uhhuh
-          S                                S
+HYP: uh-huh i guess i have heard that uh-huh
+                                            
 
 Audio Segment: sw03061A_34725175_348379875.wav 
 
@@ -70805,12 +70805,12 @@ Audio Segment: sw03061A_34725175_348379875.wav
  - Start at: 34725175 - End at: 348379875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_352551_358187875.wav 
 
@@ -70857,12 +70857,12 @@ Audio Segment: sw03061A_3856215_3869965.wav
  - Start at: 3856215 - End at: 3869965 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_3869965_387706875.wav 
 
@@ -70883,12 +70883,12 @@ Audio Segment: sw03061A_389182625_389988875.wav
  - Start at: 389182625 - End at: 389988875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_39092675_3918925.wav 
 
@@ -70922,12 +70922,12 @@ Audio Segment: sw03061A_4043135_405105875.wav
  - Start at: 4043135 - End at: 405105875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_406350125_40753775.wav 
 
@@ -70987,12 +70987,12 @@ Audio Segment: sw03061A_418227875_41920425.wav
  - Start at: 418227875 - End at: 41920425 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03061A_41920425_42049575.wav 
 
@@ -71026,11 +71026,11 @@ Audio Segment: sw03061A_4324425_433879375.wav
  - Start at: 4324425 - End at: 433879375 
 
 REF: uh-huh 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  mmhmm
+HYP: um-hum
           S
 
 Audio Segment: sw03061A_43723575_438430125.wav 
@@ -71065,12 +71065,12 @@ Audio Segment: sw03061A_446783625_447734375.wav
  - Start at: 446783625 - End at: 447734375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03105A_0704875_52235.wav 
 
@@ -71481,12 +71481,12 @@ Audio Segment: sw03105A_359312375_360324625.wav
  - Start at: 359312375 - End at: 360324625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03105A_36806_3691945.wav 
 
@@ -71585,12 +71585,12 @@ Audio Segment: sw03105A_447264_448148.wav
  - Start at: 447264 - End at: 448148 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04164A_03675_1994375.wav 
 
@@ -72014,12 +72014,12 @@ Audio Segment: sw04164A_257936_259161375.wav
  - Start at: 257936 - End at: 259161375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04164A_26208475_26328675.wav 
 
@@ -72469,11 +72469,11 @@ Audio Segment: sw02197A_13417125_149065.wav
  - Start at: 13417125 - End at: 149065 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02197A_18855875_2052475.wav 
@@ -72482,12 +72482,12 @@ Audio Segment: sw02197A_18855875_2052475.wav
  - Start at: 18855875 - End at: 2052475 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw02197A_32987375_341325.wav 
 
@@ -72495,11 +72495,11 @@ Audio Segment: sw02197A_32987375_341325.wav
  - Start at: 32987375 - End at: 341325 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02197A_38500625_39851625.wav 
@@ -72508,12 +72508,12 @@ Audio Segment: sw02197A_38500625_39851625.wav
  - Start at: 38500625 - End at: 39851625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_41622375_49083125.wav 
 
@@ -72560,12 +72560,12 @@ Audio Segment: sw02197A_67019125_6827575.wav
  - Start at: 67019125 - End at: 6827575 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_6827575_70112.wav 
 
@@ -72573,12 +72573,12 @@ Audio Segment: sw02197A_6827575_70112.wav
  - Start at: 6827575 - End at: 70112 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw02197A_7204_73079875.wav 
 
@@ -72586,12 +72586,12 @@ Audio Segment: sw02197A_7204_73079875.wav
  - Start at: 7204 - End at: 73079875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_8592275_8702125.wav 
 
@@ -72599,12 +72599,12 @@ Audio Segment: sw02197A_8592275_8702125.wav
  - Start at: 8592275 - End at: 8702125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02197A_8803525_890855.wav 
 
@@ -72612,12 +72612,12 @@ Audio Segment: sw02197A_8803525_890855.wav
  - Start at: 8803525 - End at: 890855 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02197A_97981_101381875.wav 
 
@@ -72742,12 +72742,12 @@ Audio Segment: sw02197A_175857125_176920875.wav
  - Start at: 175857125 - End at: 176920875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_180012125_18115975.wav 
 
@@ -72794,12 +72794,12 @@ Audio Segment: sw02197A_2072_208425375.wav
  - Start at: 2072 - End at: 208425375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_213125125_214939875.wav 
 
@@ -72937,12 +72937,12 @@ Audio Segment: sw02197A_2750005_27606.wav
  - Start at: 2750005 - End at: 27606 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_2770925_279065625.wav 
 
@@ -72950,12 +72950,12 @@ Audio Segment: sw02197A_2770925_279065625.wav
  - Start at: 2770925 - End at: 279065625 
 
 REF: um-hum um-hum um-hum 
-HYP: mmhmm mmhmm mmhmm 
+HYP: um-hum um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum um-hum
-HYP:  mmhmm  mmhmm  mmhmm
-          S      S      S
+HYP: um-hum um-hum um-hum
+                         
 
 Audio Segment: sw02197A_28508_286123375.wav 
 
@@ -72963,11 +72963,11 @@ Audio Segment: sw02197A_28508_286123375.wav
  - Start at: 28508 - End at: 286123375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02197A_286123375_287447375.wav 
@@ -73015,12 +73015,12 @@ Audio Segment: sw02197A_31350725_314665125.wav
  - Start at: 31350725 - End at: 314665125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_328375875_331314125.wav 
 
@@ -73171,12 +73171,12 @@ Audio Segment: sw02197A_403670125_404976.wav
  - Start at: 403670125 - End at: 404976 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02197A_414123875_415743125.wav 
 
@@ -73236,12 +73236,12 @@ Audio Segment: sw02197A_461002375_4627375.wav
  - Start at: 461002375 - End at: 4627375 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw02197A_4638105_464834.wav 
 
@@ -73301,12 +73301,12 @@ Audio Segment: sw02197A_5034315_5044395.wav
  - Start at: 5034315 - End at: 5044395 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02197A_505604625_507080625.wav 
 
@@ -73314,12 +73314,12 @@ Audio Segment: sw02197A_505604625_507080625.wav
  - Start at: 505604625 - End at: 507080625 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw02197A_520343375_5221215.wav 
 
@@ -73340,12 +73340,12 @@ Audio Segment: sw02197A_53244575_533508125.wav
  - Start at: 53244575 - End at: 533508125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_53664075_53788.wav 
 
@@ -73353,12 +73353,12 @@ Audio Segment: sw02197A_53664075_53788.wav
  - Start at: 53664075 - End at: 53788 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_540207_54154025.wav 
 
@@ -73366,12 +73366,12 @@ Audio Segment: sw02197A_540207_54154025.wav
  - Start at: 540207 - End at: 54154025 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02197A_550388125_551857125.wav 
 
@@ -73431,12 +73431,12 @@ Audio Segment: sw02197A_586965375_588501625.wav
  - Start at: 586965375 - End at: 588501625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03184B_2722_722525.wav 
 
@@ -73470,12 +73470,12 @@ Audio Segment: sw03184B_41073_42594875.wav
  - Start at: 41073 - End at: 42594875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03184B_74032625_75713875.wav 
 
@@ -73483,12 +73483,12 @@ Audio Segment: sw03184B_74032625_75713875.wav
  - Start at: 74032625 - End at: 75713875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03184B_7926275_9335175.wav 
 
@@ -73574,12 +73574,12 @@ Audio Segment: sw03184B_152774_154924625.wav
  - Start at: 152774 - End at: 154924625 
 
 REF: uh-huh 
-HYP: the ti uhhuh yes 
+HYP: the ti uh-huh yes 
 -------------------------------------------------------
 sentence 1
-REF: *** ** ***** uh-huh
-HYP: the ti uhhuh    yes
-       I  I     I      S
+REF: *** ** uh-huh ***
+HYP: the ti uh-huh yes
+       I  I          I
 
 Audio Segment: sw03184B_154924625_15683575.wav 
 
@@ -73743,12 +73743,12 @@ Audio Segment: sw04249B_50703125_52772625.wav
  - Start at: 50703125 - End at: 52772625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04249B_52772625_54485875.wav 
 
@@ -73769,12 +73769,12 @@ Audio Segment: sw04249B_630_64763.wav
  - Start at: 630 - End at: 64763 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04249B_69219875_72253.wav 
 
@@ -73808,12 +73808,12 @@ Audio Segment: sw04249B_8645175_87970375.wav
  - Start at: 8645175 - End at: 87970375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04249B_9149875_9447975.wav 
 
@@ -73977,12 +73977,12 @@ Audio Segment: sw04249B_17377925_175254875.wav
  - Start at: 17377925 - End at: 175254875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04249B_176777375_178758375.wav 
 
@@ -74211,12 +74211,12 @@ Audio Segment: sw04249B_297787625_298722.wav
  - Start at: 297787625 - End at: 298722 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04081B_00_24635.wav 
 
@@ -74302,12 +74302,12 @@ Audio Segment: sw04081B_522705_5351075.wav
  - Start at: 522705 - End at: 5351075 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw04081B_67043625_6838125.wav 
 
@@ -77214,12 +77214,12 @@ Audio Segment: sw03386A_7194925_7314975.wav
  - Start at: 7194925 - End at: 7314975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03386A_83947625_85369875.wav 
 
@@ -79151,12 +79151,12 @@ Audio Segment: sw02314A_22177_2355525.wav
  - Start at: 22177 - End at: 2355525 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02314A_24889375_2614675.wav 
 
@@ -79203,12 +79203,12 @@ Audio Segment: sw02314A_68017_693565.wav
  - Start at: 68017 - End at: 693565 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02314A_889555_90396375.wav 
 
@@ -79736,12 +79736,12 @@ Audio Segment: sw03307B_35217625_37027125.wav
  - Start at: 35217625 - End at: 37027125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_37027125_38909875.wav 
 
@@ -79866,12 +79866,12 @@ Audio Segment: sw03307B_10275925_10392.wav
  - Start at: 10275925 - End at: 10392 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_109779375_117148625.wav 
 
@@ -79970,12 +79970,12 @@ Audio Segment: sw03307B_14743975_148707875.wav
  - Start at: 14743975 - End at: 148707875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_15698325_158787375.wav 
 
@@ -80009,12 +80009,12 @@ Audio Segment: sw03307B_167960125_16935975.wav
  - Start at: 167960125 - End at: 16935975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_181303125_190214.wav 
 
@@ -80074,12 +80074,12 @@ Audio Segment: sw03307B_2038485_20509.wav
  - Start at: 2038485 - End at: 20509 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_216458_217490125.wav 
 
@@ -80087,12 +80087,12 @@ Audio Segment: sw03307B_216458_217490125.wav
  - Start at: 216458 - End at: 217490125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_226118_231187125.wav 
 
@@ -80113,12 +80113,12 @@ Audio Segment: sw03307B_231187125_232602875.wav
  - Start at: 231187125 - End at: 232602875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_243125625_244318.wav 
 
@@ -80126,12 +80126,12 @@ Audio Segment: sw03307B_243125625_244318.wav
  - Start at: 243125625 - End at: 244318 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_245669_2478205.wav 
 
@@ -80204,12 +80204,12 @@ Audio Segment: sw03307B_265289_26660325.wav
  - Start at: 265289 - End at: 26660325 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_27210425_27926925.wav 
 
@@ -80230,12 +80230,12 @@ Audio Segment: sw03307B_27926925_280714.wav
  - Start at: 27926925 - End at: 280714 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03307B_287183125_290417625.wav 
 
@@ -80659,12 +80659,12 @@ Audio Segment: sw02039B_22871_23960375.wav
  - Start at: 22871 - End at: 23960375 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02039B_3160975_3303925.wav 
 
@@ -80750,12 +80750,12 @@ Audio Segment: sw02039B_93936_9795825.wav
  - Start at: 93936 - End at: 9795825 
 
 REF: uh-huh yeah me too 
-HYP: uhhuh yeah me too 
+HYP: uh-huh yeah me too 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh yeah me too
-HYP:  uhhuh yeah me too
-          S            
+HYP: uh-huh yeah me too
+                       
 
 Audio Segment: sw02039B_1096415_110860375.wav 
 
@@ -81010,12 +81010,12 @@ Audio Segment: sw02039B_25901225_26010825.wav
  - Start at: 25901225 - End at: 26010825 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02039B_2650055_26631075.wav 
 
@@ -81283,12 +81283,12 @@ Audio Segment: sw02039B_467016375_46809325.wav
  - Start at: 467016375 - End at: 46809325 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02039B_469097375_470109125.wav 
 
@@ -81491,12 +81491,12 @@ Audio Segment: sw04202B_99840625_1017975.wav
  - Start at: 99840625 - End at: 1017975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_108357875_110547375.wav 
 
@@ -81517,12 +81517,12 @@ Audio Segment: sw04202B_112166125_113546625.wav
  - Start at: 112166125 - End at: 113546625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_1156385_117177875.wav 
 
@@ -81543,12 +81543,12 @@ Audio Segment: sw04202B_12357475_12541825.wav
  - Start at: 12357475 - End at: 12541825 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_126503_1278565.wav 
 
@@ -81569,12 +81569,12 @@ Audio Segment: sw04202B_13369975_135527625.wav
  - Start at: 13369975 - End at: 135527625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_139776875_14151875.wav 
 
@@ -81595,12 +81595,12 @@ Audio Segment: sw04202B_146279375_14793175.wav
  - Start at: 146279375 - End at: 14793175 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_159390125_161019.wav 
 
@@ -81634,12 +81634,12 @@ Audio Segment: sw04202B_18637325_187862875.wav
  - Start at: 18637325 - End at: 187862875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_189352625_190337125.wav 
 
@@ -81660,12 +81660,12 @@ Audio Segment: sw04202B_194007875_195059375.wav
  - Start at: 194007875 - End at: 195059375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_200527125_2035285.wav 
 
@@ -81686,12 +81686,12 @@ Audio Segment: sw04202B_213559625_215772875.wav
  - Start at: 213559625 - End at: 215772875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_2296335_231795375.wav 
 
@@ -81699,12 +81699,12 @@ Audio Segment: sw04202B_2296335_231795375.wav
  - Start at: 2296335 - End at: 231795375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_2356465_2370805.wav 
 
@@ -81764,12 +81764,12 @@ Audio Segment: sw04202B_271590375_273204875.wav
  - Start at: 271590375 - End at: 273204875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04202B_27845725_279972375.wav 
 
@@ -81868,12 +81868,12 @@ Audio Segment: sw02395B_19844875_21139125.wav
  - Start at: 19844875 - End at: 21139125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_2365275_251255.wav 
 
@@ -81894,12 +81894,12 @@ Audio Segment: sw02395B_3729175_38559625.wav
  - Start at: 3729175 - End at: 38559625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_38559625_4848375.wav 
 
@@ -81959,12 +81959,12 @@ Audio Segment: sw02395B_82211125_83405625.wav
  - Start at: 82211125 - End at: 83405625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_88978125_92773.wav 
 
@@ -82037,12 +82037,12 @@ Audio Segment: sw02395B_13320575_134313625.wav
  - Start at: 13320575 - End at: 134313625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_139566125_14257625.wav 
 
@@ -82128,12 +82128,12 @@ Audio Segment: sw02395B_210121_21126825.wav
  - Start at: 210121 - End at: 21126825 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_219318_22087575.wav 
 
@@ -82154,12 +82154,12 @@ Audio Segment: sw02395B_23775_238774875.wav
  - Start at: 23775 - End at: 238774875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_24558375_2525885.wav 
 
@@ -82206,12 +82206,12 @@ Audio Segment: sw02395B_286482_287730125.wav
  - Start at: 286482 - End at: 287730125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_311667625_313411375.wav 
 
@@ -82232,12 +82232,12 @@ Audio Segment: sw02395B_330362375_3315095.wav
  - Start at: 330362375 - End at: 3315095 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_332723625_3419745.wav 
 
@@ -82284,12 +82284,12 @@ Audio Segment: sw02395B_370114875_371335125.wav
  - Start at: 370114875 - End at: 371335125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_37635825_380097.wav 
 
@@ -82310,12 +82310,12 @@ Audio Segment: sw02395B_392529875_393602125.wav
  - Start at: 392529875 - End at: 393602125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_393602125_402501375.wav 
 
@@ -82414,12 +82414,12 @@ Audio Segment: sw02395B_4783835_479340625.wav
  - Start at: 4783835 - End at: 479340625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_479340625_487023125.wav 
 
@@ -82557,12 +82557,12 @@ Audio Segment: sw02395B_546100875_547146125.wav
  - Start at: 546100875 - End at: 547146125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02395B_550057875_560366375.wav 
 
@@ -82609,12 +82609,12 @@ Audio Segment: sw02395B_59219875_593440625.wav
  - Start at: 59219875 - End at: 593440625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04366B_00_3684.wav 
 
@@ -82661,12 +82661,12 @@ Audio Segment: sw04366B_14705375_15789.wav
  - Start at: 14705375 - End at: 15789 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04366B_20316_21418125.wav 
 
@@ -82726,12 +82726,12 @@ Audio Segment: sw04366B_6589875_67179125.wav
  - Start at: 6589875 - End at: 67179125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw04366B_717115_7876425.wav 
 
@@ -83493,12 +83493,12 @@ Audio Segment: sw03493B_182781125_184770875.wav
  - Start at: 182781125 - End at: 184770875 
 
 REF: um-hum um-hum 
-HYP: mmhmm mmhmm 
+HYP: um-hum um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm  mmhmm
-          S      S
+HYP: um-hum um-hum
+                  
 
 Audio Segment: sw03493B_186171625_187622875.wav 
 
@@ -83870,12 +83870,12 @@ Audio Segment: sw02565B_53951125_55263.wav
  - Start at: 53951125 - End at: 55263 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02565B_589_61055.wav 
 
@@ -85105,12 +85105,12 @@ Audio Segment: sw02401B_4468_4651275.wav
  - Start at: 4468 - End at: 4651275 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02401B_486195_5508175.wav 
 
@@ -85157,12 +85157,12 @@ Audio Segment: sw02401B_63306875_6481175.wav
  - Start at: 63306875 - End at: 6481175 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02401B_7604225_79375.wav 
 
@@ -85274,12 +85274,12 @@ Audio Segment: sw02401B_1251355_12657425.wav
  - Start at: 1251355 - End at: 12657425 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02401B_131131_1325445.wav 
 
@@ -85781,12 +85781,12 @@ Audio Segment: sw03412A_17204_18403375.wav
  - Start at: 17204 - End at: 18403375 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03412A_18403375_24177625.wav 
 
@@ -85937,12 +85937,12 @@ Audio Segment: sw03412A_129958_13138975.wav
  - Start at: 129958 - End at: 13138975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03412A_149571625_1540025.wav 
 
@@ -86106,12 +86106,12 @@ Audio Segment: sw03412A_29202175_293110125.wav
  - Start at: 29202175 - End at: 293110125 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03412A_29497175_296202875.wav 
 
@@ -86561,12 +86561,12 @@ Audio Segment: sw02648A_273835375_275097875.wav
  - Start at: 273835375 - End at: 275097875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02648A_281332_285941875.wav 
 
@@ -87809,12 +87809,12 @@ Audio Segment: sw02480A_107306125_108755125.wav
  - Start at: 107306125 - End at: 108755125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_110946375_11254425.wav 
 
@@ -88069,12 +88069,12 @@ Audio Segment: sw02480A_216427_21798925.wav
  - Start at: 216427 - End at: 21798925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_2191125_220998625.wav 
 
@@ -88082,12 +88082,12 @@ Audio Segment: sw02480A_2191125_220998625.wav
  - Start at: 2191125 - End at: 220998625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_220998625_222761625.wav 
 
@@ -88199,12 +88199,12 @@ Audio Segment: sw02480A_264892875_26675675.wav
  - Start at: 264892875 - End at: 26675675 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_26675675_26916475.wav 
 
@@ -88290,12 +88290,12 @@ Audio Segment: sw02480A_300566125_303073875.wav
  - Start at: 300566125 - End at: 303073875 
 
 REF: uh-huh it is 
-HYP: uhhuh it is 
+HYP: uh-huh it is 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh it is
-HYP:  uhhuh it is
-          S      
+HYP: uh-huh it is
+                 
 
 Audio Segment: sw02480A_304694625_309118625.wav 
 
@@ -88303,12 +88303,12 @@ Audio Segment: sw02480A_304694625_309118625.wav
  - Start at: 304694625 - End at: 309118625 
 
 REF: uh-huh oh i i have to agree there it 
-HYP: uhhuh oh i have to agree there 
+HYP: uh-huh oh i have to agree there 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh oh i i have to agree there it
-HYP:  uhhuh oh i * have to agree there **
-          S      D                      D
+HYP: uh-huh oh i * have to agree there **
+                 D                      D
 
 Audio Segment: sw02480A_31020325_3193465.wav 
 
@@ -88628,12 +88628,12 @@ Audio Segment: sw02480A_436903_438325.wav
  - Start at: 436903 - End at: 438325 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_440326625_442183375.wav 
 
@@ -88654,12 +88654,12 @@ Audio Segment: sw02480A_442183375_443845875.wav
  - Start at: 442183375 - End at: 443845875 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw02480A_445761125_45253825.wav 
 
@@ -88693,12 +88693,12 @@ Audio Segment: sw02998A_165745_178195.wav
  - Start at: 165745 - End at: 178195 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02998A_24969375_2659025.wav 
 
@@ -88823,12 +88823,12 @@ Audio Segment: sw02998A_119450625_1211495.wav
  - Start at: 119450625 - End at: 1211495 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02998A_130064_132297.wav 
 
@@ -88940,12 +88940,12 @@ Audio Segment: sw02998A_210736125_21200975.wav
  - Start at: 210736125 - End at: 21200975 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02998A_215138625_21727275.wav 
 
@@ -89018,12 +89018,12 @@ Audio Segment: sw02998A_243599125_245337875.wav
  - Start at: 243599125 - End at: 245337875 
 
 REF: um-hum uh-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum uh-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw02998A_253647_258089.wav 
 
@@ -89057,12 +89057,12 @@ Audio Segment: sw02998A_268143125_2694425.wav
  - Start at: 268143125 - End at: 2694425 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw02998A_270726_272339375.wav 
 
@@ -89200,11 +89200,11 @@ Audio Segment: sw02998A_352642625_3541025.wav
  - Start at: 352642625 - End at: 3541025 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw02998A_358895375_360822625.wav 
@@ -89226,12 +89226,12 @@ Audio Segment: sw02998A_363241375_36494525.wav
  - Start at: 363241375 - End at: 36494525 
 
 REF: um-hum yeah 
-HYP: mmhmm yeah 
+HYP: um-hum yeah 
 -------------------------------------------------------
 sentence 1
 REF: um-hum yeah
-HYP:  mmhmm yeah
-          S     
+HYP: um-hum yeah
+                
 
 Audio Segment: sw02998A_368738125_375032125.wav 
 
@@ -89291,11 +89291,11 @@ Audio Segment: sw03774B_5482375_6581375.wav
  - Start at: 5482375 - End at: 6581375 
 
 REF: um-hum 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  uhhuh
+HYP: uh-huh
           S
 
 Audio Segment: sw03774B_23012875_33596625.wav 
@@ -89330,12 +89330,12 @@ Audio Segment: sw03774B_38958625_4024325.wav
  - Start at: 38958625 - End at: 4024325 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_43776625_45165125.wav 
 
@@ -89343,12 +89343,12 @@ Audio Segment: sw03774B_43776625_45165125.wav
  - Start at: 43776625 - End at: 45165125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_51333625_54369.wav 
 
@@ -89395,11 +89395,11 @@ Audio Segment: sw03774B_68149875_707105.wav
  - Start at: 68149875 - End at: 707105 
 
 REF: um-hum um-hum 
-HYP: uhhuh uhhuh 
+HYP: uh-huh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  uhhuh  uhhuh
+HYP: uh-huh uh-huh
           S      S
 
 Audio Segment: sw03774B_7737125_89353375.wav 
@@ -89434,12 +89434,12 @@ Audio Segment: sw03774B_11144575_112816.wav
  - Start at: 11144575 - End at: 112816 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_11882325_126341.wav 
 
@@ -89473,12 +89473,12 @@ Audio Segment: sw03774B_13209025_13340275.wav
  - Start at: 13209025 - End at: 13340275 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_136870625_138826625.wav 
 
@@ -89499,12 +89499,12 @@ Audio Segment: sw03774B_146872375_148404625.wav
  - Start at: 146872375 - End at: 148404625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_1494505_150935125.wav 
 
@@ -89512,12 +89512,12 @@ Audio Segment: sw03774B_1494505_150935125.wav
  - Start at: 1494505 - End at: 150935125 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_15852025_160439375.wav 
 
@@ -89538,12 +89538,12 @@ Audio Segment: sw03774B_165418_167029625.wav
  - Start at: 165418 - End at: 167029625 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 Audio Segment: sw03774B_167029625_170363125.wav 
 
@@ -89551,12 +89551,12 @@ Audio Segment: sw03774B_167029625_170363125.wav
  - Start at: 167029625 - End at: 170363125 
 
 REF: uh-huh i know it hm 
-HYP: uhhuh i know it 
+HYP: uh-huh i know it 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh i know it hm
-HYP:  uhhuh i know it **
-          S            D
+HYP: uh-huh i know it **
+                       D
 
 Audio Segment: sw03774B_179078125_180491625.wav 
 
@@ -89564,12 +89564,12 @@ Audio Segment: sw03774B_179078125_180491625.wav
  - Start at: 179078125 - End at: 180491625 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03774B_184330625_1864285.wav 
 
@@ -89577,12 +89577,12 @@ Audio Segment: sw03774B_184330625_1864285.wav
  - Start at: 184330625 - End at: 1864285 
 
 REF: um-hum um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum um-hum
-HYP:  mmhmm ******
-          S      D
+HYP: um-hum ******
+                 D
 
 Audio Segment: sw03774B_18803025_19113625.wav 
 
@@ -89668,12 +89668,12 @@ Audio Segment: sw03774B_249307_251564375.wav
  - Start at: 249307 - End at: 251564375 
 
 REF: uh-huh uh-huh 
-HYP: uhhuh uhhuh 
+HYP: uh-huh uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh uh-huh
-HYP:  uhhuh  uhhuh
-          S      S
+HYP: uh-huh uh-huh
+                  
 
 Audio Segment: sw03774B_253073625_254416875.wav 
 
@@ -89681,12 +89681,12 @@ Audio Segment: sw03774B_253073625_254416875.wav
  - Start at: 253073625 - End at: 254416875 
 
 REF: um-hum 
-HYP: mmhmm 
+HYP: um-hum 
 -------------------------------------------------------
 sentence 1
 REF: um-hum
-HYP:  mmhmm
-          S
+HYP: um-hum
+           
 
 Audio Segment: sw03774B_259294625_26080925.wav 
 
@@ -89694,24 +89694,24 @@ Audio Segment: sw03774B_259294625_26080925.wav
  - Start at: 259294625 - End at: 26080925 
 
 REF: uh-huh 
-HYP: uhhuh 
+HYP: uh-huh 
 -------------------------------------------------------
 sentence 1
 REF: uh-huh
-HYP:  uhhuh
-          S
+HYP: uh-huh
+           
 
 ______________________________________________________________________________________________________________________
 
 =========================== OVERALL METRICS SUMMARY =======================================
-Percentage WER: 21.28 
+Percentage WER: 20.71 
 
-Percentage MER: 20.70 
+Percentage MER: 20.15 
 
 ___________________________________________________________________________________________
 Total Operations: 86845 
-Percentage Hits: 79.30 
-Percentage Substitutions: 4.72 
+Percentage Hits: 79.85 
+Percentage Substitutions: 4.17 
 Percentage Deletions: 13.29 
 Percentage Insertions: 2.69 
 ___________________________________________________________________________________________

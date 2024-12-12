@@ -59,8 +59,8 @@ def calculate_f1(ref_sentence, hyp_sentence):
     
     return f1
 
-#-----------------------------------------------------------------------------------
-def track_laugh_word_alignments(
+#-----------------------------------------------------------------------------------    
+def evaluate_token_alignments(
         original_reference, 
         hypothesis, 
         alignment,
@@ -99,7 +99,6 @@ def track_laugh_word_alignments(
     laugh_indices = {
         i: {
             'word': word,
-            # 'type': 'laugh' if word == '[LAUGH]' else 'speechlaugh',
             'type': dataset_type, #'laugh' or 'speechlaugh' or 'laugh_intext'
             'lower': word.lower()
         }
