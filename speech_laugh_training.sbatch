@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --job-name=laughtokens-whisper-subset10-no-prefetch      # Job name
+#SBATCH --job-name=laughtokens-whisper-subset10-a100-no-dataloader     # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
-#SBATCH --constraint=a40
+#SBATCH --constraint=a100
 #SBATCH --mem=64G                                   # Request 80GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
 #SBATCH --time=72:00:00                             # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
@@ -20,12 +20,12 @@ export PYTHONWARNINGS="ignore"
 
 
 #===========================================================
-# MULTIPROCESSING SETTINGS
+#               MULTIPROCESSING SETTINGS
 #===========================================================
 # export MKL_NUM_THREADS=8
 # export NUMEXPR_NUM_THREADS=8
 # export OMP_NUM_THREADS=8
-export TOKENIZERS_PARALLELISM=false #disable parallel tokenization when using multiprocessing
+# export TOKENIZERS_PARALLELISM=false #disable parallel tokenization when using multiprocessing
 
 #============================================================
 #                       CUDA SETTINGS
@@ -57,8 +57,9 @@ source activate .venv
 # Run your script with the appropriate arguments
 python SpeechLaughRecognition.py \
     --processed_as_dataset True \
-    --processed_file_path ./datasets/switchboard/token_speechlaugh/switchboard_dataset \
-    --model_output_dir ./vocalwhisper/speechlaughwhisper-subset-10/ \
+    --dataset_dir ./datasets/switchboard \
+    --model_path openai/whisper-large-v2 \
+    --model_output_dir ./vocalwhisper/speechlaugh-whisper-a100/ \
     --log_dir ./logs \
     --evaluate_dir ./evaluate
 

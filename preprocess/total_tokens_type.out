@@ -1,0 +1,17 @@
+	Adding nVidia Cuda Toolkit 11.8
+	Adding nvtop
+Date              = Tue Dec 17 03:28:32 PM CET 2024
+Hostname          = ctit090
+Working Directory = /home/s2587130/SpeechLaughRecogniser/preprocess
+Name of nodes used          : ctit090
+Gpu devices                 : 3
+Starting worker: 
+Loaded switchboard full dataset...
+Switchboard dataset: Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 257504
+})
+Total laughter-intext: 22224
+Total speechlaugh: 13494
+Total words: 3228822
+Complete!!---------------------------------------------------

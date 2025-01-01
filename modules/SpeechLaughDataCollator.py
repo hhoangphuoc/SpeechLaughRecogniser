@@ -10,14 +10,11 @@ import torch
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: WhisperProcessor
     decoder_start_token_id: int
-    device: torch.device
-    padding: Union[bool, str] = True
+    # padding: Union[bool, str] = True
 
     def __call__(
             self, 
             features
-            # features: List[Dict[str, Union[List[int], torch.Tensor]]]
-        # ) -> Dict[str, torch.Tensor]:
     ):
         """
         Features format:
@@ -41,39 +38,27 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         #                           Process Input Features
         # ==========================================================================
 
-        # input_features = [{
-        #     "input_features": torch.tensor(feature["input_features"])
-        #     } for feature in features]
-        # Process input features - ensure they're proper tensors
         input_features = [{
-            "input_features": f["input_features"] if torch.is_tensor(f["input_features"]) 
-            else torch.tensor(f["input_features"])
-        } for f in features]
+            "input_features": feature["input_features"]
+        } for feature in features]
+
 
         batch = self.processor.feature_extractor.pad(
             input_features,
-            padding=self.padding,
+            padding=True,
             return_tensors="pt",
-        )
+        ) # FIXME - IF STILL OOM, TRY PAD WITH NUMPY
 
         # ====================================================================================
-        #                                   Process Labels
+        #                                   Process Input Features, Labels
         # ====================================================================================
-        
-        # labels_features = [
-        #     {
-        #         'input_ids': torch.tensor(feat['labels'])
-        #     } for feat in features
-        # ] # List[Dict[str, torch.Tensor]] - Labels does not need to be tensors
         labels_features = [{
-                'input_ids': f['labels'] if torch.is_tensor(f['labels']) 
-                else torch.tensor(f['labels'])
-            } for f in features
-        ]
-        
+            "input_ids": feature["labels"]
+        } for feature in features]
+
         labels_batch = self.processor.tokenizer.pad(
             labels_features,
-            padding=self.padding,
+            padding=True,
             return_tensors="pt",
         )
 
@@ -81,22 +66,9 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         labels = labels_batch['input_ids'].masked_fill(labels_batch['attention_mask'].ne(1), -100)
 
         # Remove decoder_start_token_id if present
-        if labels.size(1) > 0 and (labels[:, 0] == self.decoder_start_token_id).all():
-            labels = labels[:, 1:]
+        if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
+                    labels = labels[:, 1:]
         
         batch["labels"] = labels
 
-        # ====================================================================================
-        #                                   Finalize Batch
-        # ====================================================================================
-        # FIXME -Move to CPU until needed
-        # batch = {k: v.cpu() for k, v in batch.items()}
         return batch
-
-        # except Exception as e:
-        #     print(f"Error in DataCollator: {e}")
-        #     raise
-
-        # finally:
-        #     torch.cuda.empty_cache()
-

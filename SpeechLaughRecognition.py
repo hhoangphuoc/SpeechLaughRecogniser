@@ -8,7 +8,15 @@ import gc
 from dotenv import load_dotenv
 
 # For Fine-tuned Model--------------------------------
-from transformers import WhisperProcessor, WhisperTokenizer, WhisperFeatureExtractor, WhisperForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments, TrainerCallback
+from transformers import (
+    WhisperProcessor, 
+    WhisperTokenizer, 
+    WhisperFeatureExtractor, 
+    WhisperForConditionalGeneration, 
+    Seq2SeqTrainer, 
+    Seq2SeqTrainingArguments, 
+    TrainerCallback
+)
 from transformers.trainer_callback import EarlyStoppingCallback
 from torch.utils.tensorboard import SummaryWriter
 from torch.nn.parallel import DistributedDataParallel   #for distributed training
@@ -20,12 +28,13 @@ from huggingface_hub import login
 # Custom Modules
 from modules.SpeechLaughDataCollator import DataCollatorSpeechSeq2SeqWithPadding
 from modules.TrainerCallbacks import MemoryEfficientCallback, MetricsCallback, MultiprocessingCallback
-from preprocess import split_dataset, transform_number_words, transform_alignment_sentence
-import utils.params as prs
-
+from preprocess import (
+    split_dataset, 
+    transform_number_words, 
+    transform_alignment_sentence,
+    combined_dataset
+)
 # For metrics and transcript transformation before computing the metrics
-from utils import track_laugh_word_alignments
-import pandas as pd
 import evaluate
 import jiwer
 #====================================================================================================================================================
@@ -81,39 +90,22 @@ def SpeechLaughWhisper(args):
     feature_extractor = WhisperFeatureExtractor.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #feature extractor
     tokenizer = WhisperTokenizer.from_pretrained(args.model_path, cache_dir=args.pretrained_model_dir) #tokenizer
     # special_tokens = ["[LAUGHTER]", "[COUGH]", "[SNEEZE]", "[THROAT-CLEARING]", "[SIGH]", "[SNIFF]"]
-    special_tokens = ["[LAUGH]"]
+    # special_tokens = ["[LAUGH]"]
+    special_tokens = ["[laugh]"] #FIXME-SPECIAL TOKEN FOR LAUGHTER is [laugh] since we want to lowercase the laughter events  
     tokenizer.add_tokens(special_tokens)
     
 
     model = WhisperForConditionalGeneration.from_pretrained(
         args.model_path, 
         cache_dir=args.pretrained_model_dir,
-        #parameters for memory optimization
-        # torch_dtype=torch.float16,
-        device_map="auto",
-        low_cpu_mem_usage=True,
+        torch_dtype=torch.float16, #use mixed precision for faster computation
         )
-    #load the model from the checkpoint
-    # model = WhisperForConditionalGeneration.from_pretrained(
-    #     args.model_output_dir + "fine-tuned-1000steps",
-    #     device_map="auto",
-    # )
     
     model.resize_token_embeddings(len(tokenizer))
     model.generation_config.forced_decoder_ids = None
     model.config.use_cache = False # disable caching
     model.to(device) # move model to GPUs
     #-----------------------------------------------------------------------------------------------------------------------
-
-
-    #---------------------------------------------------------------------
-    #                               DEVICE CONFIGS
-    #---------------------------------------------------------------------
-    # clear GPU cache
-    torch.cuda.empty_cache()
-
-    #---------------------------------------------------------
-
 
     #Data Collator for padding 
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
@@ -129,21 +121,31 @@ def SpeechLaughWhisper(args):
     # Prepare Dataset with Batch_size = 1 (single example)\
     # TODO - The problem with `batch_size > 1` right now is that the input_features and labels are list of tensors, not tensors
     def prepare_dataset(batch):
+        """
+        This function is used to prepare the dataset for the model
+        Args:
+            batch: batch of data contains:
+                - audio: audio data
+                - transcript: transcript data
+                (with lowercase the laugh events, so that the transcript will be lower and the laughter events will be [laugh],
+                and speechlaugh is a normal word as speech variation) - FIXME - THIS PART WAS DONE IN PREPROCESSING?
+        Returns:
+            batch: batch of data
+        """
         audio = batch["audio"]
-        transcript = batch["transcript"]
+        transcript = batch["transcript"].lower()
+
 
         batch["input_features"] = feature_extractor(
             raw_speech=audio["array"],
             sampling_rate=audio["sampling_rate"],
-            # padding=True,
             return_tensors="pt",
-        ).input_features[0] #(n_mels, time_steps)
+        ).input_features[0] #[0] #(n_mels, time_steps)
 
         batch["labels"] = tokenizer(
             transcript,
-            # padding=True,
             return_tensors="pt",
-        ).input_ids[0] #(sequence_length)
+        ).input_ids[0] #[0] #(sequence_length)
 
         return batch
 
@@ -152,8 +154,8 @@ def SpeechLaughWhisper(args):
     #=================================================================================================   
     
     # Evaluation Metrics -----------
-    wer_metric = evaluate.load("wer", cache_dir=args.evaluate_dir) #Word Error Rate between the hypothesis and the reference transcript
-    f1_metric = evaluate.load("f1", cache_dir=args.evaluate_dir) #F1 score between the hypothesis and the reference transcript
+    # wer_metric = evaluate.load("wer", cache_dir=args.evaluate_dir) #Word Error Rate between the hypothesis and the reference transcript
+    # f1_metric = evaluate.load("f1", cache_dir=args.evaluate_dir) #F1 score between the hypothesis and the reference transcript
 
     def compute_metrics(pred):
         """
@@ -171,16 +173,15 @@ def SpeechLaughWhisper(args):
 
         #-----------------------------------------------------------------------
         # replace -100 with the pad_token_id
-        label_ids[label_ids == -100] = tokenizer.pad_token_id
+        # label_ids[label_ids == -100] = tokenizer.pad_token_id
 
         # we do not want to group tokens when computing the metrics
         # Reconstruct the REF and HYP transcripts at Decoder
-
         ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #REF transcript, contains laughter tokens [LAUGHTER] and [SPEECH_LAUGH]
         pred_transcripts = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #HYP transcript
         
-        # Transform the transcripts so that they are in the correct format
-        ref_transcripts = transform_alignment_sentence(ref_transcripts) #NOT LOWERCASE
+        # NORMALISED THE TRANSCRIPT
+        ref_transcripts = transform_alignment_sentence(ref_transcripts) #LOWERCASE  
 
         # when computing the metrics
         pred_transcripts = transform_number_words(pred_transcripts, reverse=True) #change eg. two zero to twenty
@@ -188,48 +189,101 @@ def SpeechLaughWhisper(args):
 
 
         # METRICS TO CALCULATE -------------------------------------------------
-        wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
-        f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
 
-        # TODO:TRY WITH OTHER METRICS ================================================
-        # Track laugh metrics for each transcript pair
-        # laugh_metrics = {
-        #     # 'wer': wer,
-        #     # 'f1': f1,
-        #     'lwhr': 0, #Laugh Word Hit Rate
-        #     'lthr': 0, #Laughter Token Hit Rate
-        #     'lwsr': 0, #Laugh Word Substitution Rate
-        #     'ltsr': 0, #Laughter Token Substitution Rate
-        #     'lwdr': 0, #Laugh Word Deletion Rate
-        #     'ltdr': 0, #Laughter Token Deletion Rate
-        #     'lwir': 0, #Laugh Word Insertion Rate
-        #     'ltir': 0 #Laughter Token Insertion Rate
-        # }
+        alignment = jiwer.process_words(
+            reference=ref_transcripts, 
+            hypothesis=pred_transcripts,
+        )
+        
+        #-----------------------------------------------------------------------------------------
+        # wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        # f1 = 100 * f1_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        #-----------------------------------------------------------------------------------------
 
+        #-----------------------------------------------------------------------------------------
+        #               CALCULATE F1 AND TOKEN RATE FOR [laugh] TOKEN MATCH
+        #               GO THROUGH EACH PAIR OF SENTENCE AND CALCULATE THE METRICS
+        #================================================================================== 
+
+        ref_words = ref_transcripts.split()
+        hyp_words = pred_transcripts.split()
+
+        # Get the laughter indices
+        eval_laugh_indices = {
+            i: {
+                'word': word,
+                'type': 'laugh', #'laugh' or 'speechlaugh' or 'laugh_intext'
+                'lower': word.lower()
+            }
+            for i, word in enumerate(ref_words)
+            if word == '[laugh]'  #either speech-laugh (word.upper) or laugh (word = [LAUGH])
+        }
+        token_stat_summary = {
+            'total_TH': 0,
+            'total_TS': 0,
+            'total_TD': 0,
+            'total_TI': 0,
+            'total_token_operations': 0, # total number of token operations in alignment process
+        }
+        for alignment in alignment.alignments:
+            for chunk in alignment:
+                # Get the aligning  words from reference and hypothesis
+                ref_start, ref_end = chunk.ref_start_idx, chunk.ref_end_idx
+                hyp_start, hyp_end = chunk.hyp_start_idx, chunk.hyp_end_idx
+
+                #==================================================================================
+                #                           ALIGNMENT CHUNK BY TYPE
+                #==================================================================================
+                if chunk.type == "equal":
+                    # If the index of the word 
+                    for i, (ref_idx, hyp_idx) in enumerate(zip(range(ref_start, ref_end), 
+                                                            range(hyp_start, hyp_end))):
+                        if ref_idx in eval_laugh_indices:
+                            token_stat_summary['total_TH'] += 1
+                elif chunk.type == "substitute":
+                    # Check for substitutions
+                    for i, ref_idx in enumerate(range(ref_start, ref_end)):
+                        if ref_idx in eval_laugh_indices:
+                            token_stat_summary['total_TS'] += 1
+                elif chunk.type == "delete":
+                    # Check for deletions
+                    for ref_idx in range(ref_start, ref_end):
+                        if ref_idx in eval_laugh_indices:
+                            token_stat_summary['total_TD'] += 1
+                elif chunk.type == "insert":
+                    # Check for insertions
+                    for hyp_idx in range(hyp_start, hyp_end):
+                        if hyp_idx in eval_laugh_indices:
+                            token_stat_summary['total_TI'] += 1
+
+            #------------------------------------------------------------------------------------------
         
-        # alignments = jiwer.process_words(
-        #     reference=ref_transcripts, 
-        #     hypothesis=pred_transcripts
-        # )
+        # CALCULATE F1 AND TOKEN RATE FOR [laugh] TOKEN MATCH
+        total_token_operations = token_stat_summary['total_TH'] + token_stat_summary['total_TS'] + token_stat_summary['total_TD']
         
-        # Calculate average laugh metrics across batch
-        # for ref, hyp, align in zip(ref_transcripts, pred_transcripts, alignments.alignments):
-        #     laugh_stats = track_laugh_word_alignments(ref, hyp, align) # will return "lwhr", "lthr", etc.
-        #     for metric in laugh_metrics.keys():
-        #         laugh_metrics[metric] += laugh_stats[metric]
+        th_rate = token_stat_summary['total_TH'] / total_token_operations if total_token_operations > 0 else 0
+        ts_rate = token_stat_summary['total_TS'] / total_token_operations if total_token_operations > 0 else 0
+        td_rate = token_stat_summary['total_TD'] / total_token_operations if total_token_operations > 0 else 0
+        ti_rate = token_stat_summary['total_TI'] / total_token_operations if total_token_operations > 0 else 0
+        #------------------------------------------------------------------------------------------
+
+        TP = token_stat_summary['total_TH']
+        FP = token_stat_summary['total_TS'] + token_stat_summary['total_TI']
+        FN = token_stat_summary['total_TD'] + token_stat_summary["total_TS"]
         
-        # Average the metrics
-        # batch_size = len(ref_transcripts)
-        # for metric in laugh_metrics:
-        #     laugh_metrics[metric] = laugh_metrics[metric] / batch_size * 100  # Convert to percentage
-        
-        #==============================================================================
-        
-        # Combine with existing metrics
+        # COMPUTE OVERALL WER, F1
+        wer = alignment.wer #FIXME - USING THIS IF WER IS NOT WORKING
+        precision = TP / (TP + FP) if TP + FP > 0 else 0
+        recall = TP / (TP + FN) if TP + FN > 0 else 0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall > 0 else 0
+
         return {
             "wer": wer,
             "f1": f1,
-            # **laugh_metrics  # Add all laugh metrics
+            "th": th_rate,
+            "ts": ts_rate,
+            "td": td_rate,
+            "ti": ti_rate,
         }
     #--------------------------------------------------------------------------------------------
 
@@ -240,7 +294,8 @@ def SpeechLaughWhisper(args):
     if args.processed_as_dataset:
         # Load the dataset
         print("Loading the dataset as HuggingFace Dataset...")
-        switchboard_dataset = load_from_disk(args.processed_file_path)
+        switchboard_dataset = load_from_disk(os.path.join(args.dataset_dir, "swb_full"))
+        print(f"Switchboard Dataset: {switchboard_dataset}")
         # Split the dataset into train and validation
         train_dataset, test_dataset = split_dataset(
             switchboard_dataset, 
@@ -259,15 +314,16 @@ def SpeechLaughWhisper(args):
     train_dataset = train_dataset.map(
         prepare_dataset,
         remove_columns=train_dataset.column_names,
-        load_from_cache_file=True,
+        load_from_cache_file=False,
         desc="Preparing Training Dataset",
-    ).with_format("torch", device=device) #load dataset as Tensor on GPUs
+    ).with_format("torch") #load dataset as Tensor on GPUs
+
     test_dataset = test_dataset.map(
         prepare_dataset,
         remove_columns=test_dataset.column_names,
-        load_from_cache_file=True,
+        load_from_cache_file=False,
         desc="Preparing Validation Dataset",
-    ).with_format("torch", device=device)
+    ).with_format("torch")
 
     # Verify dataset size
     print(f"Processed training dataset size: {len(train_dataset)}")
@@ -292,21 +348,21 @@ def SpeechLaughWhisper(args):
 
         
         #Training Configs--------------------------------
-        per_device_train_batch_size=4, 
-        gradient_accumulation_steps=4, 
-        learning_rate=1e-4, #1e-5
+        per_device_train_batch_size=16, #4
+        gradient_accumulation_steps=2, #4
+        learning_rate=5e-5, #or 1e-4
         weight_decay=0.01,
-        max_steps=5000, 
+        max_steps=6000, 
         warmup_steps=800,
 
 
         # Evaluation Configs--------------------------------
         eval_strategy="steps",
-        per_device_eval_batch_size=2,
-        eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
-        save_steps=500,
+        per_device_eval_batch_size=16,
+        eval_steps=1000, #evaluate the model every 1000 steps - Executed compute_metrics()
+        save_steps=1000,
         save_strategy="steps",
-        logging_steps=50,
+        logging_steps=100,
         save_total_limit=10, #save the last 10 checkpoints
         
         report_to=["tensorboard"], #enable tensorboard for logging
@@ -321,12 +377,12 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         tf32=True, #use TensorFloat32 for faster computation
-        torch_empty_cache_steps=500, #clear CUDA memory cache at checkpoints
+        torch_empty_cache_steps=1000, #clear CUDA memory cache at checkpoints
         #-----------------------------------------------------
 
         # Dataloader Configs--------------------------------
         # dataloader_num_workers=4, #default = 4 - can change larger if possible
-        # dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
+        dataloader_pin_memory=True, #use pinned memory for faster data transfer from CPUs to GPUs
         # dataloader_persistent_workers=True, #keep the workers alive for multiple training loops
         # dataloader_drop_last=True, #drop the last incomplete batch
         
@@ -347,11 +403,11 @@ def SpeechLaughWhisper(args):
     metrics_callback = MetricsCallback(
         output_dir=args.log_dir, # ./checkpoints
         save_steps=1000,
-        model_name="speechlaugh_subset10" #model name to saved to corresponding checkpoint
+        model_name="speechlaugh_10_percent" #model name to saved to corresponding checkpoint
     )
     # multiprocessing_callback = MultiprocessingCallback(num_proc=4)
     #--------------------------------------------------------------------------------------------
-
+    
     trainer = Seq2SeqTrainer(
         model=model,
         args=training_args,
@@ -373,11 +429,11 @@ def SpeechLaughWhisper(args):
 
     def cleanup_workers():
         """Cleanup function for workers"""
+        print("Cleaning CUDA memory cache...")
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize() #wait for all operations to complete (finished cache clear)
         gc.collect()
-
     #-------------------------------------------------------------------------------------------------
 
 
@@ -389,7 +445,13 @@ def SpeechLaughWhisper(args):
     # TRAINING THE MODEL
     #================================
     try:
+        cleanup_workers() #clear the CUDA memory cache
         trainer.train()
+        log_history = trainer.state.log_history
+        # save the log history to txt file
+        with open(os.path.join("./logs", "log_history.txt"), "w") as f:
+            for entry in log_history:
+                f.write(str(entry) + "\n")
     except Exception as e:
         print(f"Error in training: {e}")
         cleanup_workers() #clear the CUDA memory cache
@@ -397,7 +459,7 @@ def SpeechLaughWhisper(args):
         cleanup_workers() #clear the CUDA memory cache
 
     # Save the final model
-    model.save_pretrained(args.model_output_dir + "fine-tuned-from-original")
+    model.save_pretrained(args.model_output_dir + "speechlaugh-fine_tuned")
     #-----------------------------------------end of training ------------------------------
 
 
@@ -420,15 +482,11 @@ if __name__ == "__main__":
     
     # Data Configs
     parser.add_argument("--processed_as_dataset", default=False, type=bool, required=False, help="Whether or not process as Huggingface dataset")
-    parser.add_argument("--processed_file_path", default="./datasets/processed_dataset/", type=str, required=False, help="Path to the test.csv file")
-    
-    #FIXME: IF LOAD FROM CSV FILE, NEED THESE FILE PATH ----------------------------------
-    parser.add_argument("--train_file_path", default="./datasets/train_switchboard.csv", type=str, required=False, help="Path to the train.csv file")
-    parser.add_argument("--eval_file_path", default="./datasets/val_switchboard.csv", type=str, required=False, help="Path to the val.csv file")
+    parser.add_argument("--dataset_dir", default="./datasets/switchboard", type=str, required=False, help="Path to the dataset directory")
     #-------------------------------------------------------------------------------------
 
     # Model Configs
-    parser.add_argument("--model_path", default="openai/whisper-small", type=str, required=False, help="Select pretrained model")
+    parser.add_argument("--model_path", default="openai/whisper-large-v2", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--pretrained_model_dir", default="./ref_models/pre_trained/", type=str, required=False, help="Name of the model")
     parser.add_argument("--model_output_dir", default="./vocalwhisper/speechlaugh-whisper-small/", type=str, required=False, help="Path to the output directory")
     parser.add_argument("--log_dir", default="./checkpoints", type=str, required=False, help="Path to the log directory")
@@ -453,7 +511,5 @@ if __name__ == "__main__":
         SpeechLaughWhisper(args)
     except OSError as error:
         print(error)
-
-    # torch.backends.cudnn.benchmark = True
 
 

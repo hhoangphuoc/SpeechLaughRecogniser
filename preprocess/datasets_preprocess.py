@@ -84,8 +84,8 @@ def split_dataset(
         dataset,
         subset_ratio=1.0, # only take a subset of the dataset
         split_ratio=0.9,
-        split="both", # get both train and test set,
-        do_val_split=True # Whether to split the train set into train and validation set
+        split="both", # get both train, validation and test set,
+        train_val_split=True,
     ):
     """
     Split the dataset into train and validation set
@@ -110,22 +110,26 @@ def split_dataset(
     switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=True)
     train_switchboard = switchboard["train"]
     test_switchboard = switchboard["test"]
+    val_switchboard = None
+    if train_val_split:
+        train_val_switchboard = train_switchboard.train_test_split(test_size=0.1, shuffle=True)
+        train_switchboard = train_val_switchboard["train"]
+        val_switchboard = train_val_switchboard["test"]
 
-    if do_val_split:
-        # split the train set into train and validation set
-        train_switchboard, val_switchboard = train_switchboard.train_test_split(test_size=0.1, shuffle=True)
 
     if split == "train":
         return train_switchboard
     elif split == "test":
         return test_switchboard
+    elif split == "val":
+        return val_switchboard
     else:
-        if do_val_split:
-            print(f"Split = {split}, do_val_split = {do_val_split}. Returning train, validation and test set...")
-            return train_switchboard, val_switchboard, test_switchboard
-        else:
-            print(f"Split = {split}. Returning both train and test set...")
-            return train_switchboard, test_switchboard 
+        # if do_val_split:
+        #     print(f"Split = {split}, do_val_split = {do_val_split}. Returning train, validation and test set...")
+        #     return train_switchboard, val_switchboard, test_switchboard
+        # else:
+        print(f"Split = {split}, train_val_split = {train_val_split}. Returning both train, val and test set...")
+        return train_switchboard, val_switchboard, test_switchboard 
 
 #==========================================================================
 #==========================================================================
@@ -183,14 +187,35 @@ def push_dataset_to_hub(dataset, repo_name, token=None, private=True):
 if __name__ == "__main__":
     # login()
 
-    processed_dataset_path = "../datasets/switchboard/swb_laugh_intext/switchboard_dataset"
-
-    laugh_dataset = load_from_disk(processed_dataset_path)
+    # processed_dataset_path = 
+    print("Loaded switchboard full dataset...")
+    switchboard_full = load_from_disk("../datasets/switchboard/swb_full")
+    print("Switchboard dataset:", switchboard_full)
+    
+    # total_laughter = sum(1 for x in switchboard_full if '[LAUGH]' in x['transcript'])
+    # total_speechlaugh = sum(1 for word in switchboard_full if any(word.isupper() for word in x['transcript'].split()))
+    # total_speech = sum(1 for x in switchboard_full if not any(word.isupper() or word =='[LAUGH]' for word in x['transcript'].split()) )
+    total_laughter= 0
+    total_speechlaugh= 0
+    total_speech= 0
+    for example in switchboard_full:
+        for word in example['transcript'].split():
+            if word == '[LAUGH]':
+                total_laughter += 1
+            elif word.isupper() and word != '[LAUGH]':
+                total_speechlaugh += 1
+            else:
+                total_speech += 1
+    
+    print(f"Total laughter-intext: {total_laughter}")
+    print(f"Total speechlaugh: {total_speechlaugh}")
+    print(f"Total words: {total_speech}")
+    print("Complete!!---------------------------------------------------")
 
     #push to hub
-    push_dataset_to_hub(
-        dataset=laugh_dataset, 
-        repo_name="laugh-intext", # name will be hhoangphuoc/switchboard_laugh-intext
-        private=True
-    )
+    # push_dataset_to_hub(
+    #     dataset=switchboard_full, 
+    #     repo_name="switchboard", # name will be hhoangphuoc/switchboard_swb_full
+    #     private=True
+    # )
 
