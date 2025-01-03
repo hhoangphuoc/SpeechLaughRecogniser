@@ -1,8 +1,10 @@
 import os
-from datasets import DatasetDict, concatenate_datasets
-from datasets import load_from_disk
+import re
+from datasets import DatasetDict, concatenate_datasets, load_from_disk
 from huggingface_hub import login, HfApi, create_repo
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def combined_dataset(dataset_dir, save_dataset=False):
     """
@@ -13,15 +15,6 @@ def combined_dataset(dataset_dir, save_dataset=False):
     print(f"Datasets in the directory: {os.listdir(dataset_dir)}")
 
     combined_dataset = concatenate_datasets([load_from_disk(os.path.join(dataset_dir, dataset_type, "switchboard_dataset")) for dataset_type in os.listdir(dataset_dir)])
-    
-    # if lowercase_speechlaugh:
-    #     print("Lowercasing speechlaugh...")
-    #     combined_dataset = combined_dataset.map(
-    #         lambda x: {"transcript": x["transcript"].lower()},
-    #         remove_columns=combined_dataset.column_names,
-    #         load_from_cache_file=True,
-    #         desc="Lowercasing speechlaugh",
-    #     )
     print(f"Combined dataset: {combined_dataset}")
     if save_dataset:
         combined_dataset.save_to_disk(os.path.join(dataset_dir, "swb_full"))
@@ -78,14 +71,35 @@ def filter_speech_dataset(dataset):
     return swb_speech_dataset
 
 #==========================================================================
+def find_total_laughter_speechlaugh(dataset):
+    """
+    Find the total number of laughter, speechlaugh within the dataset
+    """
+    total_laughter= 0
+    total_speechlaugh= 0
+    for example in dataset:
+        for word in example['transcript'].split():
+            if word == '<LAUGH>':
+                total_laughter += 1
+            elif word.isupper() and word != '<LAUGH>':
+                total_speechlaugh += 1
+    print(f"Total laughter: {total_laughter}")
+    print(f"Total speechlaugh: {total_speechlaugh}")
+    return total_laughter, total_speechlaugh
+#==========================================================================
+
+
+
+#==========================================================================
 #           SPLIT THE HUGGINGFACE DATASET INTO TRAIN AND TEST SET
 #==========================================================================
 def split_dataset(
         dataset,
-        subset_ratio=1.0, # only take a subset of the dataset
+        subset_ratio=1.0,
         split_ratio=0.9,
         split="both", # get both train, validation and test set,
         train_val_split=True,
+        val_split_ratio=0.1, # only take a subset of the dataset
     ):
     """
     Split the dataset into train and validation set
@@ -98,24 +112,20 @@ def split_dataset(
     - test_dataset: HuggingFace Dataset object
     """
     switchboard = DatasetDict()
-    
-    # shuffle the dataset
-    dataset = dataset.shuffle(seed=42)
 
     # only take a subset of the dataset
     if subset_ratio < 1.0:
         print(f"Only taking {subset_ratio*100}% of the dataset")
         dataset = dataset.select(range(int(len(dataset)*subset_ratio)))
 
-    switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=True)
+    switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=False)
     train_switchboard = switchboard["train"]
     test_switchboard = switchboard["test"]
     val_switchboard = None
     if train_val_split:
-        train_val_switchboard = train_switchboard.train_test_split(test_size=0.1, shuffle=True)
+        train_val_switchboard = train_switchboard.train_test_split(test_size=val_split_ratio, shuffle=False)
         train_switchboard = train_val_switchboard["train"]
         val_switchboard = train_val_switchboard["test"]
-
 
     if split == "train":
         return train_switchboard
@@ -124,14 +134,9 @@ def split_dataset(
     elif split == "val":
         return val_switchboard
     else:
-        # if do_val_split:
-        #     print(f"Split = {split}, do_val_split = {do_val_split}. Returning train, validation and test set...")
-        #     return train_switchboard, val_switchboard, test_switchboard
-        # else:
         print(f"Split = {split}, train_val_split = {train_val_split}. Returning both train, val and test set...")
         return train_switchboard, val_switchboard, test_switchboard 
 
-#==========================================================================
 #==========================================================================
 
 
@@ -185,37 +190,14 @@ def push_dataset_to_hub(dataset, repo_name, token=None, private=True):
 
 #=====================================================================================================
 if __name__ == "__main__":
-    # login()
-
-    # processed_dataset_path = 
     print("Loaded switchboard full dataset...")
-    switchboard_full = load_from_disk("../datasets/switchboard/swb_full")
-    print("Switchboard dataset:", switchboard_full)
-    
-    # total_laughter = sum(1 for x in switchboard_full if '[LAUGH]' in x['transcript'])
-    # total_speechlaugh = sum(1 for word in switchboard_full if any(word.isupper() for word in x['transcript'].split()))
-    # total_speech = sum(1 for x in switchboard_full if not any(word.isupper() or word =='[LAUGH]' for word in x['transcript'].split()) )
-    total_laughter= 0
-    total_speechlaugh= 0
-    total_speech= 0
-    for example in switchboard_full:
-        for word in example['transcript'].split():
-            if word == '[LAUGH]':
-                total_laughter += 1
-            elif word.isupper() and word != '[LAUGH]':
-                total_speechlaugh += 1
-            else:
-                total_speech += 1
-    
-    print(f"Total laughter-intext: {total_laughter}")
-    print(f"Total speechlaugh: {total_speechlaugh}")
-    print(f"Total words: {total_speech}")
-    print("Complete!!---------------------------------------------------")
+    switchboard_complete = load_from_disk("../datasets/switchboard/swb")
+    print("Switchboard dataset:", switchboard_complete) 
 
-    #push to hub
-    # push_dataset_to_hub(
-    #     dataset=switchboard_full, 
-    #     repo_name="switchboard", # name will be hhoangphuoc/switchboard_swb_full
-    #     private=True
-    # )
+    push_dataset_to_hub(
+        dataset=switchboard_complete, 
+        repo_name="complete", # name will be hhoangphuoc/switchboard_complete
+        private=True
+    )
+    print("Pushed to Huggingface Datasets successfully!!---------------------------------------------------")
 

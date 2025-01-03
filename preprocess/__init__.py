@@ -9,6 +9,7 @@ from .datasets_preprocess import (
     filter_laughter_dataset,
     filter_speech_laugh_dataset,
     filter_speech_dataset,
+    find_total_laughter_speechlaugh,
     split_dataset,
     push_dataset_to_hub
 )
@@ -36,6 +37,8 @@ __all__ = [
     'filter_laughter_dataset',
     'filter_speech_laugh_dataset',
     'filter_speech_dataset',
+    'find_total_laughter_speechlaugh',
+    
     'split_dataset',
     'push_dataset_to_hub',
     # audio_process.py
