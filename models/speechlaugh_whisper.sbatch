@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=laughtokens-whisper-subset10-a100-no-dataloader     # Job name
+#SBATCH --job-name=speechlaugh-whisper-large-v2-custom-trainer     # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
@@ -22,19 +22,26 @@ export PYTHONWARNINGS="ignore"
 #===========================================================
 #               MULTIPROCESSING SETTINGS
 #===========================================================
-# export MKL_NUM_THREADS=8
-# export NUMEXPR_NUM_THREADS=8
-# export OMP_NUM_THREADS=8
-# export TOKENIZERS_PARALLELISM=false #disable parallel tokenization when using multiprocessing
+export MKL_NUM_THREADS=16   
+export NUMEXPR_NUM_THREADS=16
+export OMP_NUM_THREADS=16
+export TOKENIZERS_PARALLELISM=false #disable parallel tokenization when using multiprocessing
 
 #============================================================
 #                       CUDA SETTINGS
 #============================================================
-# Memory optimization for CUDA A40
-export NVIDIA_TF32_OVERRIDE=1 # enable TF32 for A40
-export CUDA_LAUNCH_BLOCKING=0
-export NCCL_P2P_DISABLE=1
-export CUDA_VISIBLE_DEVICES=0
+# # GPU Computations Optimizations
+# export NVIDIA_TF32_OVERRIDE=1 # enable TF32 for A40
+# export CUDA_LAUNCH_BLOCKING=0
+
+# # Enable TF32 for PyTorch   
+# export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# export TORCH_ALLOW_TF32_CUBLAS_OVERRIDE=1
+
+# FOR MULTI-GPU SETTINGS
+# export CUDA_LAUNCH_BLOCKING=0
+# export NCCL_P2P_DISABLE=1
+# export CUDA_VISIBLE_DEVICES=0
 
 #============================================================
 #                       PRINT INFO
@@ -55,12 +62,11 @@ echo "SLURM_CPUS_PER_TASK:          "$SLURM_CPUS_PER_TASK
 source activate .venv
 
 # Run your script with the appropriate arguments
-python SpeechLaughRecognition.py \
-    --processed_as_dataset True \
-    --dataset_dir ./datasets/switchboard \
+python SpeechLaughWhisper.py \
+    --dataset_dir ../datasets/switchboard \
     --model_path openai/whisper-large-v2 \
-    --model_output_dir ./vocalwhisper/speechlaugh-whisper-a100/ \
-    --log_dir ./logs \
-    --evaluate_dir ./evaluate
+    --model_output_dir ../fine-tuned/speechlaugh-whisper-large-v2/ \
+    --log_dir ../logs \
+    --evaluate_dir ../evaluate
 
 

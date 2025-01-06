@@ -75,17 +75,19 @@ def find_total_laughter_speechlaugh(dataset):
     """
     Find the total number of laughter, speechlaugh within the dataset
     """
-    total_laughter= 0
-    total_speechlaugh= 0
+    total_laugh = {
+        "laughter": 0,
+        "speechlaugh": 0
+    }
     for example in dataset:
         for word in example['transcript'].split():
             if word == '<LAUGH>':
-                total_laughter += 1
+                total_laugh["laughter"] += 1
             elif word.isupper() and word != '<LAUGH>':
-                total_speechlaugh += 1
-    print(f"Total laughter: {total_laughter}")
-    print(f"Total speechlaugh: {total_speechlaugh}")
-    return total_laughter, total_speechlaugh
+                total_laugh["speechlaugh"] += 1
+            else:
+                continue
+    return total_laugh
 #==========================================================================
 
 
@@ -118,12 +120,12 @@ def split_dataset(
         print(f"Only taking {subset_ratio*100}% of the dataset")
         dataset = dataset.select(range(int(len(dataset)*subset_ratio)))
 
-    switchboard = dataset.train_test_split(test_size=1-split_ratio, shuffle=False)
+    switchboard = dataset.train_test_split(test_size=1-split_ratio)
     train_switchboard = switchboard["train"]
     test_switchboard = switchboard["test"]
     val_switchboard = None
     if train_val_split:
-        train_val_switchboard = train_switchboard.train_test_split(test_size=val_split_ratio, shuffle=False)
+        train_val_switchboard = train_switchboard.train_test_split(test_size=val_split_ratio)
         train_switchboard = train_val_switchboard["train"]
         val_switchboard = train_val_switchboard["test"]
 
@@ -194,10 +196,10 @@ if __name__ == "__main__":
     switchboard_complete = load_from_disk("../datasets/switchboard/swb")
     print("Switchboard dataset:", switchboard_complete) 
 
-    push_dataset_to_hub(
-        dataset=switchboard_complete, 
-        repo_name="complete", # name will be hhoangphuoc/switchboard_complete
-        private=True
-    )
-    print("Pushed to Huggingface Datasets successfully!!---------------------------------------------------")
+    # push_dataset_to_hub(
+    #     dataset=switchboard_complete, 
+    #     repo_name="complete", # name will be hhoangphuoc/switchboard_complete
+    #     private=True
+    # )
+    # print("Pushed to Huggingface Datasets successfully!!---------------------------------------------------")
 

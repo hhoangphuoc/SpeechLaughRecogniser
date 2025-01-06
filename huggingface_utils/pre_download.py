@@ -3,24 +3,32 @@ import evaluate
 from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
-    
-
+    Wav2Vec2ForCTC,
 )
+import evaluate
 
 if __name__ == "__main__":
     print("Downloading pre-trained model...")
     # Download the pre-trained model
     try:
-        processor = WhisperProcessor.from_pretrained(
-            "openai/whisper-large-v2",
-        cache_dir="../ref_models/pre_trained",
-            force_download=True,
-        )
-        model = WhisperForConditionalGeneration.from_pretrained(
-            "openai/whisper-large-v2",
-        cache_dir="../ref_models/pre_trained",
-            force_download=True,
-        )
+        # processor = WhisperProcessor.from_pretrained(
+        #     "openai/whisper-large-v2",
+        # cache_dir="../ref_models/pre_trained",
+        #     force_download=True,
+        # )
+        # model = WhisperForConditionalGeneration.from_pretrained(
+        #     "openai/whisper-large-v2",
+        # cache_dir="../ref_models/pre_trained",
+        #     force_download=True,
+        # )
+        # model = Wav2Vec2ForCTC.from_pretrained(
+        #     "facebook/wav2vec2-large-lv60",
+        #     cache_dir="../ref_models/pre_trained",
+        #     force_download=True,
+        # )
+        # wer_metrics = evaluate.load("wer", cache_dir="../ref_models/metrics")
+        f1_metrics = evaluate.load("f1", cache_dir="../ref_models/metrics")
+
     except Exception as e:
         print(f"Error downloading pre-trained model: {e}")
         exit(1)

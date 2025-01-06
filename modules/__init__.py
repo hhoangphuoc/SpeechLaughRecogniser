@@ -3,7 +3,6 @@ from .SpeechLaughWhisperDataCollator import SpeechLaughWhisperDataCollator
 from .TrainerCallbacks import (
     MemoryEfficientCallback, 
     MetricsCallback, 
-    MultiprocessingCallback, 
 )
 
 from .CustomTrainer import CustomSeq2SeqTrainer
@@ -13,6 +12,5 @@ __all__ = [
     'SpeechLaughWhisperDataCollator',
     'MemoryEfficientCallback',
     'MetricsCallback',
-    'MultiprocessingCallback',
     'CustomSeq2SeqTrainer',
 ]

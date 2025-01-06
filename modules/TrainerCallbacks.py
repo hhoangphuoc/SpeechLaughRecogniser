@@ -10,34 +10,13 @@ from transformers import TrainerCallback
 #------------------------------------------------------------------------------------------------
 
 #========================================================================================================================
-
-#========================================================================================================================
-#                   MULTIPROCESSING CALLBACK
-#========================================================================================================================
-class MultiprocessingCallback(TrainerCallback):
-    def __init__(self, num_proc):
-        self.num_proc = num_proc
-        
-    def on_train_begin(self, args, state, control, **kwargs):
-        torch.set_num_threads(self.num_proc)
-        print(f"\nTraining started with {self.num_proc} processes")
-        print(f"CPU cores available: {multiprocessing.cpu_count()}")
-        print(f"PyTorch threads: {torch.get_num_threads()}")
-        
-    def on_train_end(self, args, state, control, **kwargs):
-        # Cleanup multiprocessing resources
-        torch.set_num_threads(1)
-#========================================================================================================================
-
-
-#========================================================================================================================
 #                   Memory Efficient Callback
 #========================================================================================================================
 class A40MemoryMonitor:
     def __init__(self, threshold_gb=20):  # Set high threshold for A100
         self.threshold_gb = threshold_gb
         self.peak_memory = 0
-        self.allocation_threshold = 0.9 #~90% of allocated memory
+        self.allocation_threshold = 0.8 #~80% of allocated memory
         
     def check_memory(self):
         """
@@ -55,7 +34,11 @@ class A40MemoryMonitor:
         print(f"GPU Memory cached: {current_cached_memory:.2f}GB")
         print(f"Peak GPU Memory: {self.peak_memory:.2f}GB")
         
+                        # Print memory stats for debugging
+        print(f"Checked Memory:  Allocated: {torch.cuda.memory_allocated() / 1e9:.2f}GB ; Reserved: {torch.cuda.memory_reserved() / 1e9:.2f}GB")
+        
         allocated_ratio = current_memory / max_memory_allocated
+
         # Warning if approaching threshold
         if current_memory > self.threshold_gb:
             print(f"WARNING: High memory usage ({current_memory:.2f}GB > {self.threshold_gb}GB) - Cleaning up memory ...")
@@ -64,8 +47,6 @@ class A40MemoryMonitor:
             print(f"CRITICAL: High memory usage ({allocated_ratio:.2f} > {self.allocation_threshold:.2f}) - Deep cleaning up memory ...")
             self.deep_cleanup()
         
-        # Print memory stats for debugging
-        print(f"Checked Memory:  Allocated: {torch.cuda.memory_allocated() / 1e9:.2f}GB ; Reserved: {torch.cuda.memory_reserved() / 1e9:.2f}GB")
     
     def soft_cleanup(self):
         torch.cuda.empty_cache()
@@ -95,7 +76,7 @@ class MemoryEfficientCallback(TrainerCallback):
         self.memory_monitor = A40MemoryMonitor()
         
     def on_step_end(self, args, state, control, **kwargs):
-        if state.global_step % 50 == 0:  # Check CUDA memory every 100 steps - more frequent
+        if state.global_step % 100 == 0:  # Check CUDA memory every 100 steps - more frequent
             # manage_memory()
             self.memory_monitor.check_memory() #check memory every 100 steps and clean up if necessary
 
@@ -130,7 +111,7 @@ class MetricsCallback(TrainerCallback):
         if not os.path.exists(file_path):
             with open(file_path, mode='w', newline='') as file:
                 writer = csv.writer(file)
-                writer.writerow(['step', 'epoch', 'training_loss', 'validation_loss', 'wer', 'f1'])
+                writer.writerow(['step', 'epoch', 'training_loss', 'validation_loss', 'wer'])
 
     def on_evaluate(self, args, state, control, metrics=None, **kwargs):
         print(f"Metrics callback: {metrics}")
@@ -142,175 +123,5 @@ class MetricsCallback(TrainerCallback):
                 state.log_history[-1].get('loss',0), #training loss
                 metrics.get('eval_loss', ''), #validation loss
                 metrics.get('eval_wer', ''), #wer
-                metrics.get('eval_f1', ''), #f1
+                # metrics.get('eval_f1', ''), #f1
             ])
-
-
-#========================================================================================================================
-#                   Metrics Callback
-#========================================================================================================================
-# class MetricsCallback(TrainerCallback):
-#     """
-#     Callback to save training and evaluation metrics to CSV every 1000 steps.
-#     """
-#     def __init__(self, 
-#                  output_dir, 
-#                  save_steps=1000, 
-#                  model_name="speechlaugh_whisper"):
-#         self.output_dir = output_dir
-#         self.save_steps = save_steps
-    
-#         self.model_name = model_name
-#         self.last_save_step = 0
-        
-#         # Initialize DataFrame with columns
-#         self.metrics_df = pd.DataFrame(columns=[
-#             # training metrics
-#             "step", 
-#             "epoch", 
-#             "timestamp",
-#             "training_loss", 
-#             "validation_loss",
-
-#             # general word-level metrics
-#             "wer",
-#             "f1",
-#             # "th",
-#             # "ts",
-#             # "td",
-#             # "ti",
-#         ])
-        
-        
-#         # Create tensorboard writer
-#         self.writer = SummaryWriter(
-#             log_dir=os.path.join(output_dir, "tensorboard"))
-        
-#         # Ensure output directory exists
-#         os.makedirs(output_dir, exist_ok=True)
-#         self.current_eval_metrics = {}  # Add this to store latest evaluation metrics
-    
-#     def on_evaluate(self, args, state, control, metrics=None, **kwargs):
-#         """Called after evaluation."""
-#         if metrics is None:
-#             return
-#         print(f"Evaluation metrics: {metrics}")
-
-#         new_metrics = {
-#             "step": state.global_step,
-#             "epoch": state.epoch,
-#             "training_loss": state.log_history[-1].get('loss',0),
-#             # "validation_loss": state.eval_loss,
-#             "timestamp": time.strftime("%Y%m%d_%H%M%S"),
-#             "wer": metrics.get('eval_wer',0),
-#             "f1": metrics.get('eval_f1',0),
-#             # "th": metrics.get('eval_th',0),
-#             # "ts": metrics.get('eval_ts',0),
-#             # "td": metrics.get('eval_td',0),
-#             # "ti": metrics.get('eval_ti',0),
-#         }
-
-#         self.metrics_df = pd.concat([self.metrics_df, pd.DataFrame([new_metrics])], ignore_index=True)
-
-#         # Store the evaluation metrics
-#         self.current_eval_metrics = metrics
-
-#         # save evaluation metrics to csv
-#         self.save_metrics(metrics)
-        
-#         # Update TensorBoard with evaluation metrics
-#         for key, value in metrics.items():
-#             if isinstance(value, (int, float)):
-#                 self.writer.add_scalar(f"eval/{key}", value, state.global_step)
-        
-    # def on_step_end(self, args, state, control, **kwargs):
-    #     """
-    #     Called at the end of each step.
-    #     and save metrics every save_steps (1000 steps)
-    #     and save model checkpoint every save_steps (1000 steps)
-        
-    #     """
-    #     current_step = state.global_step
-        
-    #     if current_step % self.save_steps == 0 and current_step != self.last_save_step:
-    #         print(f"Saving model checkpoint at step {current_step}")
-    #         self.last_save_step = current_step
-    #         #=======================================================================================
-    #         #  SAVE MODEL CHECKPOINTS EVERY SAVE_STEPS (1000 STEPS)
-    #         #=======================================================================================
-            
-    #         # Add model saving with custom name
-    #         checkpoint_dir = os.path.join(self.output_dir, "save_models")
-    #         os.makedirs(checkpoint_dir, exist_ok=True)
-            
-    #         checkpoint_name = f"{self.model_name}_step_{current_step}"
-    #         checkpoint_path = os.path.join(checkpoint_dir, checkpoint_name)
-            
-    #         # Save model checkpoint
-    #         if hasattr(state, "trainer") and state.trainer is not None:
-    #             state.trainer.save_model(checkpoint_path) #~trainer.save_model()
-                
-    #             # Optionally save optimizer and scheduler
-    #             torch.save({
-    #                 'step': current_step,
-    #                 'model_state_dict': state.trainer.model.state_dict(),
-    #                 'optimizer_state_dict': state.trainer.optimizer.state_dict(),
-    #             }, f"{checkpoint_path}/checkpoint.pt")
-
-    # #===============================================================================================
-
-
-    # #===============================================================================================
-    # #               WRITE TO TENSORBOARD 
-    # #===============================================================================================
-    # def _log_to_tensorboard(self, metrics, step):
-    #     """Helper method to log metrics to TensorBoard."""
-    #     for key, value in metrics.items():
-    #         if isinstance(value, (int, float)) and key != "step" and key != "epoch":
-    #             self.writer.add_scalar(f"train/{key}", value, step)
-
-    # #--------------------------------------------------------------------------------------------
-
-    # def save_metrics(self):
-    #     """Save metrics to CSV file with timestamp in filename."""
-    #     # Create metrics directory if it doesn't exist
-    #     metrics_dir = os.path.join(self.output_dir, "metrics")
-    #     os.makedirs(metrics_dir, exist_ok=True)
-        
-    #     # Save with timestamp
-    #     timestamp = time.strftime("%Y%m%d_%H%M%S")
-    #     csv_path = os.path.join(metrics_dir, f"training_metrics_{timestamp}.csv")
-        
-    #     # Save current metrics
-    #     self.metrics_df.to_csv(csv_path, index=False)
-        
-    #     # Also save to a fixed filename for easy access to latest metrics
-    #     latest_csv_path = os.path.join(metrics_dir, "training_metrics_latest.csv")
-    #     self.metrics_df.to_csv(latest_csv_path, index=False)
-    # #--------------------------------------------------------------------------------------------
-
-
-
-    # #===============================================================================================
-    # #               SAVE FINAL METRICS AND CLOSE TENSORBOARD WRITER
-    # #===============================================================================================
-    # def on_train_begin(self, args, state, control, **kwargs):
-    #     """Called at the beginning of training."""
-    #     print("\nMetrics tracking started.")
-    #     print(f"Saving metrics every {self.save_steps} steps")
-    #     print(f"Metrics will be saved to: {self.output_dir}/metrics/") # ./logs/metrics/
-    
-    # def on_train_end(self, args, state, control, **kwargs):
-    #     """Called at the end of training."""
-    #     # Save final metrics
-    #     self.save_metrics()
-        
-    #     # Close TensorBoard writer
-    #     self.writer.close()
-        
-    #     print("\nTraining completed. Final metrics saved -----------------------------------")
-    #     print(f"Total steps: {state.global_step}")
-    #     print(f"Final WER: {self.metrics_df['wer'].iloc[-1]:.2f}")
-    #     print(f"Final F1: {self.metrics_df['f1'].iloc[-1]:.2f}")
-    #     # print(f"Final Laugh Word Hit Rate: {self.metrics_df['lwhr'].iloc[-1]:.2f}")
-    #     # print(f"Final Laughter Token Hit Rate: {self.metrics_df['lthr'].iloc[-1]:.2f}")
