@@ -9,3 +9,7 @@ cache_data/
 datasets/
 ref_models/
 .env
+**/model.safetensors
+**/*.pth
+**/*.pt
+**/*.bin
