@@ -95,3 +95,8 @@ path=/deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/swb_speechlaugh
 cd /path/to/storage
 du -sh * | sort -hr
 ```
+> To remove datasets store in cache files in the same place as the data storage, cause by the flag: `load_from_cache_file=True` use the following to remove:
+```bash
+cd /path/to/storage
+rm -rf cache-*
+```

@@ -53,48 +53,52 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
             with torch.no_grad():
                 outputs = self.model(**batch)
                 predictions = outputs.logits.argmax(dim=-1)
-                all_preds.extend(predictions.cpu().numpy()) # Move to cpu for metrics computation
+                all_preds.extend(predictions.cpu().numpy()) # Move to CPU for metrics computation
             
                 # Handle label padding
                 labels = batch['labels']
                 labels[labels == -100] = self.tokenizer.pad_token_id
-                all_labels.extend(labels.cpu().numpy()) # Move to cpu for metrics computation
+                all_labels.extend(labels.cpu().numpy()) # Move to CPU for metrics computation
                 
 
                 #compute loss
                 val_loss = outputs.loss if isinstance(outputs, dict) else outputs[0]
                 val_losses.append(val_loss.item())
             
-            if step % 10 == 0:
+            if step % 100 == 0:
                 torch.cuda.empty_cache()
-                print(f"Step {step}/{len(eval_dataloader)}")
                 gc.collect()
+        print("Finish moving data to CPU for evaluation...")
 
+        avg_loss = np.mean(val_losses)
+        print(f"Average loss: {avg_loss:.4f}")
+
+        if self.compute_metrics is not None:
+            print("Passing data to compute_metrics...")
             
-            avg_loss = np.mean(val_losses)
-            print(f"Average loss: {avg_loss:.4f}")
+            # convert each HYP and REF transcript to numpy arrays for metric computation 
+            # as `all_preds` already in CPU
+            all_preds = [np.array(pred) for pred in all_preds]
+            all_labels = [np.array(label) for label in all_labels]
 
-            if self.compute_metrics is not None:
-                print("Computing metrics...")
-                
-                # move to cpu for metrics computation   
-                all_preds = [pred.cpu().numpy() for pred in all_preds]
-                all_labels = [label.cpu().numpy() for label in all_labels]
+            # convert `all_preds` and `all_labels` to numpy arrays
+            all_preds = np.array(all_preds)
+            all_labels = np.array(all_labels)
 
-                # convert all_preds and all_labels to numpy arrays
-                all_preds = np.array(all_preds)
-                all_labels = np.array(all_labels)
-                #compute metrics
+            #compute metrics
+            metrics = self.compute_metrics(EvalPrediction(predictions=all_preds, label_ids=all_labels), avg_loss)
+            
+            # Create output metrics with prefix
+            if metrics is not None:
+                evaluation_metrics = {f"eval_{k}": v for k, v in metrics.items()}
+                print(f"Output Metrics: {evaluation_metrics}")
+            else:
+                print("No metrics was computed")
+                evaluation_metrics = {}
 
-                metrics = self.compute_metrics(EvalPrediction(predictions=all_preds, label_ids=all_labels), avg_loss)
-                prefix = "eval_"
-                for k, v in metrics.items():
-                    metrics[f"{prefix}_{k}"] = v
-                
-                print(f"Metrics: {metrics}")
-            elif self.compute_metrics is None:
-                print("No metrics to compute")
-                return {}
+        elif self.compute_metrics is None:
+            print("compute_metrics function is None")
+            return {}
 
-        return metrics
+        return evaluation_metrics
 

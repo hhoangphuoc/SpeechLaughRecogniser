@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
+import gc
 import random
 import re
 import warnings
@@ -122,11 +123,16 @@ def show_random_elements(dataset, num_examples=10):
 
 
 
-# ================================== LOAD DATASET ===========================================
+# ================================== LOAD DATASET ============================================================
 # switchboard = load_dataset("hhoangphuoc/switchboard")
 switchboard = load_from_disk("../datasets/switchboard/swb")
 print(switchboard)
 
+#Shuffle the dataset
+switchboard = switchboard.shuffle(seed=42)
+
+# Transform the <LAUGH> token into "<" for CTC
+switchboard = switchboard.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC")
 
 swb_train, swb_eval, swb_test = split_dataset(
     switchboard, 
@@ -143,16 +149,31 @@ show_random_elements(swb_eval, num_examples=10)
 print("Test Dataset (20%):", swb_test)
 show_random_elements(swb_test, num_examples=10)
 
-# laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-# speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-# print(f"Laughter Train/Test ratio: {laughter_ratio}")
-# print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
-# print("------------------------------------------------------")
-# # # Save test dataset separately
-# if np.abs(laughter_ratio - speechlaugh_ratio) < 0.1:
-# swb_test.save_to_disk("../datasets/switchboard/swb_test")
-# else:
-#     print("Train/Test dataset is not balanced. Consider re-split the dataset!")
+
+# FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ======================================================
+total_laugh_train = find_total_laughter_speechlaugh(swb_train)
+print("Total Laughter and Speechlaugh in Train Dataset: ", total_laugh_train)
+
+total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
+print("Total Laughter and Speechlaugh in Validation Dataset: ", total_laugh_val)
+
+total_laugh_test = find_total_laughter_speechlaugh(swb_test)
+print("Total Laughter and Speechlaugh in Test Dataset: ", total_laugh_test)
+
+laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
+speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
+print(f"Laughter Train/Test ratio: {laughter_ratio}")
+print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
+print("------------------------------------------------------")
+
+# # Save test dataset separately
+if np.abs(laughter_ratio - speechlaugh_ratio) < 0.3:
+    print("Train/Test dataset is balanced. Saving to disk...")
+    swb_train.save_to_disk("../datasets/switchboard/wav2vec/swb_train")
+    swb_eval.save_to_disk("../datasets/switchboard/wav2vec/swb_eval")
+    swb_test.save_to_disk("../datasets/switchboard/wav2vec/swb_test")
+else:
+    print("Train/Test dataset is not balanced. Consider re-split the dataset!")
 
 # ================================== PREPROCESSING ==============================================
 # remove special characters
@@ -192,14 +213,14 @@ vocab_dict["[PAD]"] = len(vocab_dict)
 print("Vocab Dictionary:",vocab_dict)
 
 # Save the vocab
-with open("vocab.json", "w") as vocab_file:
+with open("vocab_b64.json", "w") as vocab_file:
     json.dump(vocab_dict, vocab_file)
 
 #================================================================================================
 
 
 # CONFIGURE MODEL COMPONENTS
-tokenizer = Wav2Vec2CTCTokenizer("./vocab.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+tokenizer = Wav2Vec2CTCTokenizer("./vocab_b64.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
 feature_extractor = Wav2Vec2FeatureExtractor(
     feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True
 )
@@ -268,23 +289,29 @@ model.freeze_feature_encoder()
 
 # ================================== TRAINING ARGUMENTS ============================================
 training_args = TrainingArguments(
-  output_dir="../fine-tuned/wav2vec2/",
-  group_by_length=True,
-  per_device_train_batch_size=16,
-  gradient_accumulation_steps=1, 
-  evaluation_strategy="steps",
-  num_train_epochs=80,
-  gradient_checkpointing=True,
-  fp16=True,
-  adam_beta2=0.98,
-  save_steps=50,
-  eval_steps=50,
-  logging_steps=50,
-  learning_rate=7e-5,
-  warmup_ratio=0.1,
-  save_total_limit=2,
-#   torch_empty_cache_steps=100 # Force garbage collection if necessary
-  load_best_model_at_end=True
+    output_dir="../fine-tuned/wav2vec2-batch64/",
+    group_by_length=True,
+    per_device_train_batch_size=64, #16
+    gradient_accumulation_steps=1, 
+    evaluation_strategy="steps",
+    num_train_epochs=40,
+
+    gradient_checkpointing=True,
+    fp16=True,
+    adam_beta2=0.98,
+
+    save_steps=500, #50
+    eval_steps=500, #50
+    logging_steps=100, #50
+
+    learning_rate=1e-4, #7e-5
+    weight_decay=0.005,
+    warmup_ratio=0.1,
+    
+    save_total_limit=2,
+    
+    #   torch_empty_cache_steps=100 # Force garbage collection if necessary
+    load_best_model_at_end=True
 )
 
 trainer = Trainer(
@@ -298,8 +325,34 @@ trainer = Trainer(
 )
 
 # ================================== TRAINING ============================================
+
+#====================================
+#   MONITOR GPU MEMORY
+#====================================
+
+def cleanup_workers():
+    """Cleanup function for workers"""
+    print("Cleaning CUDA memory cache...")
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    gc.collect()
+
+try:
+    print("Training the model...")
+    trainer.train()
+
+except Exception as e:
+    print(f"Error in training: {e}")
+    cleanup_workers() #clear the CUDA memory cache
+finally:
+    log_history = trainer.state.log_history
+    # save the log history to txt file
+    with open(os.path.join("../logs/wav2vec2-batch64", "log_history.txt"), "w") as f:
+        for entry in log_history:
+            f.write(str(entry) + "\n")
+    cleanup_workers() #clear the CUDA memory cache
 trainer.train()
 
-trainer.save_model("../fine-tuned/wav2vec2/wav2vec2-large-lv60-speechlaugh-swb")
+trainer.save_model("../fine-tuned/wav2vec2-batch64/wav2vec2-large-lv60-speechlaugh-swb")
 # trainer.push_in_progress = None
 # trainer.push_to_hub("wav2vec2-large-lv60-speechlaugh-swb")

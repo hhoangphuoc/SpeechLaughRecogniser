@@ -114,18 +114,59 @@ def SpeechLaughWhisper(args):
     #===============================================================================================
     #                           LOAD DATASET AND PROCESSING 
     #===============================================================================================
-    # Load the dataset
-    print("Loading the dataset as HuggingFace Dataset...")
-    switchboard_dataset = load_from_disk(os.path.join(args.dataset_dir, "swb"))
-    print(f"Switchboard Dataset: {switchboard_dataset}")
-    # Split the dataset into train and validation
-    swb_train, swb_eval, swb_test = split_dataset(
-        switchboard_dataset, 
-        split_ratio=0.8, 
-        split="both",
-        train_val_split=True,
-        val_split_ratio=0.1
-    )
+    
+    # =================== NOT USED BELOW ANYMORE ===============================================
+
+    # # Load from entire dataset + splitted
+
+    # print("Loading the dataset as HuggingFace Dataset...")
+    # switchboard_dataset = load_from_disk(os.path.join(args.dataset_dir, "swb_all"))
+    # print(f"Switchboard Dataset: {switchboard_dataset}")
+
+    # # shuffle the dataset
+    # switchboard_dataset = switchboard_dataset.shuffle(seed=42)
+
+    # # Split the dataset into train and validation
+    # swb_train, swb_eval, swb_test = split_dataset(
+    #     switchboard_dataset, 
+    #     split_ratio=0.8, 
+    #     split="both",
+    #     train_val_split=True,
+    #     val_split_ratio=0.1
+    # )
+
+    # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ================
+    # total_laugh_train = find_total_laughter_speechlaugh(swb_train)
+    # print("Total Laughter and Speechlaugh in Train Dataset: ", total_laugh_train)
+
+    # total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
+    # print("Total Laughter and Speechlaugh in Validation Dataset: ", total_laugh_val)
+
+    # total_laugh_test = find_total_laughter_speechlaugh(swb_test)
+    # print("Total Laughter and Speechlaugh in Test Dataset: ", total_laugh_test)
+
+    # laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
+    # speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
+    # print(f"Laughter Train/Test ratio: {laughter_ratio}")
+    # print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
+    
+    # if np.abs(laughter_ratio - speechlaugh_ratio) < 0.4:
+    #     print("The laughter and speechlaugh ratio is balanced for Train/Test")
+    #     swb_train.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_train"))
+    #     swb_eval.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_eval"))
+    #     swb_test.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_test"))
+    # else:
+    #     print("Laughter and speechlaugh ratio is not balanced for Train/Test")
+    
+    # print("--------------------------------------------------------------------")
+
+    #=========================================== NOT USED ABOVE ANYMORE ===================================
+
+    # ================= Load from splitted dataset ==========================
+    swb_train = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_train"))
+    swb_eval = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_eval"))
+    swb_test = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_test"))
+
     print("Dataset Loaded....\n")
     print(f"Train Dataset (70%): {swb_train}")
     print(f"Validation Dataset (10%): {swb_eval}")
@@ -140,18 +181,6 @@ def SpeechLaughWhisper(args):
 
     THIS STEP WOULD BE DONE IN `prepare_dataset`
     """
-
-    # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET
-    total_laugh_train = find_total_laughter_speechlaugh(swb_train)
-    total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
-    total_laugh_test = find_total_laughter_speechlaugh(swb_test)
-
-    laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-    speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-    print(f"Laughter Train/Test ratio: {laughter_ratio}")
-    print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
-    print("------------------------------------------------------")
-
     #===============================================================================================
     #                       DATASET MAPPING TO TENSORS
     #===============================================================================================
@@ -195,14 +224,14 @@ def SpeechLaughWhisper(args):
     swb_train = swb_train.map(
         prepare_dataset,
         remove_columns=swb_train.column_names,
-        load_from_cache_file=True,
+        # load_from_cache_file=True,
         desc="Preparing Training Dataset",
     )
 
     swb_eval = swb_eval.map(
         prepare_dataset,
         remove_columns=swb_eval.column_names,
-        load_from_cache_file=True,
+        # load_from_cache_file=True,
         desc="Preparing Validation Dataset",
     )
 
@@ -214,9 +243,6 @@ def SpeechLaughWhisper(args):
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
 
-    #===============================================================================================
-    #                           COMPUTE METRICS
-    #===============================================================================================
     #=================================================================================================
     #                       COMPUTE METRICS 
     #=================================================================================================   
@@ -268,99 +294,9 @@ def SpeechLaughWhisper(args):
         #-----------------------------------------------------------------------------------------
         wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
         #-----------------------------------------------------------------------------------------
-
-
-    #     # # METRICS TO CALCULATE -------------------------------------------------
-
-    #     # # alignment = jiwer.process_words(
-    #     # #     reference=ref_transcripts, 
-    #     # #     hypothesis=pred_transcripts,
-    #     # # )
-        
-
-    #     # #-----------------------------------------------------------------------------------------
-    #     # #               CALCULATE F1 AND TOKEN RATE FOR [laugh] TOKEN MATCH
-    #     # #               GO THROUGH EACH PAIR OF SENTENCE AND CALCULATE THE METRICS
-    #     # #================================================================================== 
-
-    #     # ref_words = ref_transcripts.split()
-    #     # hyp_words = pred_transcripts.split()
-
-    #     # # Get the laughter indices
-    #     # eval_laugh_indices = {
-    #     #     i: {
-    #     #         'word': word,
-    #     #         'type': 'laugh', #'laugh' or 'speechlaugh' or 'laugh_intext'
-    #     #         'lower': word.lower()
-    #     #     }
-    #     #     for i, word in enumerate(ref_words)
-    #     #     if word == '[laugh]'  #either speech-laugh (word.upper) or laugh (word = [LAUGH])
-    #     # }
-    #     # token_stat_summary = {
-    #     #     'total_TH': 0,
-    #     #     'total_TS': 0,
-    #     #     'total_TD': 0,
-    #     #     'total_TI': 0,
-    #     #     'total_token_operations': 0, # total number of token operations in alignment process
-    #     # }
-    #     # for alignment in alignment.alignments:
-    #     #     for chunk in alignment:
-    #     #         # Get the aligning  words from reference and hypothesis
-    #     #         ref_start, ref_end = chunk.ref_start_idx, chunk.ref_end_idx
-    #     #         hyp_start, hyp_end = chunk.hyp_start_idx, chunk.hyp_end_idx
-
-    #     #         #==================================================================================
-    #     #         #                           ALIGNMENT CHUNK BY TYPE
-    #     #         #==================================================================================
-    #     #         if chunk.type == "equal":
-    #     #             # If the index of the word 
-    #     #             for i, (ref_idx, hyp_idx) in enumerate(zip(range(ref_start, ref_end), 
-    #     #                                                     range(hyp_start, hyp_end))):
-    #     #                 if ref_idx in eval_laugh_indices:
-    #     #                     token_stat_summary['total_TH'] += 1
-    #     #         elif chunk.type == "substitute":
-    #     #             # Check for substitutions
-    #     #             for i, ref_idx in enumerate(range(ref_start, ref_end)):
-    #     #                 if ref_idx in eval_laugh_indices:
-    #     #                     token_stat_summary['total_TS'] += 1
-    #     #         elif chunk.type == "delete":
-    #     #             # Check for deletions
-    #     #             for ref_idx in range(ref_start, ref_end):
-    #     #                 if ref_idx in eval_laugh_indices:
-    #     #                     token_stat_summary['total_TD'] += 1
-    #     #         elif chunk.type == "insert":
-    #     #             # Check for insertions
-    #     #             for hyp_idx in range(hyp_start, hyp_end):
-    #     #                 if hyp_idx in eval_laugh_indices:
-    #     #                     token_stat_summary['total_TI'] += 1
-
-    #     #     #------------------------------------------------------------------------------------------
-        
-    #     # # CALCULATE F1 AND TOKEN RATE FOR [laugh] TOKEN MATCH
-    #     # total_token_operations = token_stat_summary['total_TH'] + token_stat_summary['total_TS'] + token_stat_summary['total_TD']
-        
-    #     # th_rate = token_stat_summary['total_TH'] / total_token_operations if total_token_operations > 0 else 0
-    #     # ts_rate = token_stat_summary['total_TS'] / total_token_operations if total_token_operations > 0 else 0
-    #     # td_rate = token_stat_summary['total_TD'] / total_token_operations if total_token_operations > 0 else 0
-    #     # ti_rate = token_stat_summary['total_TI'] / total_token_operations if total_token_operations > 0 else 0
-    #     # #------------------------------------------------------------------------------------------
-
-    #     # TP = token_stat_summary['total_TH']
-    #     # FP = token_stat_summary['total_TS'] + token_stat_summary['total_TI']
-    #     # FN = token_stat_summary['total_TD'] + token_stat_summary["total_TS"]
-        
-    #     # # COMPUTE OVERALL WER, F1
-    #     # wer = alignment.wer #FIXME - USING THIS IF WER IS NOT WORKING
-    #     # precision = TP / (TP + FP) if TP + FP > 0 else 0
-    #     # recall = TP / (TP + FN) if TP + FN > 0 else 0
-    #     # f1 = 2 * precision * recall / (precision + recall) if precision + recall > 0 else 0
         metrics = {
             "wer": wer,
             "loss": val_loss,
-            # "th": th_rate,
-            # "ts": ts_rate,
-            # "td": td_rate,
-            # "ti": ti_rate,
         }
         print("Evaluated Metrics: ", metrics)
 
@@ -382,7 +318,7 @@ def SpeechLaughWhisper(args):
         gradient_accumulation_steps=8, #4
         learning_rate=5e-5, #or 1e-4
         weight_decay=0.01,
-        max_steps=6000, 
+        max_steps=8000, 
         warmup_steps=800,
 
 
@@ -390,15 +326,15 @@ def SpeechLaughWhisper(args):
         eval_strategy="steps",
         per_device_eval_batch_size=8,
         eval_accumulation_steps=8,
-        eval_steps=1000, #evaluate the model every 1000 steps - Executed compute_metrics()
+        eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
 
         # Saving Configs--------------------------------    
-        save_steps=1000,
+        save_steps=500,
         save_strategy="steps",
-        save_total_limit=10, #save the last 10 checkpoints
+        save_total_limit=3, #save the last 10 checkpoints
 
         # Logging Configs--------------------------------
-        logging_steps=100,
+        logging_steps=50,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",
@@ -498,8 +434,8 @@ def SpeechLaughWhisper(args):
         cleanup_workers() #clear the CUDA memory cache
 
     # Save the final model
-    trainer.save_model(os.path.join(args.model_output_dir, "speechlaugh-fine_tuned", "model"))
-    model.save_pretrained(os.path.join(args.model_output_dir, "speechlaugh-fine_tuned"))
+    trainer.save_model(os.path.join(args.model_output_dir, "test1", "trainer"))
+    model.save_pretrained(os.path.join(args.model_output_dir, "test1", "model"))
     
     print("-----------------------------------------end of training ------------------------------")
 

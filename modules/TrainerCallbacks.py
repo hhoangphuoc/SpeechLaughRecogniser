@@ -13,7 +13,7 @@ from transformers import TrainerCallback
 #                   Memory Efficient Callback
 #========================================================================================================================
 class A40MemoryMonitor:
-    def __init__(self, threshold_gb=20):  # Set high threshold for A100
+    def __init__(self, threshold_gb=30):  # Set high threshold for A100
         self.threshold_gb = threshold_gb
         self.peak_memory = 0
         self.allocation_threshold = 0.8 #~80% of allocated memory
