@@ -125,20 +125,29 @@ def show_random_elements(dataset, num_examples=10):
 
 # ================================== LOAD DATASET ============================================================
 # switchboard = load_dataset("hhoangphuoc/switchboard")
-switchboard = load_from_disk("../datasets/switchboard/swb")
-print(switchboard)
+# switchboard = load_from_disk("../datasets/switchboard/swb_all")
+# print(switchboard)
 
-#Shuffle the dataset
-switchboard = switchboard.shuffle(seed=42)
+# #Shuffle the dataset
+# switchboard = switchboard.shuffle(seed=42)
 
+
+# swb_train, swb_eval, swb_test = split_dataset(
+#     switchboard, 
+#     split_ratio=0.8, 
+#     val_split_ratio=0.1
+# )
+
+# Load splitted dataset from disk
+swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
 # Transform the <LAUGH> token into "<" for CTC
-switchboard = switchboard.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC")
+swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Train dataset")
 
-swb_train, swb_eval, swb_test = split_dataset(
-    switchboard, 
-    split_ratio=0.8, 
-    val_split_ratio=0.1
-)
+swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
+swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Eval dataset")
+
+swb_test = load_from_disk("../datasets/switchboard/whisper/swb_test")
+swb_test = swb_test.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Test dataset")
 
 print("Train Dataset (70%):", swb_train)
 show_random_elements(swb_train, num_examples=10)
@@ -149,31 +158,6 @@ show_random_elements(swb_eval, num_examples=10)
 print("Test Dataset (20%):", swb_test)
 show_random_elements(swb_test, num_examples=10)
 
-
-# FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ======================================================
-total_laugh_train = find_total_laughter_speechlaugh(swb_train)
-print("Total Laughter and Speechlaugh in Train Dataset: ", total_laugh_train)
-
-total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
-print("Total Laughter and Speechlaugh in Validation Dataset: ", total_laugh_val)
-
-total_laugh_test = find_total_laughter_speechlaugh(swb_test)
-print("Total Laughter and Speechlaugh in Test Dataset: ", total_laugh_test)
-
-laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-print(f"Laughter Train/Test ratio: {laughter_ratio}")
-print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
-print("------------------------------------------------------")
-
-# # Save test dataset separately
-if np.abs(laughter_ratio - speechlaugh_ratio) < 0.3:
-    print("Train/Test dataset is balanced. Saving to disk...")
-    swb_train.save_to_disk("../datasets/switchboard/wav2vec/swb_train")
-    swb_eval.save_to_disk("../datasets/switchboard/wav2vec/swb_eval")
-    swb_test.save_to_disk("../datasets/switchboard/wav2vec/swb_test")
-else:
-    print("Train/Test dataset is not balanced. Consider re-split the dataset!")
 
 # ================================== PREPROCESSING ==============================================
 # remove special characters
@@ -188,11 +172,11 @@ swb_eval = swb_eval.map(
 
 # VOCAB MAPPING
 vocab_train = swb_train.map(
-    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=switchboard.column_names,
+    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=swb_train.column_names,
     desc="Extracting vocab in swb_train"
     )
 vocab_eval = swb_eval.map(
-    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=switchboard.column_names,
+    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=swb_eval.column_names,
     desc="Extracting vocab in swb_eval"
     )
 
@@ -213,14 +197,14 @@ vocab_dict["[PAD]"] = len(vocab_dict)
 print("Vocab Dictionary:",vocab_dict)
 
 # Save the vocab
-with open("vocab_b64.json", "w") as vocab_file:
+with open("vocab_b32.json", "w") as vocab_file:
     json.dump(vocab_dict, vocab_file)
 
 #================================================================================================
 
 
 # CONFIGURE MODEL COMPONENTS
-tokenizer = Wav2Vec2CTCTokenizer("./vocab_b64.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+tokenizer = Wav2Vec2CTCTokenizer("./vocab_b32.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
 feature_extractor = Wav2Vec2FeatureExtractor(
     feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True
 )
@@ -228,8 +212,8 @@ processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tok
 
 # Save the tokenizer
 print("Saving Wav2Vec2 tokenizer and feature extractor...")
-tokenizer.save_pretrained("../fine-tuned/wav2vec2/tokenizer")
-feature_extractor.save_pretrained("../fine-tuned/wav2vec2/feature_extractor")
+tokenizer.save_pretrained("../fine-tuned/wav2vec2-batch32/tokenizer")
+feature_extractor.save_pretrained("../fine-tuned/wav2vec2-batch32/feature_extractor")
 
 # =============================== PROCESSING DATASET =====================================
 def prepare_dataset(batch):
@@ -289,20 +273,20 @@ model.freeze_feature_encoder()
 
 # ================================== TRAINING ARGUMENTS ============================================
 training_args = TrainingArguments(
-    output_dir="../fine-tuned/wav2vec2-batch64/",
+    output_dir="../fine-tuned/wav2vec2-batch32/",
     group_by_length=True,
-    per_device_train_batch_size=64, #16
-    gradient_accumulation_steps=1, 
+    per_device_train_batch_size=32, #16
+    gradient_accumulation_steps=2, 
     evaluation_strategy="steps",
-    num_train_epochs=40,
+    num_train_epochs=50,
 
     gradient_checkpointing=True,
     fp16=True,
     adam_beta2=0.98,
 
-    save_steps=500, #50
-    eval_steps=500, #50
-    logging_steps=100, #50
+    save_steps=100, #50
+    eval_steps=100, #50
+    logging_steps=50, #50
 
     learning_rate=1e-4, #7e-5
     weight_decay=0.005,
@@ -310,7 +294,7 @@ training_args = TrainingArguments(
     
     save_total_limit=2,
     
-    #   torch_empty_cache_steps=100 # Force garbage collection if necessary
+    torch_empty_cache_steps=100, # Force garbage collection if necessary
     load_best_model_at_end=True
 )
 
@@ -347,12 +331,12 @@ except Exception as e:
 finally:
     log_history = trainer.state.log_history
     # save the log history to txt file
-    with open(os.path.join("../logs/wav2vec2-batch64", "log_history.txt"), "w") as f:
+    with open(os.path.join("../logs/wav2vec2", "log_history_batch32.txt"), "w") as f:
         for entry in log_history:
             f.write(str(entry) + "\n")
     cleanup_workers() #clear the CUDA memory cache
 trainer.train()
 
-trainer.save_model("../fine-tuned/wav2vec2-batch64/wav2vec2-large-lv60-speechlaugh-swb")
+trainer.save_model("../fine-tuned/wav2vec2-batch32/wav2vec2-large-lv60-speechlaugh-swb")
 # trainer.push_in_progress = None
 # trainer.push_to_hub("wav2vec2-large-lv60-speechlaugh-swb")
