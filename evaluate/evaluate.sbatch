@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval_swb_test-wav2vec2                                # Job name
+#SBATCH --job-name=eval_swb_test-wav2vec2                      # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -40,7 +40,7 @@ source activate .venv
 # ==========================================================================================
 
 # WAV2VEC2
-# python evaluate.py \
+python evaluate.py \
     --dataset_dir ../datasets/switchboard/whisper/swb_test \
     --model_name facebook/wav2vec2-large-lv60 \
     --model_type wav2vec2 \
