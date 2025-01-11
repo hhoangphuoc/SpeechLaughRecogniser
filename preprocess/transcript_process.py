@@ -52,7 +52,9 @@ alignment_transformation = jiwer.Compose([
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
         "mmhmm": "um-hum",
+        "mmhum": "um-hum",
         "umhum": "um-hum",
+        "umhmm": "um-hum",
     })
 ])
 
@@ -145,10 +147,12 @@ def clean_transcript_sentence(sentence):
     This function mainly used for the transcript processing before retokenization.
     Including:
     - Expand common English contractions (e.g., "I'm" -> "I am")
-    - Remove multiple spaces
+    - Remove punctuation (, . ! ?)
+    - Remove multiple spaces in the sentence
     - Strip the line
     - Remove empty strings
     - Lowercase the line
+    - Substitute hesitation words to their canonical forms (e.g., "uhhuh" -> "uh-huh")
     """
     return transcript_transformation(sentence)
 
