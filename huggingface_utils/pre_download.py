@@ -3,6 +3,7 @@ import evaluate
 from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
+    Wav2Vec2Processor,
     Wav2Vec2ForCTC,
 )
 import evaluate
@@ -26,8 +27,14 @@ if __name__ == "__main__":
         #     cache_dir="../ref_models/pre_trained",
         #     force_download=True,
         # )
+        processor = Wav2Vec2Processor.from_pretrained(
+            "facebook/wav2vec2-large-lv60",
+            cache_dir="../ref_models/pre_trained",
+            force_download=True,
+        )
+
         # wer_metrics = evaluate.load("wer", cache_dir="../ref_models/metrics")
-        f1_metrics = evaluate.load("f1", cache_dir="../ref_models/metrics")
+        # f1_metrics = evaluate.load("f1", cache_dir="../ref_models/metrics")
 
     except Exception as e:
         print(f"Error downloading pre-trained model: {e}")
