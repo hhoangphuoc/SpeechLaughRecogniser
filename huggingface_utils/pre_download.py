@@ -4,7 +4,7 @@ from transformers import (
     WhisperProcessor,
     WhisperForConditionalGeneration,
     Wav2Vec2Processor,
-    Wav2Vec2ProcessorWithLM,
+    # Wav2Vec2ProcessorWithLM,
     Wav2Vec2ForCTC,
 )
 import evaluate
@@ -23,13 +23,15 @@ if __name__ == "__main__":
         # cache_dir="../ref_models/pre_trained",
         #     force_download=True,
         # )
-        # model = Wav2Vec2ForCTC.from_pretrained(
-        #     "facebook/wav2vec2-large-lv60",
-        #     cache_dir="../ref_models/pre_trained",
-        #     force_download=True,
-        # )
-        processor = Wav2Vec2ProcessorWithLM.from_pretrained(
-            "facebook/wav2vec2-large-lv60",
+        model = Wav2Vec2ForCTC.from_pretrained(
+            "facebook/wav2vec2-large-960h-lv60", #FIXME: this model loaded for testing
+            # "facebook/wav2vec2-large-lv60", # THIS MODEL USED FOR FINE-TUNING
+            cache_dir="../ref_models/pre_trained",
+            force_download=True,
+        )
+        processor = Wav2Vec2Processor.from_pretrained(
+            "facebook/wav2vec2-large-960h-lv60", #FIXME: this model loaded for testing
+            # "facebook/wav2vec2-large-lv60", # THIS MODEL USED FOR FINE-TUNING
             cache_dir="../ref_models/pre_trained",
             force_download=True,
         )

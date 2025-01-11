@@ -42,7 +42,7 @@ source activate .venv
 # WAV2VEC2
 python evaluate.py \
     --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name facebook/wav2vec2-large-lv60 \
+    --model_name facebook/wav2vec2-large-960h-lv60 \
     --model_type wav2vec2 \
     --pretrained_model_dir ../ref_models/pre_trained \
     --output_dir ../alignment_transcripts/wav2vec2 \

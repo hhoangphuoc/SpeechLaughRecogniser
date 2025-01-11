@@ -4,7 +4,6 @@ from transformers import (
         WhisperForConditionalGeneration, 
         Wav2Vec2Processor, 
         Wav2Vec2ForCTC,
-        Wav2Vec2ProcessorWithLM,
         pipeline, 
         logging
     )
@@ -109,9 +108,9 @@ def write_transcript(
 #--------------------------------------------------
 # EVALUATE WHISPER
 #--------------------------------------------------
-def get_transcripts_whisper(
+def get_transcripts(
         dataset_dir="../datasets/switchboard/whisper/",
-        model_name="openai/whisper-large-v2", #TODO: choosing between `whisper-large-v2` and `wav2vec2-large-lv60`
+        model_name="openai/whisper-large-v2", #TODO: choosing between `whisper-large-v2` and `wav2vec2-large-960h-lv60`
         model_type="whisper",
         pretrained_model_dir="../ref_models/pre_trained",
         output_dir="../alignment_transcripts/whisper" #TODO: Change to `whisper` or `wav2vec2` based on the model used
@@ -140,9 +139,24 @@ def get_transcripts_whisper(
     if model_name.startswith("openai/whisper"):
         processor = WhisperProcessor.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
         model = WhisperForConditionalGeneration.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
+    
+    
     elif model_name.startswith("facebook/wav2vec2"):
+
+        #FIXME: If using Wav2Vec2, using pipeline instead
+        #FIXME: However, pipeline might not work fully-functioned. CONSIDER TRY WITH: `Wav2Vev2ProcessorWithLM` 
+
         processor = Wav2Vec2Processor.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
         model = Wav2Vec2ForCTC.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
+
+        # FIXME: Using pipeline doesnt work
+        # pipe = pipeline(
+        #     "automatic-speech-recognition", 
+        #     model=model,
+        #     tokenizer=tokenizer,
+        #     feature_extractor=feature_extractor,
+        #     device=device
+        # )
     
     if model is not None:
         print(f"Model {model_name} loaded successfully!")
@@ -157,6 +171,8 @@ def get_transcripts_whisper(
     try:
         #../datasets/switchboard/whisper/swb_test  
         swb_test = load_from_disk(dataset_dir)
+
+        print("Loaded Test Dataset:", swb_test)
     
     except FileNotFoundError:
         raise ValueError(f"Dataset not found: {dataset_dir}. Please choose the correct path for the test dataset.")
@@ -198,52 +214,49 @@ def get_transcripts_whisper(
             # Extracting the audio to input_features and predicted_ids
             input_features = None
             predicted_ids = None
+            hyp_transcript = None
+
             if model_name.startswith("openai/whisper"):
                 # Load and preprocess the audio
-                input_features = processor.feature_extractor(audio, sampling_rate=16000,return_tensors="pt").input_features
+                input_features = processor.feature_extractor(
+                    audio, 
+                    sampling_rate=16000,
+                    return_tensors="pt"
+                ).input_features
 
                 input_features = input_features.to(device) # Move input feature to GPUs
 
                 # Generate the predicted transcript
                 predicted_ids = model.generate(input_features)
+
+                hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
             
             elif model_name.startswith("facebook/wav2vec2"):
-                # with torch.no_grad():
-
-                #     input_features = processor(
-                #         audio,
-                #         sampling_rate=16000,
-                #         return_tensors="pt"
-                #     ).input_values
-                    
-                #     input_features = input_features.to(device)
-
-                #     # Generate the predicted transcript
-                #     logits = model(input_features).logits
-
-                # predicted_ids = torch.argmax(logits, dim=-1)
-                
                 # FOR WA2VEC2, using `processor` instead of `processor.feature_extractor`
                 # as it need to map both audio to specified tokens in the vocabulary when producing input_values
                 input_features = processor(
-                    audio, sampling_rate=16000, return_tensors="pt", 
-                    # padding=True
-                ).input_values
-
+                        audio,
+                        sampling_rate=16000,
+                        return_tensors="pt"
+                    ).input_values
+                    
                 input_features = input_features.to(device)
 
-                # Get the logits
                 with torch.no_grad():
                     logits = model(input_features).logits
+                    predicted_ids = torch.argmax(logits, dim=-1)
+                
+                hyp_transcript = processor.batch_decode(predicted_ids)[0]
+                
+                # IF WE USED `pipeline`, use this instead
+                # hyp_transcript = pipe(audio, batch_size=1)["text"]
 
-                # Decode the predicted ids
-                predicted_ids = torch.argmax(logits, dim=-1)
             else:
                 raise ValueError(f"Model not found: {model_name}. Please choose the model types of 'openai/whisper-large-v2' or 'facebook/wav2vec2-large-lv60'.")
             
-            # hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-            hyp_transcript = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-
+            if  hyp_transcript is None:
+                raise ValueError("Unable to generate the transcript. This could be due to `pipeline` not used properly.")
+            
             print(f"HYP: {hyp_transcript}")
             hyp.append(hyp_transcript)
 
@@ -269,217 +282,17 @@ def get_transcripts_whisper(
         except Exception as e:
             print(f"Error: {e}. Unable to generate the transcript for the recording {i}. Please check the audio file.")
             continue
+    
     print("Finished processing all the recordings. Outputing to different transcript lists.")
     return ref, hyp, normalised_ref, normalised_hyp #TODO: return 4 types of transcripts
 #============================================================================================================
 
 
 #--------------------------------------------------
-# EVALUATE WAVE2VEC2
+# EVALUATE WAVE2VEC2 
+# with `Wave2Vec2ProcessorWithLM`
 #--------------------------------------------------
-def get_transcripts_wav2vec2(
-    dataset_dir="../datasets/switchboard/whisper/",
-    model_name="facebook/wav2vec2-large-lv60",
-    model_type="wav2vec2",
-    pretrained_model_dir="../ref_models/pre_trained",
-    output_dir="../alignment_transcripts/wav2vec2",
-):
-    """
-    # ... (rest of your docstring) ...
-    """
-
-    logging.set_verbosity_error()  # Suppress warnings
-
-    print(f"Evaluate Model - {model_name} \n")
-    print(f"Dataset Directory: {dataset_dir} \n")
-
-    # check GPU availability
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # ---------------------------------------
-    # LOAD PRETRAINED MODEL + PROCESSOR
-    # ---------------------------------------
-    processor = None
-    model = None
-
-    if model_name.startswith("facebook/wav2vec2"):
-        processor = Wav2Vec2Processor.from_pretrained(
-            model_name, cache_dir=pretrained_model_dir, local_files_only=True
-        )
-        model = Wav2Vec2ForCTC.from_pretrained(
-            model_name, cache_dir=pretrained_model_dir, local_files_only=True
-        )
-
-    if model is not None:
-        print(f"Model {model_name} loaded successfully!")
-        model.to(device)
-    else:
-        raise ValueError(
-            f"Model not found: {model_name}. Please choose the model types of 'facebook/wav2vec2-*'."
-        )
-
-    # ================================================================================================
-    #                                         LOAD DATASET
-    # ================================================================================================
-    try:
-        # ../datasets/switchboard/whisper/swb_test
-        swb_test = load_from_disk(dataset_dir)
-
-    except FileNotFoundError:
-        raise ValueError(
-            f"Dataset not found: {dataset_dir}. Please choose the correct path for the test dataset."
-        )
-
-    # ==============================================================================================
-    #                             CTC-BASED EVALUATION
-    # ==============================================================================================
-    
-    # Create a CTC decoder
-    vocab_dict = processor.tokenizer.get_vocab()
-    sorted_vocab_dict = {k: v for k, v in sorted(vocab_dict.items(), key=lambda item: item[1])}
-    decoder = ctcdecode.CTCBeamDecoder(
-        list(sorted_vocab_dict.keys()),
-        model_path=None,
-        alpha=0,
-        beta=0,
-        cutoff_top_n=40,
-        cutoff_prob=1.0,
-        beam_width=100,
-        num_processes=4,
-        blank_id=processor.tokenizer.pad_token_id,
-        log_probs_input=True
-    )
-
-    ctc_losses = []
-    ref, hyp = [], []
-    normalised_ref, normalised_hyp = [], []
-    i = 0
-
-    for recording in swb_test:
-        i += 1
-        print(f"Recording: {i} / {len(swb_test)}")
-
-        try:
-            # -------------------------------------------------------------------------------------------------
-            #                                         ORIGINAL REF TRANSCRIPTS
-            # -------------------------------------------------------------------------------------------------
-            original_ref = recording["transcript"]
-            print(f"REF: {original_ref}")
-            ref.append(original_ref)
-
-            # -------------------------------------------------------------------------------------------------
-            #                                         NORMALISED REF TRANSCRIPTS
-            # -------------------------------------------------------------------------------------------------
-            normalised_ref_transcript = transform_alignment_sentence(original_ref)
-            print(f"NORMED REF: {normalised_ref_transcript}")
-
-            normalised_ref.append(normalised_ref_transcript)
-
-            # -------------------------------------------------------------------------------------------------
-            #                                         AUDIO PREPROCESSING
-            # -------------------------------------------------------------------------------------------------
-            audio = recording["audio"]["array"]
-            sr = recording["audio"]["sampling_rate"]
-
-            if sr != 16000:
-                audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000)
-
-            # -------------------------------------------------------------------------------------------------
-            #                                         MODEL PREDICTION AND CTC LOSS
-            # -------------------------------------------------------------------------------------------------
-            inputs = processor(
-                audio, sampling_rate=16000, return_tensors="pt", padding=True
-            )
-            input_values = inputs.input_values.to(device)
-
-            # Get the logits
-            with torch.no_grad():
-                logits = model(input_values).logits
-
-            # Convert ground truth transcript to token IDs
-            target_ids = processor.tokenizer(original_ref, add_special_tokens=False, return_tensors="pt").input_ids
-            target_ids = target_ids.to(device)
-
-            # CTC loss calculation
-            log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
-            input_lengths = torch.full(
-                size=(log_probs.shape[0],),
-                fill_value=log_probs.shape[1],
-                dtype=torch.long
-            )
-            target_lengths = torch.full(
-                size=(target_ids.shape[0],),
-                fill_value=target_ids.shape[1],
-                dtype=torch.long
-            )
-
-            ctc_loss = torch.nn.functional.ctc_loss(
-                log_probs.transpose(0, 1),
-                target_ids,
-                input_lengths,
-                target_lengths,
-                reduction="mean"
-            )
-
-            ctc_losses.append(ctc_loss.item())
-            print(f"CTC Loss: {ctc_loss.item()}")
-
-            # -------------------------------------------------------------------------------------------------
-            #                                         BEAM SEARCH DECODING
-            # -------------------------------------------------------------------------------------------------
-
-            beam_results, beam_scores, timesteps, out_lens = decoder.decode(log_probs)
-            # beam_results shape: (batch_size, num_beams, num_tokens)
-            # beam_scores shape: (batch_size, num_beams)
-            # timesteps shape: (batch_size, num_beams)
-            # out_lens shape: (batch_size, num_beams)
-
-            # Get the top beam for each item in the batch
-            top_beam_results = beam_results[:, 0, :]
-            top_beam_lens = out_lens[:, 0]
-
-            # Convert the top beam results to text
-            batch_texts = []
-            for result, length in zip(top_beam_results, top_beam_lens):
-                text = processor.decode(result[:length])
-                batch_texts.append(text)
-
-            # In this example, batch_texts will contain a single transcript since the batch size is 1
-            hyp_transcript = batch_texts[0]
-
-            print(f"HYP: {hyp_transcript}")
-            hyp.append(hyp_transcript)
-
-            # -------------------------------------------------------------------------------------------------
-            #                                         NORMALISED HYP TRANSCRIPTS
-            # -------------------------------------------------------------------------------------------------
-            hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
-            normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
-            print(f"NORMED HYP: {normalised_hyp_transcript}")
-
-            normalised_hyp.append(normalised_hyp_transcript)
-
-        except Exception as e:
-            print(
-                f"Error: {e}. Unable to process recording {i}. Please check the audio file and transcript."
-            )
-            continue
-
-    avg_ctc_loss = sum(ctc_losses) / len(ctc_losses)
-    print(f"Average CTC Loss: {avg_ctc_loss}")
-
-    print(
-        "Finished processing all the recordings. Outputing to different transcript lists."
-    )
-    return (
-        ref,
-        hyp,
-        normalised_ref,
-        normalised_hyp,
-        avg_ctc_loss
-    )
-
-
+#TODO
 
 
 #-----------------------------------------------------------------------------------------------------------------

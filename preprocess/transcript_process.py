@@ -151,8 +151,6 @@ def clean_transcript_sentence(sentence):
     - Remove multiple spaces in the sentence
     - Strip the line
     - Remove empty strings
-    - Lowercase the line
-    - Substitute hesitation words to their canonical forms (e.g., "uhhuh" -> "uh-huh")
     """
     return transcript_transformation(sentence)
 
@@ -166,6 +164,8 @@ def transform_alignment_sentence(sentence):
     - Remove multiple spaces
     - Strip the line
     - Remove empty strings
+    - Lowercase the line
+    - Substitute hesitation words to their canonical forms (e.g., "uhhuh" -> "uh-huh")
     """
     return alignment_transformation(sentence)
 
