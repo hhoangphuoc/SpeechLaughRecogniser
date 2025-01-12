@@ -43,12 +43,12 @@ speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 #=========================================================================================================================
 
 alignment_transformation = jiwer.Compose([
-    jiwer.ToLowerCase(), #FIXME- NOT LOWERCASE IN ALIGNMENT
-    jiwer.ExpandCommonEnglishContractions(),
-    jiwer.RemovePunctuation(),
+    jiwer.RemoveEmptyStrings(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
-    jiwer.RemoveEmptyStrings(),
+    jiwer.ToLowerCase(), #FIXME- LOWERCASE FIRST
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.RemovePunctuation(),
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
         "mmhmm": "um-hum",
@@ -59,12 +59,12 @@ alignment_transformation = jiwer.Compose([
 ])
 
 transcript_transformation = jiwer.Compose([
-    jiwer.ExpandCommonEnglishContractions(),
-    jiwer.RemovePunctuation(),
+    jiwer.RemoveEmptyStrings(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
     jiwer.ToLowerCase(), #FIXME - LOWERCASE IN TRANSCRIPT PROCESSING (BEFORE RETOKENIZATION)
-    jiwer.RemoveEmptyStrings(),
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.RemovePunctuation(),
 ])
 
 word_sets = load_word_sets(

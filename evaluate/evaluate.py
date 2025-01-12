@@ -330,7 +330,7 @@ if __name__ == "__main__":
     # ============================== WRITE TRANSCRIPTS TO TEXT FILES  =======================================
 
     # Original Reference Transcripts
-    ref_file = os.path.join(args.output_dir, f"original_ref_{args.model_type}.txt") #original_ref_whisper.txt
+    ref_file = os.path.join(args.output_dir, f"original_ref_{args.model_type}.txt") #e.g. original_ref_whisper.txt
     write_transcript(
         ref_file, 
         ref, 
@@ -338,7 +338,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------
 
     # Original Hypothesis Transcripts
-    hyp_file = os.path.join(args.output_dir, f"original_hyp_{args.model_type}.txt") #original_hyp_whisper
+    hyp_file = os.path.join(args.output_dir, f"original_hyp_{args.model_type}.txt") #e.g. original_hyp_whisper
     write_transcript(
         hyp_file, 
         hyp, 
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------
     
     # Normalised Reference Transcripts
-    normed_ref_file = os.path.join(args.output_dir, f"normalised_ref_{args.model_type}.txt") #normalised_ref_whisper.txt
+    normed_ref_file = os.path.join(args.output_dir, f"normalised_ref_{args.model_type}.txt") #e.g. normalised_ref_whisper.txt
     write_transcript(
         normed_ref_file, 
         normed_ref, 
@@ -354,7 +354,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------
     
     # Normalised Hypothesis Transcripts
-    normed_hyp_file = os.path.join(args.output_dir, f"normalised_hyp_{args.model_type}.txt") #normalised_hyp_whisper.txt
+    normed_hyp_file = os.path.join(args.output_dir, f"normalised_hyp_{args.model_type}.txt") #e.g. normalised_hyp_whisper.txt
     write_transcript(
         normed_hyp_file, 
         normed_hyp, 
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     #---------------------------------------------------------------------------------------------------------
     
     # Alignment Transcripts
-    alignment_file = os.path.join(args.output_dir, f"alignment_{args.model_type}.txt") #alignment_whisper.txt
+    alignment_file = os.path.join(args.output_dir, f"alignment_{args.model_type}.txt") #e.g. alignment_whisper.txt
     write_alignment_transcript(
         alignment_file,
         model_type=args.model_type,
