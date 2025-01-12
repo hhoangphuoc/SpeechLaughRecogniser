@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
 #SBATCH --constraint=a100
 #SBATCH --mem=64G                                   # Request 80GB of memory (8GB whisper-large, 8GB optimizer, 4GB batch, 4GB overhead)
-#SBATCH --time=72:00:00                             # Set a walltime limit
+#SBATCH --time=120:00:00                             # Set a walltime limit
 #SBATCH --mail-type=BEGIN,END,FAIL                  # Email status changes
 #SBATCH --mail-user=hohoangphuoc@student.utwente.nl  # Your email address
 

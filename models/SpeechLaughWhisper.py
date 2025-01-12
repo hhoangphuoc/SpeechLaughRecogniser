@@ -115,51 +115,6 @@ def SpeechLaughWhisper(args):
     #                           LOAD DATASET AND PROCESSING 
     #===============================================================================================
     
-    # =================== NOT USED BELOW ANYMORE ===============================================
-
-    # # Load from entire dataset + splitted
-
-    # print("Loading the dataset as HuggingFace Dataset...")
-    # switchboard_dataset = load_from_disk(os.path.join(args.dataset_dir, "swb_all"))
-    # print(f"Switchboard Dataset: {switchboard_dataset}")
-
-    # # shuffle the dataset
-    # switchboard_dataset = switchboard_dataset.shuffle(seed=42)
-
-    # # Split the dataset into train and validation
-    # swb_train, swb_eval, swb_test = split_dataset(
-    #     switchboard_dataset, 
-    #     split_ratio=0.8, 
-    #     split="both",
-    #     train_val_split=True,
-    #     val_split_ratio=0.1
-    # )
-
-    # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ================
-    # total_laugh_train = find_total_laughter_speechlaugh(swb_train)
-    # print("Total Laughter and Speechlaugh in Train Dataset: ", total_laugh_train)
-
-    # total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
-    # print("Total Laughter and Speechlaugh in Validation Dataset: ", total_laugh_val)
-
-    # total_laugh_test = find_total_laughter_speechlaugh(swb_test)
-    # print("Total Laughter and Speechlaugh in Test Dataset: ", total_laugh_test)
-
-    # laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-    # speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-    # print(f"Laughter Train/Test ratio: {laughter_ratio}")
-    # print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
-    
-    # if np.abs(laughter_ratio - speechlaugh_ratio) < 0.4:
-    #     print("The laughter and speechlaugh ratio is balanced for Train/Test")
-    #     swb_train.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_train"))
-    #     swb_eval.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_eval"))
-    #     swb_test.save_to_disk(os.path.join(args.dataset_dir, "whisper","swb_test"))
-    # else:
-    #     print("Laughter and speechlaugh ratio is not balanced for Train/Test")
-    
-    # print("--------------------------------------------------------------------")
-
     #=========================================== NOT USED ABOVE ANYMORE ===================================
 
     # ================= Load from splitted dataset ==========================
@@ -264,9 +219,34 @@ def SpeechLaughWhisper(args):
         label_ids = pred.label_ids
         pred_ids = pred.predictions
 
-        assert type(label_ids) == type(pred_ids), "Predictions and labels should be the same type"
-        assert type(pred_ids) == np.ndarray, "Predictions and labels should be numpy arrays"
-        assert type(pred_ids[0]) == np.ndarray, "Predictions and labels should be numpy arrays"
+        # #=========================================================================================================
+        #                       USE THESE IMPLEMENTATION IF CURRENT DOESNT WORK
+
+        # # Make sure that predictions and labels are numpy arrays with dtype=object----------------- 
+        # if isinstance(pred_ids, np.ndarray) and pred_ids.dtype != object:
+        #     pred_ids = [np.array(p, dtype=object) for p in pred_ids]
+        # if isinstance(label_ids, np.ndarray) and label_ids.dtype != object:
+        #     label_ids = [np.array(l, dtype=object) for l in label_ids]
+        # #------------------------------------------------------------------------------------------
+
+        # # Decode predictions and labels
+        # # Check if inputs are lists of numpy arrays (variable-length sequences)
+        # if isinstance(pred_ids, list) and isinstance(pred_ids[0], np.ndarray):
+        #     # Decode each sequence individually
+        #     pred_decoded = [tokenizer.decode(p, skip_special_tokens=True) for p in pred_ids]
+        # else:
+        #     # Decode as a batch (padded sequences)
+        #     pred_decoded = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+        # #-----------------------------------------------------------------------------------------
+
+        # # Decode the reference transcripts
+        # if isinstance(label_ids, list) and isinstance(label_ids[0], np.ndarray):
+        #     ref_transcripts = [tokenizer.decode(l, skip_special_tokens=True) for l in label_ids]
+        # else:
+        #     ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+        # #-----------------------------------------------------------------------------------------
+
+        #============================================== USE CODE ABOVE IF BELOW DOESNT WORK ========================================
 
 
         # Reconstruct the REF and HYP transcripts at Decoder
@@ -334,7 +314,7 @@ def SpeechLaughWhisper(args):
         save_total_limit=3, #save the last 10 checkpoints
 
         # Logging Configs--------------------------------
-        logging_steps=50,
+        logging_steps=100,
         report_to=["tensorboard"], #enable tensorboard for logging
         load_best_model_at_end=True,
         metric_for_best_model="wer",

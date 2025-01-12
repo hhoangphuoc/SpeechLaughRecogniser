@@ -81,9 +81,10 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
             all_preds = [np.array(pred) for pred in all_preds]
             all_labels = [np.array(label) for label in all_labels]
 
-            # convert `all_preds` and `all_labels` to numpy arrays
-            all_preds = np.array(all_preds)
-            all_labels = np.array(all_labels)
+            # Convert predictions and labels to numpy arrays with dtype=object
+            # it would now consider each element as a separate numpy array object instead of a array of arrays
+            all_preds = np.array(all_preds, dtype=object)
+            all_labels = np.array(all_labels, dtype=object)
 
             #compute metrics
             metrics = self.compute_metrics(EvalPrediction(predictions=all_preds, label_ids=all_labels), avg_loss)

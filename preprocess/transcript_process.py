@@ -43,11 +43,11 @@ speech_laugh_pattern = r"\[laughter-([\w'\[\]-]+)\]"
 #=========================================================================================================================
 
 alignment_transformation = jiwer.Compose([
+    jiwer.ToLowerCase(), #FIXME- NOT LOWERCASE IN ALIGNMENT
     jiwer.ExpandCommonEnglishContractions(),
     jiwer.RemovePunctuation(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
-    jiwer.ToLowerCase(), #FIXME- NOT LOWERCASE IN ALIGNMENT
     jiwer.RemoveEmptyStrings(),
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
@@ -159,12 +159,12 @@ def transform_alignment_sentence(sentence):
     Transform the alignment sentence using Jiwer Compose
     This function is used for alignment processing, i.e. the REF and HYP in the evaluation.
     Including:
+    - Lowercase the line
     - Expand common English contractions (e.g., "I'm" -> "I am")
     - Remove punctuation (, . ! ?)
     - Remove multiple spaces
     - Strip the line
     - Remove empty strings
-    - Lowercase the line
     - Substitute hesitation words to their canonical forms (e.g., "uhhuh" -> "uh-huh")
     """
     return alignment_transformation(sentence)

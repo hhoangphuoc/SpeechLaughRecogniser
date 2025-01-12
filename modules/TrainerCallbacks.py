@@ -24,24 +24,19 @@ class A40MemoryMonitor:
         Using more frequent memory check (every 100 steps) and cleanup.
         And only clean if the memory usage is above the threshold.
         """
-        current_memory = torch.cuda.memory_allocated() / 1e9
-        current_cached_memory = torch.cuda.memory_reserved() / 1e9
+        allocated_memory = torch.cuda.memory_allocated() / 1e9
         max_memory_allocated = torch.cuda.max_memory_allocated() / 1e9
 
-        self.peak_memory = max(self.peak_memory, current_memory)
+        self.peak_memory = max(self.peak_memory, allocated_memory)
         
-        print(f"\nCurrent GPU Memory: {current_memory:.2f}GB")
-        print(f"GPU Memory cached: {current_cached_memory:.2f}GB")
-        print(f"Peak GPU Memory: {self.peak_memory:.2f}GB")
-        
-                        # Print memory stats for debugging
+        # Print memory stats for debugging
         print(f"Checked Memory:  Allocated: {torch.cuda.memory_allocated() / 1e9:.2f}GB ; Reserved: {torch.cuda.memory_reserved() / 1e9:.2f}GB")
         
-        allocated_ratio = current_memory / max_memory_allocated
+        allocated_ratio = allocated_memory / max_memory_allocated
 
         # Warning if approaching threshold
-        if current_memory > self.threshold_gb:
-            print(f"WARNING: High memory usage ({current_memory:.2f}GB > {self.threshold_gb}GB) - Cleaning up memory ...")
+        if allocated_memory > self.threshold_gb:
+            print(f"WARNING: High memory usage ({allocated_memory:.2f}GB > {self.threshold_gb}GB) - Cleaning up memory ...")
             self.soft_cleanup()
         elif allocated_ratio > self.allocation_threshold:
             print(f"CRITICAL: High memory usage ({allocated_ratio:.2f} > {self.allocation_threshold:.2f}) - Deep cleaning up memory ...")
@@ -123,5 +118,4 @@ class MetricsCallback(TrainerCallback):
                 state.log_history[-1].get('loss',0), #training loss
                 metrics.get('eval_loss', ''), #validation loss
                 metrics.get('eval_wer', ''), #wer
-                # metrics.get('eval_f1', ''), #f1
             ])
