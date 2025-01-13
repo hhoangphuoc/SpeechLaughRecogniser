@@ -54,8 +54,8 @@ alignment_transformation = jiwer.Compose([
         "mmhmm": "um-hum",
         "mmhum": "um-hum",
         "umhum": "um-hum",
-        "umhmm": "um-hum",
-        "<": "<laugh>", # replace < with <laugh> in case of CTC laughter
+        "umhmm": "um-hum"
+        
     })
 ])
 

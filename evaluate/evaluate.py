@@ -287,8 +287,10 @@ def get_transcripts(
             #-------------------------------------------------------------------------------------------------
             hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
             
-            # replace the token "<" to "<laugh>" to match the reference transcript
-            hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
+            if model_type == "wav2vec2":
+                # replace the token "<" to "<laugh>" to match the reference transcript in CTC model
+                hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
+            
             normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
             print(f"NORMED HYP: {normalised_hyp_transcript}")
 
