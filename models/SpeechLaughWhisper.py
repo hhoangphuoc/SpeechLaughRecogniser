@@ -18,7 +18,7 @@ from transformers import (
     Seq2SeqTrainer, 
     Seq2SeqTrainingArguments, 
     EvalPrediction,
-    TrainerCallback
+    TrainerCallback, GenerationConfig
 )
 from transformers.trainer_callback import EarlyStoppingCallback
 from torch.utils.tensorboard import SummaryWriter
@@ -78,12 +78,23 @@ def SpeechLaughWhisper(args):
     print("Device: ", device)
 
     #-------------------------------------------------------------------------------------------------
-    #                                           MODEL CONFIGURATION 
+    #                                           PATH CONFIGURATION 
     #-------------------------------------------------------------------------------------------------  
     model_path = args.model_path
     print(f"Model Path: {model_path}")
     model_cache_dir = args.pretrained_model_dir
-    print(f"Pretrained Model Directory: {args.pretrained_model_dir}")
+    print(f"Pretrained Model Directory: {args.pretrained_model_dir}\n")
+
+    output_dir = os.path.join(args.checkpoint_dir, args.checkpoint_id)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    print(f"Training Checkpoint Directory: {output_dir} \n")
+
+
+    #--------------------------------------------------------------------------------------------------------------------------------
+    #                                           MODEL CONFIGURATION
+    #--------------------------------------------------------------------------------------------------------------------------------
     #Processor and Tokenizer
     processor = WhisperProcessor.from_pretrained(model_path, cache_dir=model_cache_dir) # processor - combination of feature extractor and tokenizer
     feature_extractor = WhisperFeatureExtractor.from_pretrained(model_path, cache_dir=model_cache_dir) #feature extractor
@@ -92,31 +103,45 @@ def SpeechLaughWhisper(args):
     tokenizer = WhisperTokenizer.from_pretrained(model_path, cache_dir=model_cache_dir) #tokenizer
     special_tokens = ["<laugh>"]
     tokenizer.add_tokens(special_tokens)
-    
 
-    model = WhisperForConditionalGeneration.from_pretrained(model_path, cache_dir=model_cache_dir,)
+
+    model = WhisperForConditionalGeneration.from_pretrained(model_path, cache_dir=model_cache_dir)
     model.resize_token_embeddings(len(tokenizer))
+
     model.generation_config.forced_decoder_ids = None
+
+    #================================== USED THE CODE BELOW FOR CUSTOM GENERATION CONFIGS ==============================
+    # Adjust the `generation_config` for model decoder adjustment
+    model.generation_config.max_length = 448
+    model.generation_config.suppress_tokens = [1, 2, 7, 8, 9, 10, 14, 25, 26, 27, 28, 29, 31, 58, 59, 60, 61, 62, 63, 90, 91, 92, 93, 359, 503, 522, 542, 873, 893, 902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246, 3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273, 9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157, 14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520, 26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863, 47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362]
+    model.generation_config.begin_suppress_tokens = [220, 50257]
+
+
+    # Save the generation configs
+    model.generation_config.save_pretrained(os.path.join(output_dir, "generation_config"))
+
+    # TODO: Save processor directly to output directory as it not change over time
+    processor.save_pretrained(os.path.join(output_dir, "processor"))
+
+    #================================== REMOVED ABOVE CODE IF DOESN'T WORK =============================================
+
     model.config.use_cache = False # disable caching
 
-
     model.to(device) # move model to GPUs
-    #-----------------------------------------------------------------------------------------------------------------------
 
+    #-------------------------------------------------------------------------------------------------------------------------------------------------
+    
     #Data Collator for padding 
     speech_laugh_collator = DataCollatorSpeechSeq2SeqWithPadding(
         processor=processor, 
         decoder_start_token_id=model.config.decoder_start_token_id,
     )
-    # #--------------------------------------------------------------------------------------------
 
 
     #===============================================================================================
     #                           LOAD DATASET AND PROCESSING 
     #===============================================================================================
     
-    #=========================================== NOT USED ABOVE ANYMORE ===================================
-
     # ================= Load from splitted dataset ==========================
     swb_train = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_train"))
     swb_eval = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_eval"))
@@ -202,7 +227,7 @@ def SpeechLaughWhisper(args):
     #                       COMPUTE METRICS 
     #=================================================================================================   
     # Load the WER and F1 metrics
-    wer_metric = evaluate.load("wer")
+    # wer_metric = evaluate.load("wer")
 
     def compute_metrics(pred, val_loss):
         """
@@ -219,36 +244,6 @@ def SpeechLaughWhisper(args):
         label_ids = pred.label_ids
         pred_ids = pred.predictions
 
-        # #=========================================================================================================
-        #                       USE THESE IMPLEMENTATION IF CURRENT DOESNT WORK
-
-        # # Make sure that predictions and labels are numpy arrays with dtype=object----------------- 
-        # if isinstance(pred_ids, np.ndarray) and pred_ids.dtype != object:
-        #     pred_ids = [np.array(p, dtype=object) for p in pred_ids]
-        # if isinstance(label_ids, np.ndarray) and label_ids.dtype != object:
-        #     label_ids = [np.array(l, dtype=object) for l in label_ids]
-        # #------------------------------------------------------------------------------------------
-
-        # # Decode predictions and labels
-        # # Check if inputs are lists of numpy arrays (variable-length sequences)
-        # if isinstance(pred_ids, list) and isinstance(pred_ids[0], np.ndarray):
-        #     # Decode each sequence individually
-        #     pred_decoded = [tokenizer.decode(p, skip_special_tokens=True) for p in pred_ids]
-        # else:
-        #     # Decode as a batch (padded sequences)
-        #     pred_decoded = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-        # #-----------------------------------------------------------------------------------------
-
-        # # Decode the reference transcripts
-        # if isinstance(label_ids, list) and isinstance(label_ids[0], np.ndarray):
-        #     ref_transcripts = [tokenizer.decode(l, skip_special_tokens=True) for l in label_ids]
-        # else:
-        #     ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
-        # #-----------------------------------------------------------------------------------------
-
-        #============================================== USE CODE ABOVE IF BELOW DOESNT WORK ========================================
-
-
         # Reconstruct the REF and HYP transcripts at Decoder
         ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #REF transcript, contains laughter tokens [LAUGHTER] and [SPEECH_LAUGH]
         pred_decoded = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #HYP transcript
@@ -256,10 +251,11 @@ def SpeechLaughWhisper(args):
         pred_transcripts = [transform_number_words(transcript, reverse=True) for transcript in pred_decoded]
 
         eval_transformation = jiwer.Compose([
-            jiwer.ExpandCommonEnglishContractions(),
             jiwer.RemoveMultipleSpaces(),
             jiwer.Strip(),
             jiwer.ToLowerCase(),
+            jiwer.ExpandCommonEnglishContractions(),
+            jiwer.RemovePunctuation(),
             jiwer.SubstituteWords({
                 "uhhuh": "uh-huh",
                 "mmhmm": "um-hum",
@@ -272,7 +268,9 @@ def SpeechLaughWhisper(args):
         pred_transcripts = eval_transformation(pred_transcripts) #lowercase
 
         #-----------------------------------------------------------------------------------------
-        wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+        # wer = 100 * wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts)
+
+        wer = jiwer.wer(reference=ref_transcripts, hypothesis=pred_transcripts)
         #-----------------------------------------------------------------------------------------
         metrics = {
             "wer": wer,
@@ -288,30 +286,29 @@ def SpeechLaughWhisper(args):
 
     # Set up training arguments
     training_args = Seq2SeqTrainingArguments(
-        output_dir=args.model_output_dir,
-        logging_dir=args.log_dir,
+        output_dir=output_dir,
         do_train=True,
         do_eval=True,
         
         #Training Configs--------------------------------
-        per_device_train_batch_size=4, #4
-        gradient_accumulation_steps=8, #4
+        per_device_train_batch_size=16, #4
+        gradient_accumulation_steps=4, #8
         learning_rate=5e-5, #or 1e-4
         weight_decay=0.01,
-        max_steps=8000, 
+        max_steps=6000, #6000 steps as it shows good results -> Consider change to 10000 if not improved
         warmup_steps=800,
 
 
         # Evaluation Configs--------------------------------
         eval_strategy="steps",
-        per_device_eval_batch_size=8,
-        eval_accumulation_steps=8,
+        per_device_eval_batch_size=32,
+        # eval_accumulation_steps=8,
         eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
 
         # Saving Configs--------------------------------    
         save_steps=500,
         save_strategy="steps",
-        save_total_limit=3, #save the last 10 checkpoints
+        save_total_limit=5, #save the last 10 checkpoints
 
         # Logging Configs--------------------------------
         logging_steps=100,
@@ -348,25 +345,8 @@ def SpeechLaughWhisper(args):
         early_stopping_threshold=0.01 #consider improve if WER decrease by 0.01
     )
     memory_callback = MemoryEfficientCallback()
-    metrics_callback = MetricsCallback(
-        file_path=os.path.join(args.log_dir, "metrics", "compute_metrics.csv")
-    )
     #--------------------------------------------------------------------------------------------
     
-    # trainer = Seq2SeqTrainer(
-    #     model=model,
-    #     args=training_args,
-    #     tokenizer=tokenizer,
-    #     train_dataset=train_dataset,
-    #     # eval_dataset=test_dataset,
-    #     data_collator=speech_laugh_collator,
-    #     # compute_metrics=compute_metrics,
-    #     callbacks=[
-    #         early_stopping, 
-    #         memory_callback,
-    #         metrics_callback
-    #     ]
-    # )
     trainer = CustomSeq2SeqTrainer(
         model=model,
         args=training_args,
@@ -378,7 +358,9 @@ def SpeechLaughWhisper(args):
         callbacks=[
             early_stopping, 
             memory_callback,
-            metrics_callback
+            MetricsCallback(
+                file_path=f"../logs/whisper/validation_{args.checkpoint_id}.csv"
+            )
         ]
     )
 
@@ -408,14 +390,14 @@ def SpeechLaughWhisper(args):
     finally:
         log_history = trainer.state.log_history
         # save the log history to txt file
-        with open(os.path.join("../logs", "log_history.txt"), "w") as f:
+        with open(os.path.join("../logs/whisper", f"train_log_{args.checkpoint_id}.txt"), "w") as f:
             for entry in log_history:
                 f.write(str(entry) + "\n")
         cleanup_workers() #clear the CUDA memory cache
 
-    # Save the final model
-    trainer.save_model(os.path.join(args.model_output_dir, "test1", "trainer"))
-    model.save_pretrained(os.path.join(args.model_output_dir, "test1", "model"))
+    # Save the final model, processor, and tokenizer
+    model.save_pretrained(os.path.join(args.model_output_dir, "model"))
+    processor.save_pretrained(os.path.join(args.model_output_dir, "processor"))
     
     print("-----------------------------------------end of training ------------------------------")
 
@@ -424,7 +406,7 @@ def SpeechLaughWhisper(args):
     # kwargs = {
     #     "dataset_tags": "hhoangphuoc/switchboard",
     #     "dataset": "Switchboard",
-    #     "model_tags": "speechlaugh-whisper-small",
+    #     "model_tags": "hhoangphuoc/speechlaugh-whisper-large-v2",
     #     "model_name": "Speech Laugh Whisper - Phuoc Ho",
     #     "finetuned_from": "openai/whisper-large-v2",
     #     "tasks": "automatic-speech-recognition",
@@ -443,7 +425,9 @@ if __name__ == "__main__":
     # Model Configs
     parser.add_argument("--model_path", default="openai/whisper-large-v2", type=str, required=False, help="Select pretrained model")
     parser.add_argument("--pretrained_model_dir", default="../ref_models/pre_trained/", type=str, required=False, help="Name of the model")
-    parser.add_argument("--model_output_dir", default="../vocalwhisper/speechlaugh-whisper-large-v2/", type=str, required=False, help="Path to the output directory")
+    parser.add_argument("--model_output_dir", default="../fine-tuned/speechlaugh-whisper-large-v2/", type=str, required=False, help="Directory to the checkpoints")
+    parser.add_argument("--checkpoint_dir", default="../checkpoints/whisper", type=str, required=False, help="Directory to all the saved checkpoints during training of specific configuration")
+    parser.add_argument("--checkpoint_id", default="whisper-batch32-eval500", type=str, required=False, help="Checkpoint ID - Name of model configs")
     parser.add_argument("--log_dir", default="../logs", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--evaluate_dir", default="../evaluate", type=str, required=False, help="Path to the evaluation directory")
     #------------------------------------------------------------------------------

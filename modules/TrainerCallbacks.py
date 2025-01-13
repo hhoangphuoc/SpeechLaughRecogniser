@@ -104,6 +104,8 @@ class MetricsCallback(TrainerCallback):
     def __init__(self, file_path):
         self.file_path = file_path
         if not os.path.exists(file_path):
+            print(f"Validation output will be written to: {file_path}")
+
             with open(file_path, mode='w', newline='') as file:
                 writer = csv.writer(file)
                 writer.writerow(['step', 'epoch', 'training_loss', 'validation_loss', 'wer'])
@@ -113,9 +115,11 @@ class MetricsCallback(TrainerCallback):
         with open(self.file_path, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([
-                state.global_step, #step
-                state.epoch, #epoch
+                state.log_history[-1].get('step', 0), #step
+                state.log_history[-1].get('epoch',0), #epoch
                 state.log_history[-1].get('loss',0), #training loss
                 metrics.get('eval_loss', ''), #validation loss
                 metrics.get('eval_wer', ''), #wer
             ])
+
+        

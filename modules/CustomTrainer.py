@@ -1,5 +1,5 @@
 from transformers import Seq2SeqTrainer, EvalPrediction
-from torch.utils.data import DataLoader, SequentialSampler
+from torch.utils.data import DataLoader
 import torch
 import numpy as np
 import gc
@@ -71,7 +71,6 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
         print("Finish moving data to CPU for evaluation...")
 
         avg_loss = np.mean(val_losses)
-        print(f"Average loss: {avg_loss:.4f}")
 
         if self.compute_metrics is not None:
             print("Passing data to compute_metrics...")
