@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval_swb_test-wav2vec2-new                    # Job name
+#SBATCH --job-name=eval_swb_test-wav2vec2-finetuned                  # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -39,15 +39,23 @@ source activate .venv
 
 # ==========================================================================================
 
-# WAV2VEC2
-python evaluate.py \
-    --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name facebook/wav2vec2-large-960h-lv60 \
-    --model_type wav2vec2 \
-    --pretrained_model_dir ../ref_models/pre_trained \
-    --output_dir ../alignment_transcripts/wav2vec2_new \
+# # WAV2VEC2
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name facebook/wav2vec2-large-960h-lv60 \
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts/wav2vec2-new \
 
 # ==========================================================================================
+
+# Fine-tuned Wav2Vec2
+python evaluate.py \
+    --dataset_dir ../datasets/switchboard/whisper/swb_test \
+    --model_name  finetuned-wav2vec2-checkpoint-20500\
+    --model_type wav2vec2 \
+    --pretrained_model_dir ../checkpoints/wav2vec2-batch32 \
+    --output_dir ../alignment_transcripts/finetuned_wav2vec2 \
 
 
 #----------------------------------------+

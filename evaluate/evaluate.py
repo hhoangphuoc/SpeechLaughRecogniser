@@ -157,9 +157,21 @@ def get_transcripts(
         #     feature_extractor=feature_extractor,
         #     device=device
         # )
+
+    elif model_name.startswith("finetuned-wav2vec2"):
+        print("Loading the finetuned Wav2Vec2 model ...")
+        model_path = os.path.join(pretrained_model_dir, model_name)
+        processor = Wav2Vec2Processor.from_pretrained(model_path)
+        model = Wav2Vec2ForCTC.from_pretrained(model_path)
     
+    elif model_name.startswith("finetuned-whisper"):
+        print("Loading the finetuned Whisper model ...")
+        model_path = os.path.join(pretrained_model_dir, model_name)
+        processor = WhisperProcessor.from_pretrained(model_path)
+        model = WhisperForConditionalGeneration.from_pretrained(model_path)
+
     if model is not None:
-        print(f"Model {model_name} loaded successfully!")
+        print(f"Model `{model_name}` loaded successfully!")
         model.to(device)
     else:
         raise ValueError(f"Model not found: {model_name}. Please choose the model types of 'openai/whisper-*' or 'facebook/wav2vec2-*'.")
@@ -216,7 +228,7 @@ def get_transcripts(
             predicted_ids = None
             hyp_transcript = None
 
-            if model_name.startswith("openai/whisper"):
+            if model_name.startswith("openai/whisper") or model_name.startswith("finetuned-whisper"):
                 # Load and preprocess the audio
                 input_features = processor.feature_extractor(
                     audio, 
@@ -231,7 +243,7 @@ def get_transcripts(
 
                 hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
             
-            elif model_name.startswith("facebook/wav2vec2"):
+            elif model_name.startswith("facebook/wav2vec2") or model_name.startswith("finetuned-wav2vec2"):
                 # FOR WA2VEC2, using `processor` instead of `processor.feature_extractor`
                 # as it need to map both audio to specified tokens in the vocabulary when producing input_values
                 input_features = processor(
@@ -252,9 +264,9 @@ def get_transcripts(
                 # hyp_transcript = pipe(audio, batch_size=1)["text"]
 
             else:
-                raise ValueError(f"Model not found: {model_name}. Please choose the model types of 'openai/whisper-large-v2' or 'facebook/wav2vec2-large-lv60'.")
+                raise ValueError(f"Model not found: {model_name}. Please choose the model relatives to 'openai/whisper-*', 'facebook/wav2vec2-*', or a fine-tuned version of these model such as `finetuned-whisper-*`, or `finetuned-wav2vec2-*`.")
             
-            if  hyp_transcript is None:
+            if hyp_transcript is None:
                 raise ValueError("Unable to generate the transcript. This could be due to `pipeline` not used properly.")
             
             print(f"HYP: {hyp_transcript}")
@@ -273,7 +285,10 @@ def get_transcripts(
             #-------------------------------------------------------------------------------------------------
             #                                   NORMALISED HYP TRANSCRIPTS
             #-------------------------------------------------------------------------------------------------
-            hyp_transcript = transform_number_words(hyp_transcript, reverse=True) 
+            hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
+            
+            # replace the token "<" to "<laugh>" to match the reference transcript
+            hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
             normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
             print(f"NORMED HYP: {normalised_hyp_transcript}")
 
