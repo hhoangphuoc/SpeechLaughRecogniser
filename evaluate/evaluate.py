@@ -1,6 +1,8 @@
 import numpy as np
 from transformers import (
         WhisperProcessor, 
+        WhisperTokenizer,
+        WhisperFeatureExtractor,
         WhisperForConditionalGeneration, 
         Wav2Vec2Processor, 
         Wav2Vec2ForCTC,
@@ -24,7 +26,70 @@ from utils import evaluate_token_alignments
 
 
 # ============================================= WRITE TRANSCRIPTS FUNCTIONS =============================================
+def seperate_file_transcripts(
+        all_transcripts_file,
+        all_transcripts_json_file,
+        ref_file,
+        hyp_file,
+        normed_ref_file,
+        normed_hyp_file,
+        alignment_file,
+    ):
+    """
+    Write the transcripts to the corresponding text files, namely:
 
+    - original_ref_[model_type].txt
+    - original_hyp_[model_type].txt
+    - normalised_ref_[model_type].txt
+    - normalised_hyp_[model_type].txt
+
+    THIS FUNCTION ONLY USED IN CASE ALL TRANSCRIPTS ARE WRITTEN IN THE SAME FILE.
+
+    """
+    print("Writing the transcript files to separate file ...")
+    ref, hyp, normed_ref, normed_hyp = [], [], [], []
+    try:
+        if all_transcripts_file is None:
+            raise ValueError("Transcript file is None. Unable to write the transcript files.")
+
+        with open(all_transcripts_file, "r") as f:
+            all_transcripts = f.readlines()
+
+            if all_transcripts is None:
+                raise ValueError("All transcripts is None. Unable to write the transcript files.")
+            
+            for sentence in tqdm(all_transcripts, desc="Seperating transcripts to files"):
+                ref.append(sentence.removeprefix("REF: ")) if sentence.startswith("REF:") else None
+                hyp.append(sentence.removeprefix("HYP: "))  if sentence.startswith("HYP:") else None
+                normed_ref.append(sentence.removeprefix("NORMED REF: ")) if sentence.startswith("NORMED REF:") else None
+                normed_hyp.append(sentence.removeprefix("NORMED HYP: ")) if sentence.startswith("NORMED HYP:") else None
+            
+            # Write the transcripts to the corresponding text files
+            write_transcript(ref_file, ref, transcript_type="ref")
+            write_transcript(hyp_file, hyp, transcript_type="hyp")
+            write_transcript(normed_ref_file, normed_ref, transcript_type="normalised ref")
+            write_transcript(normed_hyp_file, normed_hyp, transcript_type="normalised hyp")
+
+            write_alignment_transcript(
+                alignment_file=alignment_file,
+                model_type="finetuned-whisper-b4",
+                alignment_ref=normed_ref,
+                alignment_hyp=normed_hyp
+            )
+        f.close()
+
+        # Write to JSON
+        with open(all_transcripts_json_file, "w") as f2:
+            json.dump({
+                "references": ref,
+                "hypotheses": hyp,
+                "normalised_references": normed_ref,
+                "normalised_hypotheses": normed_hyp
+            }, f2, indent=4)
+
+    except Exception as e:
+        print(f"Error: {e}. Please make sure the transcripts are not empty.")
+        return
 def write_alignment_transcript(
         alignment_file,
         model_type="whisper",
@@ -167,8 +232,11 @@ def get_transcripts(
     elif model_name.startswith("finetuned-whisper"):
         print("Loading the finetuned Whisper model ...")
         model_path = os.path.join(pretrained_model_dir, model_name)
-        processor = WhisperProcessor.from_pretrained(model_path)
         model = WhisperForConditionalGeneration.from_pretrained(model_path)
+
+        # processor = WhisperProcessor.from_pretrained(model_path) 
+        # # FIXME: `Seq2SeqTrainer` does not save `WhisperProcessor` by default, using original `WhisperProcessor` from `openai/whisper-large-v2` instead
+        processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2", cache_dir="../ref_models/pre_trained", local_files_only=True)
 
     if model is not None:
         print(f"Model `{model_name}` loaded successfully!")
@@ -238,8 +306,9 @@ def get_transcripts(
 
                 input_features = input_features.to(device) # Move input feature to GPUs
 
-                # Generate the predicted transcript
-                predicted_ids = model.generate(input_features)
+                with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+                    # Generate the predicted transcript
+                    predicted_ids = model.generate(input_features)
 
                 hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
             
@@ -305,16 +374,36 @@ def get_transcripts(
 #============================================================================================================
 
 
-#--------------------------------------------------
-# EVALUATE WAVE2VEC2 
-# with `Wave2Vec2ProcessorWithLM`
-#--------------------------------------------------
-#TODO
-
-
-#-----------------------------------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
+
+    # ============================================================  REMOVE BELOW IF UNUSED =======================================
+
+    # start_time = time.time()
+    # transcripts_dir = os.path.join("../alignment_transcripts", "finetuned_whisper", "whisper-b4-8000steps")
+    # seperate_file_transcripts(
+    #     all_transcripts_file=os.path.join(transcripts_dir, "all_transcripts.txt"),
+    #     all_transcripts_json_file=os.path.join(transcripts_dir, f"all_transcripts_whisper.json"),
+    #     ref_file=os.path.join(transcripts_dir, "original_ref_whisper-b4.txt"),
+    #     hyp_file=os.path.join(transcripts_dir, "original_hyp_whisper-b4.txt"),
+    #     normed_ref_file=os.path.join(transcripts_dir, "normalised_ref_whisper-b4.txt"),
+    #     normed_hyp_file=os.path.join(transcripts_dir, "normalised_hyp_whisper-b4.txt"),
+    #     alignment_file=os.path.join(transcripts_dir, "alignment_whisper-b4.txt")
+    # )
+    # end_time = time.time()
+    # print(f"Finished! Total runtime: {end_time - start_time} seconds")
+    
+    
+
+    #----------------------------------------------------------------------------------------------------------------------#
+    # THE CODE ABOVE USED TO SEPARATE THE TRANSCRIPTS AND WRITE TO THE CORRESPONDING TEXT FILES SEPARATELY AND LOCALLY
+    #           BUT IT CAN ONLY BE USED IN THE CASE ALL TRANSCRIPTS HAS BEEN PROCESSED AND WRITTEN TO THE SAME FILE.
+    #----------------------------------------------------------------------------------------------------------------------#
+
+
+    # ====================================================== REMOVE ABOVE IF UNUSED ==================================================
+    
+
+    csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
     parser = argparse.ArgumentParser(description="Evaluate Model on Switchboard test dataset.")
     parser.add_argument("--dataset_dir", type=str, required=True, default="./datasets/switchboard", help="Path to the dataset directory.")
     parser.add_argument("--model_name", type=str, required=True, default="openai/whisper-large-v2", help="Name of the Whisper model to use.")
@@ -326,7 +415,8 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    # ============================== GET TRANSCRIPTS =======================================
+
+    # ============================== GET TRANSCRIPTS ==================================================
     
     ref, hyp, normed_ref, normed_hyp = get_transcripts(
         dataset_dir=args.dataset_dir,
@@ -389,3 +479,6 @@ if __name__ == "__main__":
     
     end_time = time.time()
     print(f"Finished! Total runtime: {end_time - start_time} seconds")
+
+
+    # ==========================================================================================

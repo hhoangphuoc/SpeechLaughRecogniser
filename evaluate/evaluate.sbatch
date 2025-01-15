@@ -50,14 +50,23 @@ source activate .venv
 # ==========================================================================================
 
 # Fine-tuned Wav2Vec2
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-wav2vec2-checkpoint-20500\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../checkpoints/wav2vec2-batch32 \
+#     --output_dir ../alignment_transcripts/finetuned_wav2vec2 \
+
+#===================================================================================================
+
+# Fine-tuned Whisper
 python evaluate.py \
     --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name  finetuned-wav2vec2-checkpoint-20500\
-    --model_type wav2vec2 \
-    --pretrained_model_dir ../checkpoints/wav2vec2-batch32 \
-    --output_dir ../alignment_transcripts/finetuned_wav2vec2 \
-
-
+    --model_name  finetuned-whisper-checkpoint-8000\
+    --model_type whisper \
+    --pretrained_model_dir ../checkpoints/whisper-batch4-8000steps \
+    --output_dir ../alignment_transcripts/finetuned_whisper/whisper_batch4-8000steps \
+    
 #----------------------------------------+
 # TO PRODUCE ALIGNMENT PLOTS
 #----------------------------------------+
