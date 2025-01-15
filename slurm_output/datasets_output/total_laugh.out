@@ -1,0 +1,35 @@
+	Adding nVidia Cuda Toolkit 11.8
+	Adding nvtop
+Date              = Wed Jan 15 07:44:15 PM CET 2025
+Hostname          = ctit089
+Working Directory = /home/s2587130/SpeechLaughRecogniser/preprocess
+Name of nodes used          : ctit089
+Gpu devices                 : 2
+Starting worker: 
+Loading datasets: Train, Validation, Test...
+Dataset Loaded....
+
+Train Dataset (70%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 185402
+})
+Validation Dataset (10%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 20601
+})
+Test Dataset (20%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 51501
+})
+---------------------------------------------------------------------
+
+Total Laughter and Speechlaugh:
+Train Dataset (swb_train): {'laughter': 16044, 'speechlaugh': 9586} 
+
+Validation Dataset (swb_val): {'laughter': 1845, 'speechlaugh': 1133} 
+
+Test Dataset (swb_test): {'laughter': 4335, 'speechlaugh': 2775} 
+
+Laughter (Train+Val) / Test ratio: 4.126643598615917
+Speechlaugh (Train+Val) / Test ratio: 3.8627027027027028
+----------------------------- end ------------------------------------

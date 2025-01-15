@@ -4,6 +4,7 @@ import numpy as np
 from datasets import DatasetDict, concatenate_datasets, load_from_disk
 from huggingface_hub import login, HfApi, create_repo
 from dotenv import load_dotenv
+from tqdm import tqdm
 
 load_dotenv()
 
@@ -98,7 +99,7 @@ def find_total_laughter_speechlaugh(dataset):
         "laughter": 0,
         "speechlaugh": 0
     }
-    for example in dataset:
+    for example in tqdm(dataset, desc="Finding total laugh..."):
         for word in example['transcript'].split():
             if word == '<LAUGH>':
                 total_laugh["laughter"] += 1
@@ -219,21 +220,27 @@ if __name__ == "__main__":
     # print("Combined datasets successfully!!---------------------------------------------------")
 
     #============================================ LOAD DATASET AND PUSH TO HUB ============================================
-    print("Loaded switchboard full dataset...")
-    swb = load_from_disk("../datasets/switchboard/swb_all")
-    print("Switchboard dataset:", swb) 
+    # print("Loaded switchboard full dataset...")
+    # swb = load_from_disk("../datasets/switchboard/swb_all")
+    # print("Switchboard dataset:", swb) 
 
-    # FIXME: Do we need to shuffle?
+    # Split the dataset into train, validation, and test sets ========================================
+    # swb_train, swb_eval, swb_test = split_dataset(
+    #     swb,
+    #     subset_ratio=1.0,
+    #     split_ratio=0.8,
+    #     split="both",
+    #     train_val_split=True,
+    #     val_split_ratio=0.1
+    # )
+    #================================================================================================
 
-    # Split the dataset into train, validation, and test sets
-    swb_train, swb_eval, swb_test = split_dataset(
-        swb,
-        subset_ratio=1.0,
-        split_ratio=0.8,
-        split="both",
-        train_val_split=True,
-        val_split_ratio=0.1
-    )
+    # OR LOAD IT FROM DISK INSTEAD
+    print("Loading datasets: Train, Validation, Test...")
+    swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
+    swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
+    swb_test = load_from_disk("../datasets/switchboard/whisper/swb_test")
+    
 
     print("Dataset Loaded....\n")
     print(f"Train Dataset (70%): {swb_train}")
@@ -242,51 +249,42 @@ if __name__ == "__main__":
     print("------------------------------------------------------")
 
     # # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ========================================
-    # total_laugh_train = find_total_laughter_speechlaugh(swb_train)
-    # print("Total Laughter and Speechlaugh in Train Dataset: ", total_laugh_train)
+    print("Calculating total in swb_train:\n")
+    total_laugh_train = find_total_laughter_speechlaugh(swb_train)
+    print(f"Total Laughter and Speechlaugh in Train Dataset: {total_laugh_train} \n")
 
-    # total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
-    # print("Total Laughter and Speechlaugh in Validation Dataset: ", total_laugh_val)
+    print("Calculating total in swb_eval:\n")
+    total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
+    print(f"Total Laughter and Speechlaugh in Validation Dataset: {total_laugh_val} \n")
 
-    # total_laugh_test = find_total_laughter_speechlaugh(swb_test)
-    # print("Total Laughter and Speechlaugh in Test Dataset: ", total_laugh_test)
+    print("Calculating total in swb_test:\n")
+    total_laugh_test = find_total_laughter_speechlaugh(swb_test)
+    print(f"Total Laughter and Speechlaugh in Test Dataset: {total_laugh_test} \n")
 
-    # laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-    # speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-    # print(f"Laughter Train/Test ratio: {laughter_ratio}")
-    # print(f"Speechlaugh Train/Test ratio: {speechlaugh_ratio}")
-    
-    # if np.abs(laughter_ratio - speechlaugh_ratio) > 0.3:
-    #     # print("The laughter and speechlaugh ratio is not balanced for Train/Test")
-    #     raise ValueError("The laughter and speechlaugh ratio is not balanced for Train/Test")
-    
-    # print("The laughter and speechlaugh ratio is balanced for Train/Test")
-    # # Save the datasets to disk
-    # swb_train.save_to_disk(os.path.join("../datasets/switchboard", "swb_train"))
-    # swb_eval.save_to_disk(os.path.join("../datasets/switchboard", "swb_eval"))
-    # swb_test.save_to_disk(os.path.join("../datasets/switchboard", "swb_test"))
+    laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
+    speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
+    print(f"Laughter (Train+Val) / Test ratio: {laughter_ratio}")
+    print(f"Speechlaugh (Train+Val) / Test ratio: {speechlaugh_ratio}")
+
     # #================================================================================================
         
-    # Push the datasets to HuggingFace Hub ========================================================
-    print("Loading datasets: Train, Validation, Test...")
-    swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
-    swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
-    swb_test = load_from_disk("../datasets/switchboard/whisper/swb_test")
-    print("Pushing the datasets to Huggingface Datasets...")
-    # Combine the datasets into a DatasetDict
-    dataset_dict = DatasetDict({
-        "train": swb_train,
-        "validation": swb_eval,
-        "test": swb_test
-    })
+    # Push the datasets to HuggingFace Hub ==========================================================
 
-    # Push the combined dataset to HuggingFace Hub
-    push_dataset_to_hub(
-        dataset=dataset_dict,
-        repo_name="switchboard",
-        private=True
-    )
-    print("Pushed to Huggingface Datasets successfully!!------------------------")
+    # Combine the datasets into a DatasetDict =================
+    # print("Pushing the datasets to Huggingface Datasets...")
+    # dataset_dict = DatasetDict({
+    #     "train": swb_train,
+    #     "validation": swb_eval,
+    #     "test": swb_test
+    # })
+
+    # # Push the combined dataset to HuggingFace Hub
+    # push_dataset_to_hub(
+    #     dataset=dataset_dict,
+    #     repo_name="switchboard",
+    #     private=True
+    # )
+    # print("Pushed to Huggingface Datasets successfully!!------------------------")
     
     print("----------------------------- end ------------------------------------")
 
