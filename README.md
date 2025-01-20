@@ -35,16 +35,47 @@ switchboard_data \
 ### PodcastFillers
 Similarly, download the PodcastFillers dataset using `gdown` and unzip it as follow:
 ```bash
-gdown 16qY7Y6KoDcr9jnQb4lofMCDXydjO7yo9 -O [global_path]/podcastfillers_data/PodcastFillers.zip
+gdown 16qY7Y6KoDcr9jnQb4lofMCDXydjO7yo9 -O ../podcastfillers_data/PodcastFillers.zip
 
-cd [global_path]/podcastfillers_data
+cd ../podcastfillers_data
 
 unzip PodcastFillers.zip
 ```
 ### Buckeye
-TODO:
 
----
+Similarly, we using the following command to download the Buckeye dataset and storing in corresponding path.
+
+1. For original Buckeye datasets
+```bash
+gdown 1Vz1cTpTiMGAJoGaO57YPrY0JAGzGLPdy -O ../buckeye_data/Buckeye.zip
+
+cd [global_path]/buckeye_data #/deepstore/datasets/hmi/speechlaugh-corpus/buckeye_data/
+
+unzip Buckeye.zip
+```
+The structure of files existing in Buckeye folder is followed:
+```batch
+Buckeye /
+    |_ s01
+    |    |_ s0101a
+    |    |   |_ s0101a.wav [original audio]
+    |    |   |_ s0101a.txt [sentence-level transcript (no-timestamp)]
+    |    |   |_ s0101a.words [word-level transcript (with timestamp)]
+    |    |_ s0101b
+    |    |_ ...
+    |_ s02
+    |_ ...
+    |_ tagged_words_files
+
+```
+2. For clipped corpus: already processed by clipping the audio in seperate transcription based on different sentences
+```bash
+gdown 17mRLTnWhtrrUud25_Ab4lBN1voCqJd7N -O ../buckeye_data/buckeye_refs_wavs.zip
+
+cd [global_path]/buckeye_data #/deepstore/datasets/hmi/speechlaugh-corpus/buckeye_data/
+
+unzip buckeye_refs_wavs.zip
+```
 
 
 <!-- ### VocalSound

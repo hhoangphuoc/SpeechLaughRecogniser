@@ -273,7 +273,7 @@ model.freeze_feature_encoder()
 
 # ================================== TRAINING ARGUMENTS ============================================
 training_args = TrainingArguments(
-    output_dir="../fine-tuned/wav2vec2-batch32/",
+    output_dir="../checkpoints/wav2vec2-batch32/",
     group_by_length=True,
     per_device_train_batch_size=32, #16
     gradient_accumulation_steps=2, 
@@ -337,6 +337,6 @@ finally:
     cleanup_workers() #clear the CUDA memory cache
 trainer.train()
 
-trainer.save_model("../fine-tuned/wav2vec2-batch32/wav2vec2-large-lv60-speechlaugh-swb")
+model.save_pretrained("../fine-tuned/wav2vec2/wav2vec2-large-lv60-speechlaugh-swb")
 # trainer.push_in_progress = None
 # trainer.push_to_hub("wav2vec2-large-lv60-speechlaugh-swb")
