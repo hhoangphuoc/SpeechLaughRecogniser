@@ -16,10 +16,10 @@ def cut_audio_based_on_transcript_segments(
     ):
     
     """
-    Use to cut audio based on transcript segments,
-    and only apply for the dataset which have the transcripts: switchboard, ami
-    after segmenting the audio, store the new audio segments in seperate folders
-    and align it with the transcripts, in the csv file
+    Use to cut audio based on transcript segments, and only apply for the dataset which have the transcripts with provided timestamp, however, the audio file is full and not processed by the timestamp, such as: switchboard
+
+    After segmenting the audio, store the new audio segments in seperate folders
+    and align it with the transcripts, in the csv file. This audio folder refered to the name: `audio_segments`
 
     NOTES: Sample rate need to make sure to be the same =16kHz during segmentations
     """ 

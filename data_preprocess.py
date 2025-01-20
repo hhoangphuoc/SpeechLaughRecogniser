@@ -6,6 +6,7 @@ import numpy as np
 import librosa
 import os
 import sys
+import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import argparse
 import torch
@@ -13,6 +14,7 @@ import torch
 from datasets import load_dataset, Dataset, DatasetDict, Audio
 from preprocess import (
     process_switchboard_transcript, 
+    process_buckeye_transcript,
     cut_audio_based_on_transcript_segments,
     filter_laughter_dataset,
     filter_speech_laugh_dataset,
@@ -155,14 +157,96 @@ def switchboard_to_ds(
     return switchboard_dataset if to_dataset else df
 #-------------------------------------------------------------------------------------------------------------------------------------
 
+def buckeye_to_ds(
+    data_name="buckeye", 
+    audio_dir='/buckeye_data/buckeye_refs_wavs/audio_wav', #FIXME - This ./switchboard_data is GLOBALLY: ~deepstore/datasets/hmi/speechlaugh-corpus/switchboard_data/...
+    transcript_dir='/buckeye_data/buckeye_refs_wavs/transcripts',
+    batch_audio=[],
+    batch_sr = [],
+    batch_transcript=[],
+    dataset_dir = "../datasets/buckeye/",
+    retokenize_type = None, #default:all data - can splitted: speechlaugh, laugh or speech
+    to_csv = False,
+    to_dataset = False,
+):
+    """
+    Combines audio files and their corresponding transcripts of the `Buckeye Corpus` into:
+    - a dataframe and save to csv if the `to_csv=True` flag is set
+    - a HuggingFace Dataset object if the `to_dataset=True` flag is set
+
+    Args:
+        data_name (str): Name of the dataset
+        audio_dir (str): Path to the directory containing audio files.
+        transcript_dir (str): Path to the root directory containing transcript subfolders.
+        batch_audio (list): List of path to audio file segments
+        batch_transcript (list): List of transcript segments
+        dataset_dir (str): The directory to dataset
+        retokenize_type: The dataset type for retokenize to specific paralinguistic event: `speechlaugh` or `laugh`. Type can be selected: "speechlaugh", "laugh" or "speech". default: None
+
+    Returns:
+        - buckeye_dataset (HuggingFace Dataset): Dataset object containing the audio and transcript data
+        - OR df (pd.DataFrame): Dataframe containing the audio and transcript data
+    """
+
+    print(f"Flags: \n--to_csv: {to_csv}; \n--to_dataset: {to_dataset}; \n--dataset_dir: {dataset_dir}")
+
+    for audio_file in tqdm(os.listdir(audio_dir), desc="Processing Buckeye dataset..."):
+        if not audio_file.endswith(".wav"):
+            continue
+
+        audio_path = os.path.join(audio_dir, audio_file) #../audio_wav/s0101a_1.wav
+
+        # EACH AUDIO FILE ALREADY CORRESPONDING TO EACH TRANCRIPT FILE - NO NEED TO CUT AUDIO
+        # THE TRANSCRIPT LINE IS ALREADY EACH SINGLE TRANCRIPT FOR EACH AUDIO FILE
+        transcript_line = process_buckeye_transcript(
+            audio_file,
+            transcript_dir=transcript_dir,
+        )
+        if transcript_line is None:
+            print(f"Skipping audio file due to missing transcript: {audio_file}")
+            continue
+        
+        # Append to the batch for each audio file
+        batch_audio.append(audio_path)
+        batch_sr.append([16000]*len(audio_file))
+        batch_transcript.append(transcript_line)
+
+    print(f"Successfully combined audio and transcript segments for [{data_name}] data")
+    print(f"Start creating dataset...")
+    df = pd.DataFrame({
+        "audio": batch_audio, #batch["audio"],
+        "sampling_rate": batch_sr, #batch["sampling_rate"],
+        "transcript": batch_transcript, #batch["transcript"]
+    })
+
+
+    if to_dataset:
+        print(f"Saving {dataset_dir}/{data_name}_dataset to HuggingFace Dataset on disk...")
+        buckeye_dataset = Dataset.from_pandas(df)
+        buckeye_dataset = buckeye_dataset.cast_column("audio", Audio(sampling_rate=16000))
+        # Save the dataset to disk
+        buckeye_dataset.save_to_disk(
+            dataset_path=f"{dataset_dir}/{data_name}_dataset", #swb_speechlaugh_dataset
+            # num_proc=8 # working on CPU so try num_proc=8 for 8 cores
+        )
+    
+    if to_csv:
+        os.makedirs(dataset_dir, exist_ok=True)
+        output_file = os.path.join(dataset_dir, f"{data_name}.csv")
+        df.to_csv(output_file, index=False)
+
+    return buckeye_dataset if to_dataset else df
+
+
+#=============================================================================================================================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--skip_process", type=bool, default=False, help="Determine to skip or run processing steps for each dataset separately")
-    parser.add_argument("--data_names", nargs="+", default=["switchboard", "ami", "vocalsound"], required=False, help="List of the datasets to process")
+    parser.add_argument("--data_names", nargs="+", default=["switchboard", "buckeye", "vocalsound"], required=False, help="List of the datasets to process")
     parser.add_argument("--audio_segment_name", type=str, default="swb_speechlaugh", help="Name of the audio segment directory")
 
     parser.add_argument("--global_data_dir", type=str, default="/deepstore/datasets/hmi/speechlaugh-corpus/", help="Path to the directory containing original data")
-    parser.add_argument("--dataset_dir", type=str, default="../datasets/switchboard/", help="Path to the directory that store the Arrow, or Path to the actual directory to direct the dataset to actual storage.")
+    parser.add_argument("--dataset_dir", type=str, default="/datasets/", help="Path to the directory that store the Arrow, or Path to the actual directory to direct the dataset to actual storage.")
     
     parser.add_argument("--to_csv", type=bool, default=False, help="Save the processed data to csv. Better for visualisation")
     parser.add_argument("--to_dataset", type=bool, default=False, help="Decide whether to return the HuggingFace Dataset. Better for training")
@@ -186,19 +270,6 @@ if __name__ == "__main__":
                     "switchboard_data", 
                     args.audio_segment_name
                 ) #FIXME: Change back to audio_segments
-  
-                if args.retokenize_type == "speechlaugh":
-                    print("Processing Speech Laugh Switchboard... (special token: WORD)")
-                    dataset_dir = os.path.join(dataset_dir, "swb_speechlaugh")
-                elif args.retokenize_type == "laugh":
-                    print("Processing Laugh Switchboard... (special token: [LAUGH])")
-                    dataset_dir = os.path.join(dataset_dir, "swb_laugh_intext") #FIXME: change back to `swb_laugh`
-                elif args.retokenize_type == "speech":
-                    print("Processing Normal Speech Switchboard... (special token: None)")
-                    dataset_dir = os.path.join(dataset_dir, "swb_speech")
-                else:
-                    print("Using all Switchboard Data (incl. special token: [LAUGH], WORD)")
-                    dataset_dir = os.path.join(dataset_dir, "swb_all")
                 
 
                 print(f"Process with: \n -Audio segment directory: {audio_segment_dir}; \n -Data directory: {dataset_dir}")
@@ -212,6 +283,19 @@ if __name__ == "__main__":
                     to_csv = args.to_csv,
                     retokenize_type=args.retokenize_type,
                 )
-
                 print(f"Successfully processed [{args.retokenize_type}] Switchboard dataset: {swb_dataset}")
+                print("================================================================")
+            #=============================================================================================================================
+
+            elif data_name == "buckeye":
+                buckeye_to_ds(
+                    data_name = data_name,
+                    audio_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs", "audio_wav"),
+                    transcript_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs", "transcripts"),
+                    dataset_dir = dataset_dir,
+                    to_dataset=args.to_dataset,
+                    to_csv = args.to_csv,
+                    retokenize_type=args.retokenize_type,
+                )
+                print(f"Successfully processed Buckeye dataset")
                 print("================================================================")

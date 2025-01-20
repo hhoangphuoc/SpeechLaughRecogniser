@@ -23,7 +23,8 @@ from .transcript_process import (
     transform_number_words,
     clean_transcript_sentence,
     transform_alignment_sentence,
-    process_switchboard_transcript
+    process_switchboard_transcript,
+    process_buckeye_transcript
 )
 
 __all__ = [
@@ -51,4 +52,5 @@ __all__ = [
     'clean_transcript_sentence',
     'transform_alignment_sentence',
     'process_switchboard_transcript',
+    'process_buckeye_transcript'
 ]

@@ -25,9 +25,9 @@ source activate .venv
 
 # Run your script with the appropriate arguments
 
-#---------------------------------------------#
-#                   PREPROCESS
-#---------------------------------------------#
+#===============================================================================================================#
+#                   PREPROCESS FOR SPECIFIC SPEECH EVENTS TYPE IN SWITCHBOARD DATASET
+#===============================================================================================================#
 
 #----------------
 # SPEECHLAUGH
@@ -68,23 +68,32 @@ source activate .venv
 #----------------
 # SPEECH-ONLY
 #----------------
-python data_preprocess.py \
-    --data_names switchboard \
-    --dataset_dir ./datasets/switchboard/ \
-    --to_dataset True \
-    --to_csv True \
-    --retokenize_type speech \
-    --audio_segment_name swb_speech \
+# python data_preprocess.py \
+#     --data_names switchboard \
+#     --dataset_dir ./datasets/switchboard/ \
+#     --to_dataset True \
+#     --to_csv True \
+#     --retokenize_type speech \
+#     --audio_segment_name swb_speech \
 #---------------------------------------------#
 
-#---------------------------------------------#
-#----------------
-# ALL SWITCHBOARD
-#----------------
+#===============================================================================================================#
+#                               PREPROCESS FULL SWITCHBOARD DATASET
+#===============================================================================================================#
 # python data_preprocess.py \
 #     --data_names switchboard \
 #     --dataset_dir ./datasets/switchboard/ \
 #     --to_dataset True \
 #     --to_csv True \
 #     --audio_segment_name swb_all \
-#---------------------------------------------#
+
+#===============================================================================================================#
+#                               PREPROCESS BUCKEYE DATASET
+#===============================================================================================================#
+python data_preprocess.py \
+    --data_names buckeye \
+    --dataset_dir ./datasets/buckeye/ \
+    --to_dataset True \
+    --to_csv True \
+
+

@@ -250,9 +250,9 @@ def get_transcripts(
     #================================================================================================
     try:
         #../datasets/switchboard/whisper/swb_test  
-        swb_test = load_from_disk(dataset_dir)
+        test_dataset = load_from_disk(dataset_dir)
 
-        print("Loaded Test Dataset:", swb_test)
+        print("Loaded Test Dataset:", test_dataset)
     
     except FileNotFoundError:
         raise ValueError(f"Dataset not found: {dataset_dir}. Please choose the correct path for the test dataset.")
@@ -265,109 +265,112 @@ def get_transcripts(
     normalised_ref, normalised_hyp = [], []
     i = 0
     
-    for recording in swb_test:
+    for recording in test_dataset:
         i += 1
-        print(f"Recording: {i} / {len(swb_test)}")
+        print(f"Recording: {i} / {len(test_dataset)}")
 
-        try:
-            # print(recording)
-
-            #-------------------------------------------------------------------------------------------------
-            #                                   ORIGINAL REF TRANSCRIPTS
-            #-------------------------------------------------------------------------------------------------
-            original_ref = recording['transcript']
+        #-------------------------------------------------------------------------------------------------
+        #                                   ORIGINAL REF TRANSCRIPTS
+        #-------------------------------------------------------------------------------------------------
+        original_ref = recording['transcript']
+        
+        # skip the recording if the transcript is empty
+        if not original_ref.strip():
+            print(f"Recording {i} has empty transcript. Skipped.")
+            continue
+        else:
             print(f"REF: {original_ref}")
             ref.append(original_ref)
 
+            try:
+                #-------------------------------------------------------------------------------------------------
+                #                                   ORIGINAL HYP TRANSCRIPTS
+                #-------------------------------------------------------------------------------------------------
+                # Load the audio
+                audio = recording['audio']['array']
+                sr = recording['audio']['sampling_rate']
 
-            #-------------------------------------------------------------------------------------------------
-            #                                   ORIGINAL HYP TRANSCRIPTS
-            #-------------------------------------------------------------------------------------------------
-            # Load the audio
-            audio = recording['audio']['array']
-            sr = recording['audio']['sampling_rate']
+                # if sr != 16000:
+                #     audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000) # Resample the audio to 16kHz
+                
+        
+                # Extracting the audio to input_features and predicted_ids
+                input_features = None
+                predicted_ids = None
+                hyp_transcript = None
 
-            # if sr != 16000:
-            #     audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000) # Resample the audio to 16kHz
-            
-    
-            # Extracting the audio to input_features and predicted_ids
-            input_features = None
-            predicted_ids = None
-            hyp_transcript = None
-
-            if model_name.startswith("openai/whisper") or model_name.startswith("finetuned-whisper"):
-                # Load and preprocess the audio
-                input_features = processor.feature_extractor(
-                    audio, 
-                    sampling_rate=16000,
-                    return_tensors="pt"
-                ).input_features
-
-                input_features = input_features.to(device) # Move input feature to GPUs
-
-                with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
-                    # Generate the predicted transcript
-                    predicted_ids = model.generate(input_features)
-
-                hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-            
-            elif model_name.startswith("facebook/wav2vec2") or model_name.startswith("finetuned-wav2vec2"):
-                # FOR WA2VEC2, using `processor` instead of `processor.feature_extractor`
-                # as it need to map both audio to specified tokens in the vocabulary when producing input_values
-                input_features = processor(
-                        audio,
+                if model_name.startswith("openai/whisper") or model_name.startswith("finetuned-whisper"):
+                    # Load and preprocess the audio
+                    input_features = processor.feature_extractor(
+                        audio, 
                         sampling_rate=16000,
                         return_tensors="pt"
-                    ).input_values
+                    ).input_features
+
+                    input_features = input_features.to(device) # Move input feature to GPUs
+
+                    with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+                        # Generate the predicted transcript
+                        predicted_ids = model.generate(input_features)
+
+                    hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                
+                elif model_name.startswith("facebook/wav2vec2") or model_name.startswith("finetuned-wav2vec2"):
+                    # FOR WA2VEC2, using `processor` instead of `processor.feature_extractor`
+                    # as it need to map both audio to specified tokens in the vocabulary when producing input_values
+                    input_features = processor(
+                            audio,
+                            sampling_rate=16000,
+                            return_tensors="pt"
+                        ).input_values
+                        
+                    input_features = input_features.to(device)
+
+                    with torch.no_grad():
+                        logits = model(input_features).logits
+                        predicted_ids = torch.argmax(logits, dim=-1)
                     
-                input_features = input_features.to(device)
+                    hyp_transcript = processor.batch_decode(predicted_ids)[0]
+                    
+                    # IF WE USED `pipeline`, use this instead
+                    # hyp_transcript = pipe(audio, batch_size=1)["text"]
 
-                with torch.no_grad():
-                    logits = model(input_features).logits
-                    predicted_ids = torch.argmax(logits, dim=-1)
+                else:
+                    raise ValueError(f"Model not found: {model_name}. Please choose the model relatives to 'openai/whisper-*', 'facebook/wav2vec2-*', or a fine-tuned version of these model such as `finetuned-whisper-*`, or `finetuned-wav2vec2-*`.")
                 
-                hyp_transcript = processor.batch_decode(predicted_ids)[0]
+                if hyp_transcript is None:
+                    raise ValueError("Unable to generate the transcript. This could be due to `pipeline` not used properly.")
                 
-                # IF WE USED `pipeline`, use this instead
-                # hyp_transcript = pipe(audio, batch_size=1)["text"]
-
-            else:
-                raise ValueError(f"Model not found: {model_name}. Please choose the model relatives to 'openai/whisper-*', 'facebook/wav2vec2-*', or a fine-tuned version of these model such as `finetuned-whisper-*`, or `finetuned-wav2vec2-*`.")
-            
-            if hyp_transcript is None:
-                raise ValueError("Unable to generate the transcript. This could be due to `pipeline` not used properly.")
-            
-            print(f"HYP: {hyp_transcript}")
-            hyp.append(hyp_transcript)
+                print(f"HYP: {hyp_transcript}")
+                hyp.append(hyp_transcript)
 
 
-            #-------------------------------------------------------------------------------------------------
-            #                                   NORMALISED REF TRANSCRIPTS
-            #-------------------------------------------------------------------------------------------------
-            normalised_ref_transcript = transform_alignment_sentence(original_ref)
-            print(f"NORMED REF: {normalised_ref_transcript}")
+                #-------------------------------------------------------------------------------------------------
+                #                                   NORMALISED REF TRANSCRIPTS
+                #-------------------------------------------------------------------------------------------------
+                normalised_ref_transcript = transform_alignment_sentence(original_ref)
 
-            normalised_ref.append(normalised_ref_transcript)
+                print(f"NORMED REF: {normalised_ref_transcript}")
+                normalised_ref.append(normalised_ref_transcript)
 
 
-            #-------------------------------------------------------------------------------------------------
-            #                                   NORMALISED HYP TRANSCRIPTS
-            #-------------------------------------------------------------------------------------------------
-            hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
-            
-            if model_type == "wav2vec2":
-                # replace the token "<" to "<laugh>" to match the reference transcript in CTC model
-                hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
-            
-            normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
-            print(f"NORMED HYP: {normalised_hyp_transcript}")
+                #-------------------------------------------------------------------------------------------------
+                #                                   NORMALISED HYP TRANSCRIPTS
+                #-------------------------------------------------------------------------------------------------
+                hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
+                
+                if model_type == "wav2vec2":
+                    # replace the token "<" to "<laugh>" to match the reference transcript in CTC model
+                    hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
+                
+                normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
 
-            normalised_hyp.append(normalised_hyp_transcript)
+                print(f"NORMED HYP: {normalised_hyp_transcript}")
+                normalised_hyp.append(normalised_hyp_transcript)
 
-        except Exception as e:
-            print(f"Error: {e}. Unable to generate the transcript for the recording {i}. Please check the audio file.")
-            continue
+            except Exception as e:
+                print(f"Error: {e}. Unable to generate the transcript for the recording {i}. Please check the audio file.")
+                continue
     
     print("Finished processing all the recordings. Outputing to different transcript lists.")
     return ref, hyp, normalised_ref, normalised_hyp #TODO: return 4 types of transcripts

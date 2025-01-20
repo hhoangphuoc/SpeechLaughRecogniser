@@ -97,15 +97,17 @@ def find_total_laughter_speechlaugh(dataset):
     """
     total_laugh = {
         "laughter": 0,
-        "speechlaugh": 0
+        "speechlaugh": 0,
+        "word": 0
     }
-    for example in tqdm(dataset, desc="Finding total laugh..."):
+    for example in tqdm(dataset, desc="Finding total laugh, speechlaugh and words..."):
         for word in example['transcript'].split():
             if word == '<LAUGH>':
                 total_laugh["laughter"] += 1
             elif word.isupper() and word != '<LAUGH>':
                 total_laugh["speechlaugh"] += 1
             else:
+                total_laugh["word"] += 1
                 continue
     return total_laugh
 #==========================================================================
