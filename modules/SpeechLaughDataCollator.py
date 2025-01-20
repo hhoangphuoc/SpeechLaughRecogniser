@@ -65,6 +65,17 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         # Replace padding token id with -100 to ignore in loss
         labels = labels_batch['input_ids'].masked_fill(labels_batch['attention_mask'].ne(1), -100)
 
+        # ================================ CHECK THE EXISTENCE OF LAUGH TOKEN IN LABELS ======================
+        # THE LAUGH TOKEN NOT EXIST CORRECTLY IN DATA COLLATOR, AS WE USE PRE-TRAINED TOKENIZER TO MODIFIED
+        # FIXME: SHOULD USE PROCESSOR TOKENIZER TO CONVERT TOKENS TO IDS `processor.tokenizer`
+        # laugh_token_id = self.processor.tokenizer.convert_tokens_to_ids("<laugh>")
+        # for label_seq in labels:
+        #     if laugh_token_id in label_seq:
+        #         print(f"Found <laugh> token (ID: {laugh_token_id}) in labels: {label_seq}")
+        #         break
+        # ================================ REMOVE ABOVE CODE AFTER CHECKING ==========================================
+
+
         # Remove decoder_start_token_id if present
         if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
                     labels = labels[:, 1:]

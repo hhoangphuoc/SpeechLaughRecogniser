@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=speechlaugh-whisper-large-v2-custom-trainer     # Job name
+#SBATCH --job-name=finetuned-whisper-batch16-6000steps-lr-optimizer     # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
@@ -65,7 +65,9 @@ source activate .venv
 python SpeechLaughWhisper.py \
     --dataset_dir ../datasets/switchboard \
     --model_path openai/whisper-large-v2 \
-    --model_output_dir ../fine-tuned/speechlaugh-whisper-large-v2/ \
+    --model_output_dir ../fine-tuned/whisper/train16-eval8-6000steps-lr5/ \
+    --checkpoint_dir ../checkpoints/ \
+    --checkpoint_id whisper-train16-eval8-6000steps-lr5 \
     --log_dir ../logs \
     --evaluate_dir ../evaluate
 

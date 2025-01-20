@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval_swb_test-wav2vec2-finetuned                  # Job name
+#SBATCH --job-name=eval_swb_test-whisper-finetuned-v2              # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -60,12 +60,24 @@ source activate .venv
 #===================================================================================================
 
 # Fine-tuned Whisper
+# FINETUNED VERSION WITHOUT <LAUGH> TOKEN RECOGNISED
+# batch=4, eval=8, lr=5e-5, warmup=800, steps=8000
+#- WER:7.65
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-whisper-checkpoint-8000\
+#     --model_type whisper \
+#     --pretrained_model_dir ../checkpoints/whisper-batch4-8000steps \
+#     --output_dir ../alignment_transcripts/finetuned_whisper/whisper_batch4-8000steps \
+
+
+# FINETUNED VERSION WITH: batch=16, eval=8, lr=5e-5, warmup=1000, steps=6000 
 python evaluate.py \
     --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name  finetuned-whisper-checkpoint-8000\
+    --model_name  finetuned-whisper-checkpoint-6000\
     --model_type whisper \
-    --pretrained_model_dir ../checkpoints/whisper-batch4-8000steps \
-    --output_dir ../alignment_transcripts/finetuned_whisper/whisper_batch4-8000steps \
+    --pretrained_model_dir ../checkpoints/whisper-train16-eval8-6000steps-lr5 \
+    --output_dir ../alignment_transcripts/finetuned_whisper/whisper-b16-6000steps \
     
 #----------------------------------------+
 # TO PRODUCE ALIGNMENT PLOTS
