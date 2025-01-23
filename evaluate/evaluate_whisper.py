@@ -1,5 +1,10 @@
 import numpy as np
-from transformers import WhisperProcessor, WhisperForConditionalGeneration
+from transformers import (
+    WhisperFeatureExtractor,
+    WhisperProcessor,
+    WhisperForConditionalGeneration,
+    WhisperTokenizer,
+    )
 from datasets import load_from_disk
 import jiwer
 import argparse
@@ -293,23 +298,50 @@ def evaluate_whisper(
             f.write("___________________________________________________________________________________________\n\n")
 
 if __name__ == "__main__":
-    # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
-    parser = argparse.ArgumentParser(description="Evaluate the Whisper model on Switchboard dataset.")
-    parser.add_argument("--dataset_dir", type=str, required=True, default="./datasets/switchboard", help="Path to the dataset directory.")
-    parser.add_argument("--dataset_type", type=str, required=True, default="speechlaugh", help="Type of dataset to evaluate: 'speechlaugh' or 'laugh' or 'speech'.")
-    parser.add_argument("--model_name", type=str, required=True, default="openai/whisper-small", help="Name of the Whisper model to use.")
-    parser.add_argument("--pretrained_model_dir", type=str, required=True, default="../ref_models/pre_trained", help="Path to the pretrained model directory.")
-    parser.add_argument("--output_dir", type=str, default="./alignment_transcripts", help="Directory to write the alignment transcripts.")
+    # # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
+    # parser = argparse.ArgumentParser(description="Evaluate the Whisper model on Switchboard dataset.")
+    # parser.add_argument("--dataset_dir", type=str, required=True, default="./datasets/switchboard", help="Path to the dataset directory.")
+    # parser.add_argument("--dataset_type", type=str, required=True, default="speechlaugh", help="Type of dataset to evaluate: 'speechlaugh' or 'laugh' or 'speech'.")
+    # parser.add_argument("--model_name", type=str, required=True, default="openai/whisper-small", help="Name of the Whisper model to use.")
+    # parser.add_argument("--pretrained_model_dir", type=str, required=True, default="../ref_models/pre_trained", help="Path to the pretrained model directory.")
+    # parser.add_argument("--output_dir", type=str, default="./alignment_transcripts", help="Directory to write the alignment transcripts.")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    start_time = time.time()
-    evaluate_whisper(
-        dataset_dir=args.dataset_dir,
-        dataset_type=args.dataset_type,
-        model_name=args.model_name,
-        pretrained_model_dir=args.pretrained_model_dir,
-        output_dir=args.output_dir
+    # start_time = time.time()
+    # evaluate_whisper(
+    #     dataset_dir=args.dataset_dir,
+    #     dataset_type=args.dataset_type,
+    #     model_name=args.model_name,
+    #     pretrained_model_dir=args.pretrained_model_dir,
+    #     output_dir=args.output_dir
+    # )
+    # end_time = time.time()
+    # print(f"Total runtime: {end_time - start_time} seconds")
+    #===============================================================================================================
+
+    #===================================================
+    #       TEST EVALUATE WHISPER WITH 1 SAMPLE
+    #===================================================
+    pre_trained_path = "../fine-tuned/whisper/checkpoint-5794"
+    model = WhisperForConditionalGeneration.from_pretrained(pre_trained_path)
+    # tokenizer = WhisperTokenizer.from_pretrained(pre_trained_path)
+    
+    processor = WhisperProcessor.from_pretrained(pre_trained_path)
+    example_audio = librosa.load("../evaluate/example/sw02089A_2230385_226499875.wav", sr=16000)
+
+    audio = processor.feature_extractor(raw_speech=example_audio[0], sampling_rate=16000, return_tensors="pt").input_features
+
+    with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+        predicted_ids = model.generate(audio)
+
+    predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+
+    reference_transcript = "but he sold his boat too so <laugh> so we just kind of"
+
+    pair_alignment = jiwer.process_words(
+        reference=reference_transcript,
+        hypothesis=predicted_transcript
     )
-    end_time = time.time()
-    print(f"Total runtime: {end_time - start_time} seconds")
+    print(jiwer.visualize_alignment(pair_alignment, show_measures=False, skip_correct=False))
+    print("---------------------------end---------------------------------")

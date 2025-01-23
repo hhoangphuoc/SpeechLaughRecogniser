@@ -234,10 +234,10 @@ def get_transcripts(
         model_path = os.path.join(pretrained_model_dir, model_name)
         model = WhisperForConditionalGeneration.from_pretrained(model_path)
 
-        # processor = WhisperProcessor.from_pretrained(model_path) 
-        # # FIXME: `Seq2SeqTrainer` does not save `WhisperProcessor` by default, using original `WhisperProcessor` from `openai/whisper-large-v2` instead
-        processor = WhisperProcessor.from_pretrained("openai/whisper-large-v2", cache_dir="../ref_models/pre_trained", local_files_only=True)
-
+        # TODO: REMEMBER TO ADD TO `preprocess_config.json` in `processor` folder to the checkpoint
+        # Otherwise it will not work
+        processor = WhisperProcessor.from_pretrained(model_path)
+        
     if model is not None:
         print(f"Model `{model_name}` loaded successfully!")
         model.to(device)
