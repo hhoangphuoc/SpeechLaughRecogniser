@@ -140,26 +140,31 @@ def show_random_elements(dataset, num_examples=10):
 
 # Load splitted dataset from disk
 swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
-# Transform the <LAUGH> token into "<" for CTC
-swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Train dataset")
+print("Original Train Dataset (70%):", swb_train)
 
-swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
-swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Eval dataset")
-
-swb_test = load_from_disk("../datasets/switchboard/whisper/swb_test")
-swb_test = swb_test.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Test dataset")
-
-print("Train Dataset (70%):", swb_train)
+# filter out the dataset with laughter-only transcript: <LAUGH> ============================================
+swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
+swb_train = swb_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+print("Train Dataset (after filtered):", swb_train)
 show_random_elements(swb_train, num_examples=10)
+# ==========================================================================================================
 
-print("Validation Dataset (10%):", swb_eval)
-show_random_elements(swb_eval, num_examples=10)
+# Transform the <LAUGH> token into "<" for CTC
+# swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Train dataset")
 
-print("Test Dataset (20%):", swb_test)
-show_random_elements(swb_test, num_examples=10)
+#========================================== FOR EVALUATION DATASET ===========================================
+swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
+print("Original Validation Dataset (10%):", swb_eval)
+# swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Eval dataset")
+swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
+
+# skip empty transcript
+swb_eval = swb_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+print("Validation Dataset (after filtered):", swb_eval)
 
 
-# ================================== PREPROCESSING ==============================================
+
+# ================================================ PREPROCESSING ===================================================
 # remove special characters
 swb_train = swb_train.map(
     remove_special_characters,
@@ -197,14 +202,14 @@ vocab_dict["[PAD]"] = len(vocab_dict)
 print("Vocab Dictionary:",vocab_dict)
 
 # Save the vocab
-with open("vocab_b32.json", "w") as vocab_file:
+with open("vocab_nolaugh.json", "w") as vocab_file:
     json.dump(vocab_dict, vocab_file)
 
 #================================================================================================
 
 
 # CONFIGURE MODEL COMPONENTS
-tokenizer = Wav2Vec2CTCTokenizer("./vocab_b32.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+tokenizer = Wav2Vec2CTCTokenizer("./vocab_nolaugh.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
 feature_extractor = Wav2Vec2FeatureExtractor(
     feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True
 )
@@ -212,8 +217,8 @@ processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tok
 
 # Save the tokenizer
 print("Saving Wav2Vec2 tokenizer and feature extractor...")
-tokenizer.save_pretrained("../fine-tuned/wav2vec2-batch32/tokenizer")
-feature_extractor.save_pretrained("../fine-tuned/wav2vec2-batch32/feature_extractor")
+tokenizer.save_pretrained("../fine-tuned/wav2vec2-batch32-nolaugh/tokenizer")
+feature_extractor.save_pretrained("../fine-tuned/wav2vec2-batch32-nolaugh/feature_extractor")
 
 # =============================== PROCESSING DATASET =====================================
 def prepare_dataset(batch):
@@ -250,6 +255,7 @@ def compute_metrics(pred):
 
     # we do not want to group tokens when computing the metrics
     label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
+
     wer = jiwer.wer(reference=label_str, hypothesis=pred_str)
 
     return {"wer": wer}
@@ -273,12 +279,12 @@ model.freeze_feature_encoder()
 
 # ================================== TRAINING ARGUMENTS ============================================
 training_args = TrainingArguments(
-    output_dir="../checkpoints/wav2vec2-batch32/",
+    output_dir="../checkpoints/wav2vec2-batch32-nolaugh/",
     group_by_length=True,
     per_device_train_batch_size=32, #16
     gradient_accumulation_steps=2, 
     evaluation_strategy="steps",
-    num_train_epochs=50,
+    num_train_epochs=10,
 
     gradient_checkpointing=True,
     fp16=True,
@@ -331,12 +337,12 @@ except Exception as e:
 finally:
     log_history = trainer.state.log_history
     # save the log history to txt file
-    with open(os.path.join("../logs/wav2vec2", "log_history_batch32.txt"), "w") as f:
+    with open(os.path.join("../logs/wav2vec2", "log_history_batch32-nolaugh.txt"), "w") as f:
         for entry in log_history:
             f.write(str(entry) + "\n")
     cleanup_workers() #clear the CUDA memory cache
 trainer.train()
 
-model.save_pretrained("../fine-tuned/wav2vec2/wav2vec2-large-lv60-speechlaugh-swb")
+model.save_pretrained("../fine-tuned/wav2vec2/wav2vec2-batch32-nolaugh")
 # trainer.push_in_progress = None
 # trainer.push_to_hub("wav2vec2-large-lv60-speechlaugh-swb")

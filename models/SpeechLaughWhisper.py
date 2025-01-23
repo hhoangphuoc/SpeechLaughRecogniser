@@ -306,27 +306,38 @@ def SpeechLaughWhisper(args):
         output_dir=output_dir,
         do_train=True,
         do_eval=True,
+
+        # max_steps=6000, #6000 steps shows good results - try  8000 steps with larger batch size, smaller lr (LONGER TRAINING :(()))
+        # warmup_steps=1000, #warmup at longer steps for effectively learning the existence of <laugh> token
+        num_train_epochs=10, #10 epochs - FIXME: Try 30 epochs
+        warmup_ratio=0.15, #15% of the total steps for warmup to better learn the <laugh> token
+
         
         #Training Configs--------------------------------
-        per_device_train_batch_size=16, #4 - FIXME: or change to 16 and `accumulate the gradients` to 16
-        gradient_accumulation_steps=8, #8
-        learning_rate=5e-5, #or 1e-4 - FIXME: `1e-5` is TOO SMALL, MAKE WHISPER UNABLE TO CONVERGE -> Try: `5e-5` or `1e-4`
-        lr_scheduler_type="linear", # Use linear scheduler for learning rate
-        weight_decay=0.01,#- FIXME:Larger weight decay (0.05) making it harder to converge, TRY: smaller weight decay (0.001)
+        per_device_train_batch_size=16, #16 - FIXME: or change to 16 and `accumulate the gradients` to 16
+        gradient_accumulation_steps=4, #8
 
-        max_steps=6000, #6000 steps shows good results - try  8000 steps with larger batch size, smaller lr (LONGER TRAINING :(()))
-        warmup_steps=1000, #warmup at longer steps for effectively learning the existence of <laugh> token
 
         # Evaluation Configs--------------------------------
-        eval_strategy="steps",
+        # eval_strategy="steps",
+        # eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
+        
+        eval_strategy="epoch", #evaluate the model every epoch
         per_device_eval_batch_size=8, #FIXME: Use larger batch size for evaluation (improved WER, loss)
-        eval_accumulation_steps=8, #try with 8 to faster evaluation
-        eval_steps=1000, #evaluate the model every 1000 steps - Executed compute_metrics()
+        eval_accumulation_steps=4, #try with 8 to faster evaluation
+        
+
+
+        learning_rate=1e-4, #or 5e-5 - FIXME: `1e-5` is TOO SMALL, MAKE WHISPER UNABLE TO CONVERGE -> Try: `5e-5` or `1e-4`
+        lr_scheduler_type="linear", # Use linear scheduler for learning rate
+        weight_decay=0.005,#TRY SMALLER WEIGHT DECAY (0.005) instead of `0.01`- FIXME:Larger weight decay (0.05) making it harder to converge, TRY: smaller weight decay (0.001)
+
 
         # Saving Configs--------------------------------    
-        save_steps=1000,
-        save_strategy="steps",
-        save_total_limit=2, #save the last 5 checkpoints
+        # save_steps=500,
+        # save_strategy="steps",
+        save_strategy="epoch", #save the model every epoch
+        save_total_limit=3, #save the last 2 checkpoints
 
         # Logging Configs--------------------------------
         logging_steps=100,
@@ -345,7 +356,8 @@ def SpeechLaughWhisper(args):
         # Computations efficiency--------------------------------
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
-        torch_empty_cache_steps=500,
+        adam_beta2=0.98,
+        torch_empty_cache_steps=1000,
         #-----------------------------------------------------
 
         # Dataloader Configs--------------------------------
@@ -367,16 +379,14 @@ def SpeechLaughWhisper(args):
     # ==================================================================================================================
     # SET UP `OPTIMIZER` AND `LEARNING RATE SCHEDULER` FOR BETTER LEARNING <laugh> TOKEN
     # ==================================================================================================================
-    print(f"Training arguments:\n learning_rate = {training_args.learning_rate};\n weight_decay = {training_args.weight_decay};\n Evaluation_batch = {training_args.eval_batch_size} every {training_args.eval_steps} steps;")
+    print(f"Training arguments:\n learning_rate = {training_args.learning_rate};\n weight_decay = {training_args.weight_decay}; \n Epochs: {training_args.num_train_epochs}; \n Batch Size: {training_args.per_device_train_batch_size} (accumulated with: {training_args.gradient_accumulation_steps}); \n Warmup Ratio: {training_args.warmup_ratio}")
 
-    num_training_steps = training_args.max_steps
-    print(f"Number of training steps: {num_training_steps}")
-    optimizer = torch.optim.AdamW(model.parameters(), lr=training_args.learning_rate, weight_decay=training_args.weight_decay)
-    lr_scheduler = get_linear_schedule_with_warmup( # or get_cosine_schedule_with_warmup
-        optimizer=optimizer,
-        num_warmup_steps=training_args.warmup_steps,
-        num_training_steps=num_training_steps,
-    )
+    # optimizer = torch.optim.AdamW(model.parameters(), lr=training_args.learning_rate, weight_decay=training_args.weight_decay)
+    # lr_scheduler = get_linear_schedule_with_warmup( # or get_cosine_schedule_with_warmup
+    #     optimizer=optimizer,
+    #     num_warmup_steps=training_args.warmup_steps,
+    #     num_training_steps=num_training_steps,
+    # )
     #===================================================================================================================
 
     
@@ -384,7 +394,6 @@ def SpeechLaughWhisper(args):
     trainer = CustomSeq2SeqTrainer(
         model=model,
         args=training_args,
-        optimizers=(optimizer, lr_scheduler), #FIXME: This is added for better learning of <laugh> token
         tokenizer=tokenizer,
         train_dataset=swb_train,
         eval_dataset=swb_eval, #test_dataset
@@ -461,7 +470,7 @@ if __name__ == "__main__":
     parser.add_argument("--pretrained_model_dir", default="../ref_models/pre_trained/", type=str, required=False, help="Name of the model")
     parser.add_argument("--model_output_dir", default="../fine-tuned/speechlaugh-whisper-large-v2/", type=str, required=False, help="Directory to the checkpoints")
     parser.add_argument("--checkpoint_dir", default="../checkpoints/whisper", type=str, required=False, help="Directory to all the saved checkpoints during training of specific configuration")
-    parser.add_argument("--checkpoint_id", default="whisper-batch16-6000steps-lr5", type=str, required=False, help="Checkpoint ID - Name of model configs")
+    parser.add_argument("--checkpoint_id", default="speechlaugh-whisper-10epochs", type=str, required=False, help="Checkpoint ID - Name of model configs")
     parser.add_argument("--log_dir", default="../logs", type=str, required=False, help="Path to the log directory")
     parser.add_argument("--evaluate_dir", default="../evaluate", type=str, required=False, help="Path to the evaluation directory")
     #------------------------------------------------------------------------------
