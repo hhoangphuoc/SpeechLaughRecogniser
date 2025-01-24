@@ -1,0 +1,47 @@
+{
+  "added_tokens_decoder": {
+    "44": {
+      "content": "[UNK]",
+      "lstrip": true,
+      "normalized": false,
+      "rstrip": true,
+      "single_word": false,
+      "special": false
+    },
+    "45": {
+      "content": "[PAD]",
+      "lstrip": true,
+      "normalized": false,
+      "rstrip": true,
+      "single_word": false,
+      "special": false
+    },
+    "46": {
+      "content": "<s>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    },
+    "47": {
+      "content": "</s>",
+      "lstrip": false,
+      "normalized": false,
+      "rstrip": false,
+      "single_word": false,
+      "special": true
+    }
+  },
+  "bos_token": "<s>",
+  "clean_up_tokenization_spaces": true,
+  "do_lower_case": false,
+  "eos_token": "</s>",
+  "model_max_length": 1000000000000000019884624838656,
+  "pad_token": "[PAD]",
+  "replace_word_delimiter_char": " ",
+  "target_lang": null,
+  "tokenizer_class": "Wav2Vec2CTCTokenizer",
+  "unk_token": "[UNK]",
+  "word_delimiter_token": "|"
+}
