@@ -234,7 +234,7 @@ def get_transcripts(
         model_path = os.path.join(pretrained_model_dir, model_name)
         model = WhisperForConditionalGeneration.from_pretrained(model_path)
 
-        # TODO: REMEMBER TO ADD TO `preprocess_config.json` in `processor` folder to the checkpoint
+        # TODO: REMEMBER TO ADD TO `preprocessor_config.json` in `processor` folder to the checkpoint folder
         # Otherwise it will not work
         processor = WhisperProcessor.from_pretrained(model_path)
         

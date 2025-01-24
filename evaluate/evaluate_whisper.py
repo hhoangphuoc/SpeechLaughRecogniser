@@ -323,7 +323,7 @@ if __name__ == "__main__":
     #===================================================
     #       TEST EVALUATE WHISPER WITH 1 SAMPLE
     #===================================================
-    pre_trained_path = "../fine-tuned/whisper/checkpoint-5794"
+    pre_trained_path = "../fine-tuned/whisper/finetuned-whisper-10epochs"
     model = WhisperForConditionalGeneration.from_pretrained(pre_trained_path)
     # tokenizer = WhisperTokenizer.from_pretrained(pre_trained_path)
     
