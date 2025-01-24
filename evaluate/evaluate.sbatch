@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval-finetuned-wav2vec2-nolaugh-switchboard             # Job name
+#SBATCH --job-name=eval-finetuned-whisper-buckeye            # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -59,12 +59,12 @@ source activate .venv
 
 # ==========================================================================================
 # Fine-tuned Wav2Vec2-nolaugh - version: checkpoint-20100
-python evaluate.py \
-    --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name  finetuned-wav2vec2-checkpoint-20100\
-    --model_type wav2vec2 \
-    --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
-    --output_dir ../alignment_transcripts/switchboard/finetuned_wav2vec2_nolaugh \
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-wav2vec2-checkpoint-20100\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_wav2vec2_nolaugh \
 
 #===================================================================================================
 
@@ -81,12 +81,12 @@ python evaluate.py \
 
 
 # FINETUNED VERSION WITH: batch=16, lr=1e-4, 10epochs
-# python evaluate.py \
-#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
-#     --model_name  finetuned-whisper-10epochs\
-#     --model_type whisper \
-#     --pretrained_model_dir ../fine-tuned/whisper/ \
-#     --output_dir ../alignment_transcripts/switchboard/speechlaugh-whisper-10epochs \
+python evaluate.py \
+    --dataset_dir ../datasets/buckeye/buckeye_dataset \
+    --model_name  finetuned-whisper-10epochs\
+    --model_type whisper \
+    --pretrained_model_dir ../fine-tuned/whisper/ \
+    --output_dir ../alignment_transcripts/buckeye/finetuned_whisper \
     
 #----------------------------------------+
 # TO PRODUCE ALIGNMENT PLOTS
