@@ -17,19 +17,20 @@ from preprocess import load_word_sets
 #=========================================================================================================================
 alignment_transformation = jiwer.Compose([
     jiwer.RemoveEmptyStrings(),
-    jiwer.RemoveMultipleSpaces(),
-    jiwer.Strip(),
     jiwer.ToLowerCase(), #FIXME- LOWERCASE FIRST
     jiwer.ExpandCommonEnglishContractions(),
     jiwer.RemovePunctuation(),
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
+        "uh huh": "uh-huh", #for buckeye
         "mmhmm": "um-hum",
         "mmhum": "um-hum",
         "umhum": "um-hum",
-        "umhmm": "um-hum"
-        
-    })
+        "umhmm": "um-hum",
+        "yknow": "you know", #for buckeye
+    }),
+    jiwer.RemoveMultipleSpaces(),
+    jiwer.Strip()
 ])
 
 transcript_transformation = jiwer.Compose([
@@ -300,8 +301,8 @@ def retokenize_transcript_pattern(
     # FINALLY extent the english, remove multiple spaces and strip
     transcript_line = jiwer.Compose([
         jiwer.RemoveEmptyStrings(), #remove empty strings
-        jiwer.RemovePunctuation(), #remove punctuation
         jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
+        jiwer.RemovePunctuation(), #remove punctuation
         jiwer.RemoveWhiteSpace(replace_by_space=True), #remove multiple spaces
         jiwer.RemoveMultipleSpaces(), #remove multiple spaces
         jiwer.Strip(), #strip the line

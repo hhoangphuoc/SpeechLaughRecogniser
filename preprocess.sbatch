@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=preprocess_swb_speech         # Job name
+#SBATCH --job-name=preprocess_buckeye        # Job name
 #SBATCH -c 16                                               # Number of cores
 #SBATCH --mem=10G                                            # Request 10GB memory
 #SBATCH --gres=gpu:ampere:1                                 # Request 1 GPU
