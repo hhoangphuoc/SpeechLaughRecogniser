@@ -53,6 +53,7 @@ cd [global_path]/buckeye_data #/deepstore/datasets/hmi/speechlaugh-corpus/buckey
 
 unzip Buckeye.zip
 ```
+
 The structure of files existing in Buckeye folder is followed:
 ```batch
 Buckeye /
@@ -69,6 +70,7 @@ Buckeye /
 
 ```
 2. For clipped corpus: already processed by clipping the audio in seperate transcription based on different sentences
+- v1
 ```bash
 gdown 17mRLTnWhtrrUud25_Ab4lBN1voCqJd7N -O ../buckeye_data/buckeye_refs_wavs.zip
 
@@ -77,6 +79,12 @@ cd [global_path]/buckeye_data #/deepstore/datasets/hmi/speechlaugh-corpus/buckey
 unzip buckeye_refs_wavs.zip
 ```
 
+-v2
+```bash
+gdown 1TqKGZ3W0LB9JzMk0AS65wtJBFF10EIGr -O ../buckeye_data/buckeye_refs_wavs2.zip
+
+unzip buckeye_refs_wavs2.zip
+```
 
 <!-- ### VocalSound
 - Download the dataset from [VocalSound](https://www.dropbox.com/s/c5ace70qh1vbyzb/vs_release_16k.zip?dl=1) and save it to `path/to/data/vocalsound_data` folder

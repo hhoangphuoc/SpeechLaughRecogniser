@@ -382,15 +382,15 @@ if __name__ == "__main__":
     # ============================================================  REMOVE BELOW IF UNUSED =======================================
 
     # start_time = time.time()
-    # transcripts_dir = os.path.join("../alignment_transcripts", "finetuned_whisper", "whisper-b4-8000steps")
+    # transcripts_dir = os.path.join("../alignment_transcripts", "buckeye2", "finetuned_wav2vec2")
     # seperate_file_transcripts(
     #     all_transcripts_file=os.path.join(transcripts_dir, "all_transcripts.txt"),
-    #     all_transcripts_json_file=os.path.join(transcripts_dir, f"all_transcripts_whisper.json"),
-    #     ref_file=os.path.join(transcripts_dir, "original_ref_whisper-b4.txt"),
-    #     hyp_file=os.path.join(transcripts_dir, "original_hyp_whisper-b4.txt"),
-    #     normed_ref_file=os.path.join(transcripts_dir, "normalised_ref_whisper-b4.txt"),
-    #     normed_hyp_file=os.path.join(transcripts_dir, "normalised_hyp_whisper-b4.txt"),
-    #     alignment_file=os.path.join(transcripts_dir, "alignment_whisper-b4.txt")
+    #     all_transcripts_json_file=os.path.join(transcripts_dir, f"all_transcripts_wav2vec2.json"),
+    #     ref_file=os.path.join(transcripts_dir, "original_ref_wav2vec2.txt"),
+    #     hyp_file=os.path.join(transcripts_dir, "original_hyp_wav2vec2.txt"),
+    #     normed_ref_file=os.path.join(transcripts_dir, "normalised_ref_wav2vec2.txt"),
+    #     normed_hyp_file=os.path.join(transcripts_dir, "normalised_hyp_wav2vec2.txt"),
+    #     alignment_file=os.path.join(transcripts_dir, "alignment_wav2vec2.txt")
     # )
     # end_time = time.time()
     # print(f"Finished! Total runtime: {end_time - start_time} seconds")
@@ -403,7 +403,7 @@ if __name__ == "__main__":
     #----------------------------------------------------------------------------------------------------------------------#
 
 
-    # ====================================================== REMOVE ABOVE IF UNUSED ==================================================
+    # # ====================================================== REMOVE ABOVE IF UNUSED ==================================================
     
 
     csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path

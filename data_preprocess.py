@@ -290,8 +290,8 @@ if __name__ == "__main__":
             elif data_name == "buckeye":
                 buckeye_to_ds(
                     data_name = data_name,
-                    audio_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs", "audio_wav"),
-                    transcript_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs", "transcripts"),
+                    audio_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2", "audio_wav"), #FIXME: change to `buckeye_refs_wavs`
+                    transcript_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2", "transcripts"), #FIXME: change to `buckeye_refs_wavs`
                     dataset_dir = dataset_dir,
                     to_dataset=args.to_dataset,
                     to_csv = args.to_csv,

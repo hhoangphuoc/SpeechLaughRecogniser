@@ -303,6 +303,11 @@ def retokenize_transcript_pattern(
         jiwer.RemoveEmptyStrings(), #remove empty strings
         jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
         jiwer.RemovePunctuation(), #remove punctuation
+        jiwer.SubstituteWords({
+            "uhhuh": "uh-huh",
+            "uh huh": "uh-huh", #for buckeye
+            "yknow": "you know", #for buckeye
+        }), #substitute the words
         jiwer.RemoveWhiteSpace(replace_by_space=True), #remove multiple spaces
         jiwer.RemoveMultipleSpaces(), #remove multiple spaces
         jiwer.Strip(), #strip the line
