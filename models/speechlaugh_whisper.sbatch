@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=finetuned-whisper-batch(16x4)-eval(8x4)-30epochs-lr1e4     # Job name
+#SBATCH --job-name=finetuned-whisper-batch(16x4)-eval(8x4)-10epochs-lr1e4     # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
@@ -65,9 +65,9 @@ source activate .venv
 python SpeechLaughWhisper.py \
     --dataset_dir ../datasets/switchboard \
     --model_path openai/whisper-large-v2 \
-    --model_output_dir ../fine-tuned/whisper/batch16-30epochs-lr1e4/ \
+    --model_output_dir ../fine-tuned/whisper/finetuned-whisper-nolaugh/ \
     --checkpoint_dir ../checkpoints/ \
-    --checkpoint_id whisper-batch16-30epochs-lr1e4 \
+    --checkpoint_id finetuned-whisper-nolaugh \
     --log_dir ../logs \
     --evaluate_dir ../evaluate
 

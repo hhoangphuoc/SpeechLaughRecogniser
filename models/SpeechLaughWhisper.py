@@ -165,14 +165,16 @@ def SpeechLaughWhisper(args):
     print(f"Test Dataset (20%): {swb_test}")
     print("------------------------------------------------------")
 
-    """
-    Datasets containing the laughter token as <LAUGH> and speechlaugh as uppercase words
-    Therefore we need to lowercase all sentences in the dataset, so that:
-    - laughter token become <laugh>
-    speechlaugh token is lowercase and existing as speech variation
+    #REMOVE LAUGHTER IN TRAIN
+    swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
+    swb_train = swb_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    print("Train Dataset (after filtered):", swb_train)
 
-    THIS STEP WOULD BE DONE IN `prepare_dataset`
-    """
+    #REMOVE LAUGHTER IN EVAL
+    swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
+    swb_eval = swb_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    print("Validation Dataset (after filtered):", swb_eval)
+    print("------------------------------------------------------")
     #===============================================================================================
     #                       DATASET MAPPING TO TENSORS
     #===============================================================================================
@@ -310,7 +312,7 @@ def SpeechLaughWhisper(args):
         # max_steps=6000, #6000 steps shows good results - try  8000 steps with larger batch size, smaller lr (LONGER TRAINING :(()))
         # warmup_steps=1000, #warmup at longer steps for effectively learning the existence of <laugh> token
         num_train_epochs=10, #10 epochs - FIXME: Try 30 epochs
-        warmup_ratio=0.15, #15% of the total steps for warmup to better learn the <laugh> token
+        warmup_ratio=0.10, #USE 10-15% of the total steps for warmup to better learn the <laugh> token
 
         
         #Training Configs--------------------------------
