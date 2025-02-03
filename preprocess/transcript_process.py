@@ -17,17 +17,18 @@ from preprocess import load_word_sets
 #=========================================================================================================================
 alignment_transformation = jiwer.Compose([
     jiwer.RemoveEmptyStrings(),
-    jiwer.ToLowerCase(), #FIXME- LOWERCASE FIRST
     jiwer.ExpandCommonEnglishContractions(),
     jiwer.RemovePunctuation(),
     jiwer.SubstituteWords({
         "uhhuh": "uh-huh",
-        "uh huh": "uh-huh", #for buckeye
+        "uh huh": "uh-huh",
         "mmhmm": "um-hum",
+        "mm hmm": "um-hum",
         "mmhum": "um-hum",
+        "mm hum": "um-hum",
         "umhum": "um-hum",
+        "um hum": "um-hum",
         "umhmm": "um-hum",
-        "yknow": "you know", #for buckeye
     }),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip()
@@ -35,11 +36,14 @@ alignment_transformation = jiwer.Compose([
 
 transcript_transformation = jiwer.Compose([
     jiwer.RemoveEmptyStrings(),
+    jiwer.ExpandCommonEnglishContractions(),
+    jiwer.SubstituteWords({
+        "yknow": "you know",
+    }),
+    jiwer.RemovePunctuation(),
     jiwer.RemoveMultipleSpaces(),
     jiwer.Strip(),
     jiwer.ToLowerCase(), #FIXME - LOWERCASE IN TRANSCRIPT PROCESSING (BEFORE RETOKENIZATION)
-    jiwer.ExpandCommonEnglishContractions(),
-    jiwer.RemovePunctuation(),
 ])
 
 
@@ -140,7 +144,6 @@ def transform_alignment_sentence(sentence):
     Transform the alignment sentence using Jiwer Compose
     This function is used for alignment processing, i.e. the REF and HYP in the evaluation.
     Including:
-    - Lowercase the line
     - Expand common English contractions (e.g., "I'm" -> "I am")
     - Remove punctuation (, . ! ?)
     - Remove multiple spaces
@@ -269,24 +272,28 @@ def retokenize_transcript_pattern(
         laugh_pattern = r"\<laugh\>"
         speech_laugh_pattern = r"\<laugh-(\w+)\>"
         #====================================================================
+        print("original line: ", transcript_line)
         for word in transcript_line.split(" "):
-            print("original word: ", word)
             #============ PATTERN MATCHING AND ADJUST TRANSCRIPT============
             if re.match(noise_pattern, word):
                 # remove if <SIL>, <NOISE>, <VOCNOISE>, <IVER>, <CUTOFF>, <ERROR>
                 word = " " #removing the noise word
             elif word.startswith("<cutoff-") or word.startswith("<error-") or word.startswith("<unknown-") or word.startswith("<exclude-"):
                 word = " " #removing the cutoff word - <cutoff-clipping=word>, <error-error=word>
+            elif word.startswith("<cutoff=") or word.startswith("<error=") or word.startswith("<unknown=") or word.startswith("<exclude="):
+                word = " " #removing the cutoff word - <cutoff=clipping>, <error=error>
             elif word.startswith("<noise-") or word.startswith("<vocnoise-") or word.startswith("<iver-"):
                 word = word[:-1].split('-')[1] # KEEP the word
+            elif word.startswith("<noise=") or word.startswith("<vocnoise=") or word.startswith("<iver="):
+                word = word[:-1].split('=')[1] # KEEP the word
             elif word.startswith("<ext-") or word.startswith("<hes-"):
                 word = word[:-1].split('-')[1] # KEEP the word
             else:
                 word = word
             
             #===RETOKENIZE SPEECH_LAUGH AND LAUGHTER============================
-            if word.startswith("<laugh-"):
-                laughed_word = word[:-1].split('-')[1]
+            if word.startswith("<laugh-") or word.startswith("<laugh="):
+                laughed_word = word[:-1].split('-')[1] if word.startswith("<laugh-") else word[:-1].split('=')[1]
                 if len(laughed_word.split("_")) > 1:
                     # contruct the word as a sentence of all words
                     laughed_word = " ".join(laughed_word.split("_"))
@@ -294,7 +301,10 @@ def retokenize_transcript_pattern(
 
             elif re.match(laugh_pattern, word):
                 word = "<LAUGH>"
-            print("processed word: ", word)
+            #==================================================================
+            #if word contains = in the middle, remove it
+            if "=" in word:
+                word = word.split("=")[1]
             #==================================================================
             new_line += word + " "
 
@@ -304,14 +314,12 @@ def retokenize_transcript_pattern(
         jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
         jiwer.RemovePunctuation(), #remove punctuation
         jiwer.SubstituteWords({
-            "uhhuh": "uh-huh",
-            "uh huh": "uh-huh", #for buckeye
             "yknow": "you know", #for buckeye
         }), #substitute the words
-        jiwer.RemoveWhiteSpace(replace_by_space=True), #remove multiple spaces
         jiwer.RemoveMultipleSpaces(), #remove multiple spaces
         jiwer.Strip(), #strip the line
     ])(new_line)
+    print("processed line: ", transcript_line)
 
     return transcript_line
 

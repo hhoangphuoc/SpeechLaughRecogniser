@@ -28,10 +28,11 @@ from utils import evaluate_token_alignments
 # ============================================= WRITE TRANSCRIPTS FUNCTIONS =============================================
 def seperate_file_transcripts(
         all_transcripts_file,
-        all_transcripts_json_file,
+        # all_transcripts_json_file,
         ref_file,
         hyp_file,
         normed_ref_file,
+        normed_ref_upper_file,
         normed_hyp_file,
         alignment_file,
     ):
@@ -47,7 +48,7 @@ def seperate_file_transcripts(
 
     """
     print("Writing the transcript files to separate file ...")
-    ref, hyp, normed_ref, normed_hyp = [], [], [], []
+    ref, hyp, normed_ref, normed_ref_upper, normed_hyp = [], [], [], [], []
     try:
         if all_transcripts_file is None:
             raise ValueError("Transcript file is None. Unable to write the transcript files.")
@@ -62,30 +63,23 @@ def seperate_file_transcripts(
                 ref.append(sentence.removeprefix("REF: ")) if sentence.startswith("REF:") else None
                 hyp.append(sentence.removeprefix("HYP: "))  if sentence.startswith("HYP:") else None
                 normed_ref.append(sentence.removeprefix("NORMED REF: ")) if sentence.startswith("NORMED REF:") else None
+                normed_ref_upper.append(sentence.removeprefix("NORMED REF UPPER: ")) if sentence.startswith("NORMED REF UPPER:") else None
                 normed_hyp.append(sentence.removeprefix("NORMED HYP: ")) if sentence.startswith("NORMED HYP:") else None
             
             # Write the transcripts to the corresponding text files
             write_transcript(ref_file, ref, transcript_type="ref")
             write_transcript(hyp_file, hyp, transcript_type="hyp")
+            write_transcript(normed_ref_upper_file, normed_ref_upper, transcript_type="normalised ref upper")
             write_transcript(normed_ref_file, normed_ref, transcript_type="normalised ref")
             write_transcript(normed_hyp_file, normed_hyp, transcript_type="normalised hyp")
 
             write_alignment_transcript(
                 alignment_file=alignment_file,
-                model_type="finetuned-whisper-b4",
+                model_type="finetuned-whisper-nolaugh",
                 alignment_ref=normed_ref,
                 alignment_hyp=normed_hyp
             )
         f.close()
-
-        # Write to JSON
-        with open(all_transcripts_json_file, "w") as f2:
-            json.dump({
-                "references": ref,
-                "hypotheses": hyp,
-                "normalised_references": normed_ref,
-                "normalised_hypotheses": normed_hyp
-            }, f2, indent=4)
 
     except Exception as e:
         print(f"Error: {e}. Please make sure the transcripts are not empty.")
@@ -194,16 +188,23 @@ def get_transcripts(
 
     # check GPU availability    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    # SPECFIC GLOBAL PATH FOR BUCKEYE AUDIO
+    audio_global_path = "/deepstore/datasets/hmi/speechlaugh-corpus/buckeye_data/buckeye_refs_wavs2/audio_wav/"
 
     #---------------------------------------
     # LOAD PRETRAINED MODEL + PROCESSOR
     #---------------------------------------
     processor = None
     model = None
+    transcriber = None
 
     if model_name.startswith("openai/whisper"):
-        processor = WhisperProcessor.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
         model = WhisperForConditionalGeneration.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
+        processor = WhisperProcessor.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
+
+        # using pipeline for ASR with long-form audio
+        transcriber = pipeline("automatic-speech-recognition", model=model, tokenizer=processor.tokenizer, feature_extractor=processor.feature_extractor, device=device)
     
     
     elif model_name.startswith("facebook/wav2vec2"):
@@ -214,14 +215,6 @@ def get_transcripts(
         processor = Wav2Vec2Processor.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
         model = Wav2Vec2ForCTC.from_pretrained(model_name, cache_dir=pretrained_model_dir, local_files_only=True)
 
-        # FIXME: Using pipeline doesnt work
-        # pipe = pipeline(
-        #     "automatic-speech-recognition", 
-        #     model=model,
-        #     tokenizer=tokenizer,
-        #     feature_extractor=feature_extractor,
-        #     device=device
-        # )
 
     elif model_name.startswith("finetuned-wav2vec2"):
         print("Loading the finetuned Wav2Vec2 model ...")
@@ -232,15 +225,27 @@ def get_transcripts(
     elif model_name.startswith("finetuned-whisper"):
         print("Loading the finetuned Whisper model ...")
         model_path = os.path.join(pretrained_model_dir, model_name)
+        print(f"Model Path: {model_path}")
+        
         model = WhisperForConditionalGeneration.from_pretrained(model_path)
-
+        
+        #-------------------------------------------------------------------
         # TODO: REMEMBER TO ADD TO `preprocessor_config.json` in `processor` folder to the checkpoint folder
         # Otherwise it will not work
+        #-------------------------------------------------------------------
         processor = WhisperProcessor.from_pretrained(model_path)
-        
+
+        # ----------------------------- USING HUGGINGFACE PIPELINE ------------------------------
+        # tokenizer = WhisperTokenizer.from_pretrained(model_path)
+        # feature_extractor = WhisperFeatureExtractor.from_pretrained(model_path)
+        # # using pipeline for ASR with long-form audio
+        # transcriber = pipeline("automatic-speech-recognition", model=model, tokenizer=tokenizer, feature_extractor=feature_extractor, chunk_length_s=30, device=device)
+
+        # ----------------------------- TOKEN DECODER + CHUNK -----------------------------------
+
     if model is not None:
         print(f"Model `{model_name}` loaded successfully!")
-        model.to(device)
+        model.to(device).half() #`.half()` to use mixed precision for faster inference (fp16)
     else:
         raise ValueError(f"Model not found: {model_name}. Please choose the model types of 'openai/whisper-*' or 'facebook/wav2vec2-*'.")
 
@@ -262,23 +267,37 @@ def get_transcripts(
     #==============================================================================================
 
     ref, hyp = [], []
+    normalised_ref_upper = []
     normalised_ref, normalised_hyp = [], []
     i = 0
     
     for recording in test_dataset:
-        i += 1
-        print(f"Recording: {i} / {len(test_dataset)}")
-
         #-------------------------------------------------------------------------------------------------
         #                                   ORIGINAL REF TRANSCRIPTS
         #-------------------------------------------------------------------------------------------------
         original_ref = recording['transcript']
+
+        # Load the audio
+        audio_name = recording['audio']['path']
+        audio_path = os.path.join(audio_global_path, audio_name)
+        audio = recording['audio']['array']
+        sr = recording['audio']['sampling_rate']
+        
+        if sr != 16000:
+            audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000)
         
         # skip the recording if the transcript is empty
         if not original_ref.strip():
-            print(f"Recording {i} has empty transcript. Skipped.")
+            print(f"Recording {audio_path} empty transcript. Skipped.")
+            continue
+        elif audio is None:
+            print(f"Recording {audio_path} has empty audio. Skipped.")
             continue
         else:
+            i += 1
+            print(f"Recording: {i} / {len(test_dataset)}")
+            print(f"Audio Path: {audio_path}")
+
             print(f"REF: {original_ref}")
             ref.append(original_ref)
 
@@ -286,13 +305,6 @@ def get_transcripts(
                 #-------------------------------------------------------------------------------------------------
                 #                                   ORIGINAL HYP TRANSCRIPTS
                 #-------------------------------------------------------------------------------------------------
-                # Load the audio
-                audio = recording['audio']['array']
-                sr = recording['audio']['sampling_rate']
-
-                # if sr != 16000:
-                #     audio = librosa.resample(y=audio, orig_sr=sr, target_sr=16000) # Resample the audio to 16kHz
-                
         
                 # Extracting the audio to input_features and predicted_ids
                 input_features = None
@@ -300,20 +312,56 @@ def get_transcripts(
                 hyp_transcript = None
 
                 if model_name.startswith("openai/whisper") or model_name.startswith("finetuned-whisper"):
-                    # Load and preprocess the audio
-                    input_features = processor.feature_extractor(
-                        audio, 
-                        sampling_rate=16000,
-                        return_tensors="pt"
-                    ).input_features
+                    #------------------------ PROCESSING USING TOKENIZER DECODER --------------------------
+                    # # Load and preprocess the audio
+                    # input_features = processor.feature_extractor(
+                    #     audio, 
+                    #     sampling_rate=16000,
+                    #     return_tensors="pt"
+                    # ).input_features
 
-                    input_features = input_features.to(device) # Move input feature to GPUs
+                    # input_features = input_features.to(device) # Move input feature to GPUs
 
-                    with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
-                        # Generate the predicted transcript
-                        predicted_ids = model.generate(input_features)
+                    # with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+                    #     # Generate the predicted transcript
+                    #     predicted_ids = model.generate(input_features)
+                    # hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                    #--------------------------------------------------------------------------------------
 
-                    hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                    #------------------------ PROCESSING USING PIPELINE -----------------------------------
+                    # using pipeline for ASR with long-form audio
+                    # hyp_transcript = transcriber(recording["audio"], chunk_length_s=30)['text']
+                    #--------------------------------------------------------------------------------------
+
+                    #------------------------ PROCESSING USING TOKENIZER DECODE + CHUNK -------------------#
+                    chunk_length_s = 30.0 #chunk length in seconds
+                    chunk_length_samples = int(chunk_length_s * sr) #chunk length in samples (rate)
+
+                    hyp_transcript_chunks = []
+
+                    # Split the audio into chunks
+                    for start_idx in range(0, len(audio), chunk_length_samples):
+                        end_idx = min(start_idx + chunk_length_samples, len(audio))
+                        chunk = audio[start_idx:end_idx]
+
+                        # Process audio chunk
+                        input_features = processor(
+                            chunk, 
+                            sampling_rate=16000, 
+                            return_tensors="pt"
+                        ).input_features
+
+                        input_features = input_features.to(device).half()
+
+                        with torch.no_grad():
+                            predicted_ids = model.generate(input_features) #TODO:use num_beams=5 for more audio content?
+                        
+                        # hyp_transcript = processor.batch_decode(predicted_ids)[0]
+                        transcript_chunk = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                        hyp_transcript_chunks.append(transcript_chunk)
+                    
+                    hyp_transcript = " ".join(hyp_transcript_chunks)
+                    #--------------------------------------------------------------------------------------#
                 
                 elif model_name.startswith("facebook/wav2vec2") or model_name.startswith("finetuned-wav2vec2"):
                     # FOR WA2VEC2, using `processor` instead of `processor.feature_extractor`
@@ -322,7 +370,7 @@ def get_transcripts(
                             audio,
                             sampling_rate=16000,
                             return_tensors="pt"
-                        ).input_values
+                    ).input_values
                         
                     input_features = input_features.to(device)
 
@@ -331,9 +379,6 @@ def get_transcripts(
                         predicted_ids = torch.argmax(logits, dim=-1)
                     
                     hyp_transcript = processor.batch_decode(predicted_ids)[0]
-                    
-                    # IF WE USED `pipeline`, use this instead
-                    # hyp_transcript = pipe(audio, batch_size=1)["text"]
 
                 else:
                     raise ValueError(f"Model not found: {model_name}. Please choose the model relatives to 'openai/whisper-*', 'facebook/wav2vec2-*', or a fine-tuned version of these model such as `finetuned-whisper-*`, or `finetuned-wav2vec2-*`.")
@@ -346,34 +391,45 @@ def get_transcripts(
 
 
                 #-------------------------------------------------------------------------------------------------
+                #                                   NORMALISED REF UPPER TRANSCRIPTS
+                # Normalise the reference transcript without lowercasing
+                #-------------------------------------------------------------------------------------------------
+                normalised_ref_upper_transcript = transform_alignment_sentence(original_ref)
+
+                print(f"NORMED REF UPPER: {normalised_ref_upper_transcript}")
+                normalised_ref_upper.append(normalised_ref_upper_transcript)
+
+
+                #-------------------------------------------------------------------------------------------------
                 #                                   NORMALISED REF TRANSCRIPTS
                 #-------------------------------------------------------------------------------------------------
-                normalised_ref_transcript = transform_alignment_sentence(original_ref)
+                normalised_ref_transcript = jiwer.ToLowerCase()(normalised_ref_upper_transcript)
 
                 print(f"NORMED REF: {normalised_ref_transcript}")
                 normalised_ref.append(normalised_ref_transcript)
 
-
                 #-------------------------------------------------------------------------------------------------
                 #                                   NORMALISED HYP TRANSCRIPTS
                 #-------------------------------------------------------------------------------------------------
-                hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
+                # hyp_transcript = transform_number_words(hyp_transcript, reverse=True)
                 
                 if model_type == "wav2vec2":
                     # replace the token "<" to "<laugh>" to match the reference transcript in CTC model
                     hyp_transcript = hyp_transcript.replace("<", " <laugh> ")
                 
                 normalised_hyp_transcript = transform_alignment_sentence(hyp_transcript)
+                normalised_hyp_transcript = jiwer.ToLowerCase()(normalised_hyp_transcript)
 
                 print(f"NORMED HYP: {normalised_hyp_transcript}")
                 normalised_hyp.append(normalised_hyp_transcript)
 
             except Exception as e:
                 print(f"Error: {e}. Unable to generate the transcript for the recording {i}. Please check the audio file.")
+                print(f"Recording {audio_path} skipped.")
                 continue
     
     print("Finished processing all the recordings. Outputing to different transcript lists.")
-    return ref, hyp, normalised_ref, normalised_hyp #TODO: return 4 types of transcripts
+    return ref, hyp, normalised_ref, normalised_ref_upper, normalised_hyp #TODO: return 5 types of transcripts
 #============================================================================================================
 
 
@@ -382,15 +438,16 @@ if __name__ == "__main__":
     # ============================================================  REMOVE BELOW IF UNUSED =======================================
 
     # start_time = time.time()
-    # transcripts_dir = os.path.join("../alignment_transcripts", "buckeye2", "finetuned_wav2vec2")
+    # transcripts_dir = os.path.join("../alignment_transcripts", "buckeye2", "finetuned_whisper_nolaugh")
     # seperate_file_transcripts(
     #     all_transcripts_file=os.path.join(transcripts_dir, "all_transcripts.txt"),
-    #     all_transcripts_json_file=os.path.join(transcripts_dir, f"all_transcripts_wav2vec2.json"),
-    #     ref_file=os.path.join(transcripts_dir, "original_ref_wav2vec2.txt"),
-    #     hyp_file=os.path.join(transcripts_dir, "original_hyp_wav2vec2.txt"),
-    #     normed_ref_file=os.path.join(transcripts_dir, "normalised_ref_wav2vec2.txt"),
-    #     normed_hyp_file=os.path.join(transcripts_dir, "normalised_hyp_wav2vec2.txt"),
-    #     alignment_file=os.path.join(transcripts_dir, "alignment_wav2vec2.txt")
+    #     # all_transcripts_json_file=os.path.join(transcripts_dir, f"all_transcripts_wav2vec2.json"),
+    #     ref_file=os.path.join(transcripts_dir, "original_ref_whisper.txt"),
+    #     hyp_file=os.path.join(transcripts_dir, "original_hyp_whisper.txt"),
+    #     normed_ref_file=os.path.join(transcripts_dir, "normalised_ref_whisper.txt"),
+    #     normed_ref_upper_file=os.path.join(transcripts_dir, "normalised_ref_upper_whisper.txt"),
+    #     normed_hyp_file=os.path.join(transcripts_dir, "normalised_hyp_whisper.txt"),
+    #     alignment_file=os.path.join(transcripts_dir, "alignment_whisper.txt")
     # )
     # end_time = time.time()
     # print(f"Finished! Total runtime: {end_time - start_time} seconds")
@@ -406,7 +463,7 @@ if __name__ == "__main__":
     # # ====================================================== REMOVE ABOVE IF UNUSED ==================================================
     
 
-    csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
+    # csv_file = "train_switchboard.csv"  # Replace with your actual CSV file path
     parser = argparse.ArgumentParser(description="Evaluate Model on Switchboard test dataset.")
     parser.add_argument("--dataset_dir", type=str, required=True, default="./datasets/switchboard", help="Path to the dataset directory.")
     parser.add_argument("--model_name", type=str, required=True, default="openai/whisper-large-v2", help="Name of the Whisper model to use.")
@@ -419,23 +476,18 @@ if __name__ == "__main__":
     start_time = time.time()
 
 
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
+
     # ============================== GET TRANSCRIPTS ==================================================
     
-    ref, hyp, normed_ref, normed_hyp = get_transcripts(
+    ref, hyp, normed_ref, normed_ref_upper, normed_hyp = get_transcripts(
         dataset_dir=args.dataset_dir,
         model_name=args.model_name,
         model_type=args.model_type,
         pretrained_model_dir=args.pretrained_model_dir,
         output_dir=args.output_dir
     )
-    # save the transcripts to json file
-    with open(os.path.join(args.output_dir, f"all_transcripts_{args.model_type}.json"), "w") as f:
-        json.dump({
-            "references": ref,
-            "hypotheses": hyp,
-            "normalised_references": normed_ref,
-            "normalised_hypotheses": normed_hyp
-        }, f, indent=4)
 
     # ============================== WRITE TRANSCRIPTS TO TEXT FILES  =======================================
 
@@ -461,6 +513,13 @@ if __name__ == "__main__":
         normed_ref_file, 
         normed_ref, 
         transcript_type="normalised ref")
+    #---------------------------------------------------------------------------------------------------------
+
+    normed_ref_upper_file = os.path.join(args.output_dir, f"normalised_ref_upper_{args.model_type}.txt") #e.g. normalised_ref_whisper.txt
+    write_transcript(
+        normed_ref_upper_file, 
+        normed_ref_upper, 
+        transcript_type="normalised ref upper")
     #---------------------------------------------------------------------------------------------------------
     
     # Normalised Hypothesis Transcripts

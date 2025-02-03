@@ -196,6 +196,9 @@ def buckeye_to_ds(
 
         audio_path = os.path.join(audio_dir, audio_file) #../audio_wav/s0101a_1.wav
 
+        # resample the audio to 16kHz
+        # audio, sr = librosa.load(audio_path, sr=16000)
+
         # EACH AUDIO FILE ALREADY CORRESPONDING TO EACH TRANCRIPT FILE - NO NEED TO CUT AUDIO
         # THE TRANSCRIPT LINE IS ALREADY EACH SINGLE TRANCRIPT FOR EACH AUDIO FILE
         transcript_line = process_buckeye_transcript(

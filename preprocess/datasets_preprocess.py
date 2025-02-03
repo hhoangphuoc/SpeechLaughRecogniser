@@ -131,20 +131,23 @@ def split_dataset(
     - dataset: HuggingFace Dataset object
     - split_ratio: ratio of the train set
     - split: "train", "test", "val" or "both" to return both train, validation and test set
+    - train_val_split: whether to split
+    - val_split_ratio: ratio of the validation set
+
     Return:
     - train_dataset: HuggingFace Dataset object
     - test_dataset: HuggingFace Dataset object
     """
-    switchboard = DatasetDict()
+    joined_dataset = DatasetDict()
 
     # only take a subset of the dataset
     if subset_ratio < 1.0:
         print(f"Only taking {subset_ratio*100}% of the dataset")
         dataset = dataset.select(range(int(len(dataset)*subset_ratio)))
 
-    switchboard = dataset.train_test_split(test_size=1-split_ratio)
-    train_switchboard = switchboard["train"]
-    test_switchboard = switchboard["test"]
+    joined_dataset = dataset.train_test_split(test_size=1-split_ratio)
+    train_switchboard = joined_dataset["train"]
+    test_switchboard = joined_dataset["test"]
     val_switchboard = None
     if train_val_split:
         train_val_switchboard = train_switchboard.train_test_split(test_size=val_split_ratio)
@@ -212,8 +215,9 @@ def push_dataset_to_hub(dataset, repo_name, token=None, private=True):
         print(f"Error pushing dataset to hub: {e}")
         raise e
 
-#=====================================================================================================
+
 if __name__ == "__main__":
+
     #============================================ COMBINE DATASETS ==========================================================
     # dataset_dir = "../datasets/switchboard"
     # print(f"Combining all the datasets in {dataset_dir}, they are:\n")
@@ -221,72 +225,85 @@ if __name__ == "__main__":
     # combined_dataset(dataset_dir="../datasets/switchboard", combined_dataset_name="swb_all", save_dataset=True)
     # print("Combined datasets successfully!!---------------------------------------------------")
 
-    #============================================ LOAD DATASET AND PUSH TO HUB ============================================
-    # print("Loaded switchboard full dataset...")
-    # swb = load_from_disk("../datasets/switchboard/swb_all")
-    # print("Switchboard dataset:", swb) 
+    #=======================================================================================================================
 
-    # Split the dataset into train, validation, and test sets ========================================
-    # swb_train, swb_eval, swb_test = split_dataset(
-    #     swb,
+
+    #============================================ LOAD DATASET AND SPLIT ===================================================
+    # print("Loaded buckeye full dataset...")
+    # buckeye = load_from_disk("../datasets/buckeye2/buckeye_dataset")
+    # print("Buckeye dataset:", buckeye) 
+
+    # #Split the dataset into train, validation, and test sets ---------------------------------------
+    # buckeye_train, buckeye_eval, buckeye_test = split_dataset(
+    #     buckeye,
     #     subset_ratio=1.0,
     #     split_ratio=0.8,
     #     split="both",
     #     train_val_split=True,
     #     val_split_ratio=0.1
     # )
-    #================================================================================================
 
-    # OR LOAD IT FROM DISK INSTEAD
-    print("Loading datasets: Train, Validation, Test...")
-    swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
-    swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
-    swb_test = load_from_disk("../datasets/switchboard/whisper/swb_test")
+    # # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ========================================
+    # print("Calculating total in swb_train:\n")
+    # total_laugh_train = find_total_laughter_speechlaugh(buckeye_train)
+    # print(f"Total Laughter and Speechlaugh in Train Dataset: {total_laugh_train} \n")
+
+    # print("Calculating total in swb_eval:\n")
+    # total_laugh_val = find_total_laughter_speechlaugh(buckeye_eval)
+    # print(f"Total Laughter and Speechlaugh in Validation Dataset: {total_laugh_val} \n")
+
+    # print("Calculating total in swb_test:\n")
+    # total_laugh_test = find_total_laughter_speechlaugh(buckeye_test)
+    # print(f"Total Laughter and Speechlaugh in Test Dataset: {total_laugh_test} \n")
+
+    # laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
+    # speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
+    # print(f"Laughter (Train+Val) / Test ratio: {laughter_ratio}")
+    # print(f"Speechlaugh (Train+Val) / Test ratio: {speechlaugh_ratio}")
+    # #=======================================================================================================================
+
+
+    # # SAVE THE SPLITTED DATASET TO DISK ====================================================================================
+    # print("Saving the splitted datasets to disk...")
+    # buckeye_train.save_to_disk("../datasets/buckeye2/buckeye_train")
+    # buckeye_eval.save_to_disk("../datasets/buckeye2/buckeye_eval")
+    # buckeye_test.save_to_disk("../datasets/buckeye2/buckeye_test")
+    # print("Saved the splitted datasets to disk successfully!!------------------------------------")
+
+
+    #==========================================================================================================================
+
+
+    # ========================================= OR LOAD IT FROM DISK INSTEAD ==================================================
+    # print("Loading datasets: Train, Validation, Test...")
+    buckeye_train = load_from_disk("../datasets/buckeye2/buckeye_train")
+    buckeye_eval = load_from_disk("../datasets/buckeye2/buckeye_eval")
+    buckeye_test = load_from_disk("../datasets/buckeye2/buckeye_test")
     
 
     print("Dataset Loaded....\n")
-    print(f"Train Dataset (70%): {swb_train}")
-    print(f"Validation Dataset (10%): {swb_eval}")
-    print(f"Test Dataset (20%): {swb_test}")
+    print(f"Train Dataset (70%): {buckeye_train}")
+    print(f"Validation Dataset (10%): {buckeye_eval}")
+    print(f"Test Dataset (20%): {buckeye_test}")
     print("------------------------------------------------------")
-
-    # # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ========================================
-    print("Calculating total in swb_train:\n")
-    total_laugh_train = find_total_laughter_speechlaugh(swb_train)
-    print(f"Total Laughter and Speechlaugh in Train Dataset: {total_laugh_train} \n")
-
-    print("Calculating total in swb_eval:\n")
-    total_laugh_val = find_total_laughter_speechlaugh(swb_eval)
-    print(f"Total Laughter and Speechlaugh in Validation Dataset: {total_laugh_val} \n")
-
-    print("Calculating total in swb_test:\n")
-    total_laugh_test = find_total_laughter_speechlaugh(swb_test)
-    print(f"Total Laughter and Speechlaugh in Test Dataset: {total_laugh_test} \n")
-
-    laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-    speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-    print(f"Laughter (Train+Val) / Test ratio: {laughter_ratio}")
-    print(f"Speechlaugh (Train+Val) / Test ratio: {speechlaugh_ratio}")
-
-    # #================================================================================================
         
-    # Push the datasets to HuggingFace Hub ==========================================================
+    # ========================================== Push the datasets to HuggingFace Hub =======================================
 
-    # Combine the datasets into a DatasetDict =================
-    # print("Pushing the datasets to Huggingface Datasets...")
-    # dataset_dict = DatasetDict({
-    #     "train": swb_train,
-    #     "validation": swb_eval,
-    #     "test": swb_test
-    # })
+    # # Combine the datasets into a DatasetDict =================
+    print("Pushing the datasets to Huggingface Datasets...")
+    dataset_dict = DatasetDict({
+        "train": buckeye_train,
+        "validation": buckeye_eval,
+        "test": buckeye_test
+    })
 
-    # # Push the combined dataset to HuggingFace Hub
-    # push_dataset_to_hub(
-    #     dataset=dataset_dict,
-    #     repo_name="switchboard",
-    #     private=True
-    # )
-    # print("Pushed to Huggingface Datasets successfully!!------------------------")
+    # Push the combined dataset to HuggingFace Hub
+    push_dataset_to_hub(
+        dataset=dataset_dict,
+        repo_name="buckeye",
+        private=True
+    )
+    print("Pushed to Huggingface Datasets successfully!!------------------------")
     
     print("----------------------------- end ------------------------------------")
 

@@ -5,6 +5,7 @@ from transformers import (
     WhisperForConditionalGeneration,
     WhisperTokenizer,
     )
+from transformers import pipeline
 from datasets import load_from_disk
 import jiwer
 import argparse
@@ -320,24 +321,31 @@ if __name__ == "__main__":
     # print(f"Total runtime: {end_time - start_time} seconds")
     #===============================================================================================================
 
-    #===================================================
-    #       TEST EVALUATE WHISPER WITH 1 SAMPLE
-    #===================================================
+    #===============================================================================================================
+    #       TEST EVALUATE WHISPER WITH 1 SAMPLE IN LONG-FORM AUDIO (>30s)
+    #===============================================================================================================
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
+
     pre_trained_path = "../fine-tuned/whisper/finetuned-whisper-10epochs"
     model = WhisperForConditionalGeneration.from_pretrained(pre_trained_path)
-    # tokenizer = WhisperTokenizer.from_pretrained(pre_trained_path)
-    
     processor = WhisperProcessor.from_pretrained(pre_trained_path)
-    example_audio = librosa.load("../evaluate/example/sw02089A_2230385_226499875.wav", sr=16000)
 
-    audio = processor.feature_extractor(raw_speech=example_audio[0], sampling_rate=16000, return_tensors="pt").input_features
+    pipe = pipeline("automatic-speech-recognition", model=model, tokenizer=processor.tokenizer, feature_extractor=processor.feature_extractor, device=device)
 
-    with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
-        predicted_ids = model.generate(audio)
+    # example_audio = librosa.load("../evaluate/example/s1102a_2.wav", sr=16000)
 
-    predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+    # audio = processor.feature_extractor(raw_speech=example_audio[0], sampling_rate=16000, return_tensors="pt").input_features
 
-    reference_transcript = "but he sold his boat too so <laugh> so we just kind of"
+    # with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+    #     predicted_ids = model.generate(audio)
+
+    # predicted_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+
+    reference_transcript = "yeah and it makes it you know fun so you can actually see what you know your studying these teams does you know you can go a whole season you know seventeen eighteen and o and nobody is pretty much coming close to your standard and when you win all that money it is just like yeah when you lose all that money it is like that is it im going home <laugh> <laugh> but i have known people that gamble you know compulsively i mean it is like a gamblers anonymous level i could not really get into that number one i am not the richest person in the world and number two just little money here is one thing but when you are out there spending your car insurance money on it or rent money then you got a real problem there i have seen guys do that to go down to scioto downs and bet the bet the farm on one horse and would not even do anything for them"
+    predicted_transcript = pipe("../evaluate/example/s1102a_2.wav", chunk_length_s=10)["text"]
+    print(f"REF: {reference_transcript}")
+    print(f"HYP: {predicted_transcript}\n")
 
     pair_alignment = jiwer.process_words(
         reference=reference_transcript,
