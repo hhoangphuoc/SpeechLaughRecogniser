@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval-finetuned-whisper-chunks-buckeye          # Job name
+#SBATCH --job-name=eval-finetuned-whisper-nolaugh-swb          # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -70,21 +70,21 @@ source activate .venv
 
 # Fine-tuned Whisper
 # FINETUNED VERSION WITHOUT <LAUGH> TOKEN (finetuned-whisper-nolaugh)
-# python evaluate.py \
-#     --dataset_dir ../datasets/buckeye2/buckeye_dataset \
-#     --model_name  finetuned-whisper-nolaugh-10epochs\
-#     --model_type whisper \
-#     --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
-#     --output_dir ../alignment_transcripts/buckeye2/finetuned_whisper_nolaugh \
+python evaluate.py \
+    --dataset_dir ../datasets/switchboard/whisper/swb_test \
+    --model_name  finetuned-whisper-nolaugh-10epochs\
+    --model_type whisper \
+    --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
+    --output_dir ../alignment_transcripts/switchboard/finetuned_whisper_nolaugh \
 
 
 # FINETUNED VERSION WITH: batch=16, lr=1e-4, 10epochs
-python evaluate.py \
-    --dataset_dir ../datasets/buckeye2/buckeye_dataset \
-    --model_name  finetuned-whisper-10epochs\
-    --model_type whisper \
-    --pretrained_model_dir ../fine-tuned/whisper/ \
-    --output_dir ../alignment_transcripts/buckeye2/finetuned_whisper-chunks \
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_dataset \
+#     --model_name  finetuned-whisper-10epochs\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper/ \
+#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper \
     
 #----------------------------------------+
 # TO PRODUCE ALIGNMENT PLOTS
