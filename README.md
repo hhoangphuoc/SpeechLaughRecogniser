@@ -67,7 +67,6 @@ Buckeye /
     |_ s02
     |_ ...
     |_ tagged_words_files
-
 ```
 2. For clipped corpus: already processed by clipping the audio in seperate transcription based on different sentences
 - v1
@@ -84,6 +83,27 @@ unzip buckeye_refs_wavs.zip
 gdown 1TqKGZ3W0LB9JzMk0AS65wtJBFF10EIGr -O ../buckeye_data/buckeye_refs_wavs2.zip
 
 unzip buckeye_refs_wavs2.zip
+```
+
+-v2 with short-form audio (< 30s)
+```bash
+gdown 1ELichR8Hx3Lq_jwvn2O8Sdwcb3Xb3X_A -O ../buckeye_data/buckeye_refs_wavs2_30.zip
+unzip buckeye_refs_wavs2_30.zip
+```
+
+The structure of files existing in these clipped buckeye folder is followed:
+```batch
+buckeye_refs_wavs_* /
+    |_ audio_wav
+    |    |_ s0101a_1.wav
+
+    |    |_ s0101b_2.wav
+    |    |_ ...
+    |_ transcripts
+    |    |_ s0101a_1.txt
+
+    |    |_ s0101b_2.txt
+    |_   |_ ...
 ```
 
 <!-- ### VocalSound

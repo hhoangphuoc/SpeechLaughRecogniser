@@ -282,10 +282,13 @@ def retokenize_transcript_pattern(
                 word = " " #removing the cutoff word - <cutoff-clipping=word>, <error-error=word>
             elif word.startswith("<cutoff=") or word.startswith("<error=") or word.startswith("<unknown=") or word.startswith("<exclude="):
                 word = " " #removing the cutoff word - <cutoff=clipping>, <error=error>
-            elif word.startswith("<noise-") or word.startswith("<vocnoise-") or word.startswith("<iver-"):
-                word = word[:-1].split('-')[1] # KEEP the word
-            elif word.startswith("<noise=") or word.startswith("<vocnoise=") or word.startswith("<iver="):
-                word = word[:-1].split('=')[1] # KEEP the word
+            elif word.startswith("<iver"):
+                word = word[6:-1]
+            elif word.startswith("<noise"):
+                # remove the prefix <noise- or <noise= by slicing the word
+                word = word[7:-1]
+            elif word.startswith("<vocnoise"):
+                word = word[10:-1]
             elif word.startswith("<ext-") or word.startswith("<hes-"):
                 word = word[:-1].split('-')[1] # KEEP the word
             else:
@@ -293,7 +296,7 @@ def retokenize_transcript_pattern(
             
             #===RETOKENIZE SPEECH_LAUGH AND LAUGHTER============================
             if word.startswith("<laugh-") or word.startswith("<laugh="):
-                laughed_word = word[:-1].split('-')[1] if word.startswith("<laugh-") else word[:-1].split('=')[1]
+                laughed_word = word[7:-1]
                 if len(laughed_word.split("_")) > 1:
                     # contruct the word as a sentence of all words
                     laughed_word = " ".join(laughed_word.split("_"))
@@ -306,19 +309,22 @@ def retokenize_transcript_pattern(
             if "=" in word:
                 word = word.split("=")[1]
             #==================================================================
-            new_line += word + " "
+            new_line += " " + word + " "
 
     # FINALLY extent the english, remove multiple spaces and strip
     transcript_line = jiwer.Compose([
         jiwer.RemoveEmptyStrings(), #remove empty strings
-        jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
-        jiwer.RemovePunctuation(), #remove punctuation
         jiwer.SubstituteWords({
             "yknow": "you know", #for buckeye
         }), #substitute the words
+        jiwer.ExpandCommonEnglishContractions(), #'ll -> will, 're -> are, etc.
+        jiwer.RemoveWhiteSpace(replace_by_space=True), #remove white space
+        jiwer.RemovePunctuation(), #remove punctuation
+
         jiwer.RemoveMultipleSpaces(), #remove multiple spaces
         jiwer.Strip(), #strip the line
     ])(new_line)
+
     print("processed line: ", transcript_line)
 
     return transcript_line

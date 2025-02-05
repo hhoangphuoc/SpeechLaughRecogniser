@@ -205,7 +205,7 @@ def buckeye_to_ds(
             audio_file,
             transcript_dir=transcript_dir,
         )
-        if transcript_line is None:
+        if transcript_line is None or not transcript_line.strip():
             print(f"Skipping audio file due to missing transcript: {audio_file}")
             continue
         
@@ -227,6 +227,7 @@ def buckeye_to_ds(
         print(f"Saving {dataset_dir}/{data_name}_dataset to HuggingFace Dataset on disk...")
         buckeye_dataset = Dataset.from_pandas(df)
         buckeye_dataset = buckeye_dataset.cast_column("audio", Audio(sampling_rate=16000))
+        print("Buckeye Dataset: ", buckeye_dataset)
         # Save the dataset to disk
         buckeye_dataset.save_to_disk(
             dataset_path=f"{dataset_dir}/{data_name}_dataset", #swb_speechlaugh_dataset
@@ -293,8 +294,8 @@ if __name__ == "__main__":
             elif data_name == "buckeye":
                 buckeye_to_ds(
                     data_name = data_name,
-                    audio_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2", "audio_wav"), #FIXME: change to `buckeye_refs_wavs`
-                    transcript_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2", "transcripts"), #FIXME: change to `buckeye_refs_wavs`
+                    audio_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2_30", "audio_wav"), #FIXME: change to `buckeye_refs_wavs`
+                    transcript_dir=os.path.join(global_data_dir, "buckeye_data", "buckeye_refs_wavs2_30", "transcripts"), #FIXME: change to `buckeye_refs_wavs`
                     dataset_dir = dataset_dir,
                     to_dataset=args.to_dataset,
                     to_csv = args.to_csv,

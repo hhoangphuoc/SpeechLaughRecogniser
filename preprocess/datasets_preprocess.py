@@ -229,58 +229,59 @@ if __name__ == "__main__":
 
 
     #============================================ LOAD DATASET AND SPLIT ===================================================
-    # print("Loaded buckeye full dataset...")
-    # buckeye = load_from_disk("../datasets/buckeye2/buckeye_dataset")
-    # print("Buckeye dataset:", buckeye) 
+    print("Loaded buckeye full dataset...")
+    buckeye = load_from_disk("../datasets/buckeye4/buckeye_dataset")
+    print("Buckeye dataset:", buckeye) 
 
-    # #Split the dataset into train, validation, and test sets ---------------------------------------
-    # buckeye_train, buckeye_eval, buckeye_test = split_dataset(
-    #     buckeye,
-    #     subset_ratio=1.0,
-    #     split_ratio=0.8,
-    #     split="both",
-    #     train_val_split=True,
-    #     val_split_ratio=0.1
-    # )
+    #Split the dataset into train, validation, and test sets ---------------------------------------
+    buckeye_train, buckeye_eval, buckeye_test = split_dataset(
+        buckeye,
+        subset_ratio=1.0,
+        split_ratio=0.8,
+        split="both",
+        train_val_split=True,
+        val_split_ratio=0.1
+    )
+    #=======================================================================================================================
 
-    # # FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ========================================
-    # print("Calculating total in swb_train:\n")
-    # total_laugh_train = find_total_laughter_speechlaugh(buckeye_train)
-    # print(f"Total Laughter and Speechlaugh in Train Dataset: {total_laugh_train} \n")
+    # =================== FIND TOTAL LAUGHTER SPEECHLAUGH IN THE SPLITTED DATASET ========================================
+    print("Calculating total in swb_train:\n")
+    total_laugh_train = find_total_laughter_speechlaugh(buckeye_train)
+    print(f"Total Laughter and Speechlaugh in Train Dataset: {total_laugh_train} \n")
 
-    # print("Calculating total in swb_eval:\n")
-    # total_laugh_val = find_total_laughter_speechlaugh(buckeye_eval)
-    # print(f"Total Laughter and Speechlaugh in Validation Dataset: {total_laugh_val} \n")
+    print("Calculating total in swb_eval:\n")
+    total_laugh_val = find_total_laughter_speechlaugh(buckeye_eval)
+    print(f"Total Laughter and Speechlaugh in Validation Dataset: {total_laugh_val} \n")
 
-    # print("Calculating total in swb_test:\n")
-    # total_laugh_test = find_total_laughter_speechlaugh(buckeye_test)
-    # print(f"Total Laughter and Speechlaugh in Test Dataset: {total_laugh_test} \n")
+    print("Calculating total in swb_test:\n")
+    total_laugh_test = find_total_laughter_speechlaugh(buckeye_test)
+    print(f"Total Laughter and Speechlaugh in Test Dataset: {total_laugh_test} \n")
 
-    # laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
-    # speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
-    # print(f"Laughter (Train+Val) / Test ratio: {laughter_ratio}")
-    # print(f"Speechlaugh (Train+Val) / Test ratio: {speechlaugh_ratio}")
-    # #=======================================================================================================================
+    laughter_ratio = (total_laugh_train["laughter"] + total_laugh_val["laughter"]) / total_laugh_test["laughter"]
+    speechlaugh_ratio = (total_laugh_train["speechlaugh"] + total_laugh_val["speechlaugh"]) / total_laugh_test["speechlaugh"]
+    print(f"Laughter (Train+Val) / Test ratio: {laughter_ratio}")
+    print(f"Speechlaugh (Train+Val) / Test ratio: {speechlaugh_ratio}")
+    #=======================================================================================================================
 
 
-    # # SAVE THE SPLITTED DATASET TO DISK ====================================================================================
-    # print("Saving the splitted datasets to disk...")
-    # buckeye_train.save_to_disk("../datasets/buckeye2/buckeye_train")
-    # buckeye_eval.save_to_disk("../datasets/buckeye2/buckeye_eval")
-    # buckeye_test.save_to_disk("../datasets/buckeye2/buckeye_test")
-    # print("Saved the splitted datasets to disk successfully!!------------------------------------")
-
+    # SAVE THE SPLITTED DATASET TO DISK ====================================================================================
+    print("Saving the splitted datasets to disk...")
+    buckeye_train.save_to_disk("../datasets/buckeye4/buckeye_train")
+    buckeye_eval.save_to_disk("../datasets/buckeye4/buckeye_eval")
+    buckeye_test.save_to_disk("../datasets/buckeye4/buckeye_test")
+    print("Saved the splitted datasets to disk successfully!!------------------------------------")
 
     #==========================================================================================================================
 
 
     # ========================================= OR LOAD IT FROM DISK INSTEAD ==================================================
     # print("Loading datasets: Train, Validation, Test...")
-    buckeye_train = load_from_disk("../datasets/buckeye2/buckeye_train")
-    buckeye_eval = load_from_disk("../datasets/buckeye2/buckeye_eval")
-    buckeye_test = load_from_disk("../datasets/buckeye2/buckeye_test")
-    
+    # buckeye_train = load_from_disk("../datasets/buckeye4/buckeye_train")
+    # buckeye_eval = load_from_disk("../datasets/buckeye4/buckeye_eval")
+    # buckeye_test = load_from_disk("../datasets/buckeye4/buckeye_test")
+    #==========================================================================================================================
 
+    # ========================================== DATASETS INFO ===========================================================
     print("Dataset Loaded....\n")
     print(f"Train Dataset (70%): {buckeye_train}")
     print(f"Validation Dataset (10%): {buckeye_eval}")
@@ -290,20 +291,23 @@ if __name__ == "__main__":
     # ========================================== Push the datasets to HuggingFace Hub =======================================
 
     # # Combine the datasets into a DatasetDict =================
-    print("Pushing the datasets to Huggingface Datasets...")
-    dataset_dict = DatasetDict({
-        "train": buckeye_train,
-        "validation": buckeye_eval,
-        "test": buckeye_test
-    })
+    # print("Pushing the datasets to Huggingface Datasets...")
+    # dataset_dict = DatasetDict({
+    #     "train": buckeye_train,
+    #     "validation": buckeye_eval,
+    #     "test": buckeye_test
+    # })
 
-    # Push the combined dataset to HuggingFace Hub
-    push_dataset_to_hub(
-        dataset=dataset_dict,
-        repo_name="buckeye",
-        private=True
-    )
-    print("Pushed to Huggingface Datasets successfully!!------------------------")
+    # # Push the combined dataset to HuggingFace Hub
+    # push_dataset_to_hub(
+    #     dataset=dataset_dict,
+    #     repo_name="buckeye",
+    #     private=True
+    # )
+    # print("Pushed to Huggingface Datasets successfully!!------------------------")
+        
+    # print("----------------------------- end ------------------------------------")
     
-    print("----------------------------- end ------------------------------------")
+    #==========================================================================================================================
+
 

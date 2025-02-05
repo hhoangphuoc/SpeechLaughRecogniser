@@ -1,0 +1,39 @@
+Loaded buckeye full dataset...
+Buckeye dataset: Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 10765
+})
+
+Split = both, train_val_split = True. Returning both train, val and test set...
+
+--------------------------------------------------------------------------------------
+
+Calculating total in swb_train:
+Train Dataset: {'laughter': 1298, 'speechlaugh': 1339, 'word': 210772} 
+
+Calculating total in swb_eval:
+Validation Dataset: {'laughter': 150, 'speechlaugh': 156, 'word': 23614} 
+
+Calculating total in swb_test:
+Test Dataset: {'laughter': 372, 'speechlaugh': 451, 'word': 59536} 
+
+Laughter (Train+Val) / Test ratio: 3.89247311827957
+Speechlaugh (Train+Val) / Test ratio: 3.3148558758314857
+
+--------------------------------------------------------------------------------------
+
+Dataset Info....
+
+Train Dataset (70%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 7750
+})
+Validation Dataset (10%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 862
+})
+Test Dataset (20%): Dataset({
+    features: ['audio', 'sampling_rate', 'transcript'],
+    num_rows: 2153
+})
+----------------------------------------------------------------------------------------

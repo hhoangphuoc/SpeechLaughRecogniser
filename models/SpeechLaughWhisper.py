@@ -104,29 +104,21 @@ def SpeechLaughWhisper(args):
     model = WhisperForConditionalGeneration.from_pretrained(model_path, cache_dir=model_cache_dir)
     
     # tokenizer = WhisperTokenizer.from_pretrained(model_path, cache_dir=model_cache_dir) #tokenizer
-    # FIXME: Declare the Feature Extractor and Tokenizer from the Processor class
+    # FIXME: Declare the Feature Extractor and Tokenizer from the Processor class------------------------
     feature_extractor = processor.feature_extractor
 
     tokenizer = processor.tokenizer
+    #-----------------------------------------------------------------------------------------------------
+    # Add special tokens for laughter 
+    # - FIXME: REMOVED THIS PART IF WORKING WITH FINETUNED NO-LAUGH
+
     new_tokens = ['<laugh>']
     tokenizer.add_tokens(new_tokens)
     model.resize_token_embeddings(len(tokenizer))
 
     laugh_token_id = tokenizer.convert_tokens_to_ids('<laugh>')
     print(f"The token ID for '<laugh>' is: {laugh_token_id}") # WE FOUND THAT <laugh> TOKEN ID is 51865
-    
-
-    # #================================== USED THE CODE BELOW FOR CUSTOM GENERATION CONFIGS ==============================
-    # ALTERNATIVELY: Adjust the `generation_config` for model decoder adjustment
-    # generation_config = GenerationConfig(
-    #     max_length=448,
-    #     forced_decoder_ids=None,
-    #     begin_suppress_tokens=[220, 50257],
-    #     suppress_tokens=[1, 2, 7, 8, 9, 10, 14, 25, 26, 27, 28, 29, 31, 58, 59, 60, 61, 62, 63, 90, 91, 92, 93, 359, 503, 522, 542, 873, 893, 902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246, 3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273, 9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157, 14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520, 26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863, 47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362]
-    # )
-    # model.generation_config = generation_config
-    # generation_config.save_pretrained(os.path.join(output_dir, "generation_config"))
-    #================================== REMOVED ABOVE CODE IF DOESN'T WORK =============================================
+    #-----------------------------------------------------------------------------------------------------
 
     model.generation_config.forced_decoder_ids = None
     model.generation_config.max_length = 448
@@ -155,26 +147,33 @@ def SpeechLaughWhisper(args):
     #===============================================================================================
     
     # ================= Load from splitted dataset ==========================
-    swb_train = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_train"))
-    swb_eval = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_eval"))
-    swb_test = load_from_disk(os.path.join(args.dataset_dir, "whisper","swb_test"))
+    data_train = load_from_disk(os.path.join(args.dataset_dir, "buckeye_train"))
+    data_eval = load_from_disk(os.path.join(args.dataset_dir, "buckeye_eval"))
+    data_test = load_from_disk(os.path.join(args.dataset_dir, "buckeye_test"))
 
     print("Dataset Loaded....\n")
-    print(f"Train Dataset (70%): {swb_train}")
-    print(f"Validation Dataset (10%): {swb_eval}")
-    print(f"Test Dataset (20%): {swb_test}")
+    print(f"Train Dataset (70%): {data_train}")
+    print(f"Validation Dataset (10%): {data_eval}")
+    print(f"Test Dataset (20%): {data_test}")
     print("------------------------------------------------------")
 
-    #REMOVE LAUGHTER IN TRAIN
-    swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
-    swb_train = swb_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-    print("Train Dataset (after filtered):", swb_train)
+    #--------------------------------------------------------------------------------------------------------------------------
+    # FIXME: UNCOMMENT THIS PART IF WORKING WITH FINETUNED NOLAUGH
 
-    #REMOVE LAUGHTER IN EVAL
-    swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
-    swb_eval = swb_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-    print("Validation Dataset (after filtered):", swb_eval)
-    print("------------------------------------------------------")
+    # #REMOVE LAUGHTER IN TRAIN
+    # data_train = data_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
+    # data_train = data_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    # print("Train Dataset (after filtered):", data_train)
+
+    # #REMOVE LAUGHTER IN EVAL
+    # data_eval = data_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
+    # data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    # print("Validation Dataset (after filtered):", data_eval)
+    # print("------------------------------------------------------")
+
+    #--------------------------------------------------------------------------------------------------------------------------
+
+
     #===============================================================================================
     #                       DATASET MAPPING TO TENSORS
     #===============================================================================================
@@ -217,24 +216,24 @@ def SpeechLaughWhisper(args):
 
         return batch
 
-    swb_train = swb_train.map(
+    data_train = data_train.map(
         prepare_dataset,
-        remove_columns=swb_train.column_names,
+        remove_columns=data_train.column_names,
         # load_from_cache_file=True,
         desc="Preparing Training Dataset",
     )
 
-    swb_eval = swb_eval.map(
+    data_eval = data_eval.map(
         prepare_dataset,
-        remove_columns=swb_eval.column_names,
+        remove_columns=data_eval.column_names,
         # load_from_cache_file=True,
         desc="Preparing Validation Dataset",
     )
 
     # Verify dataset size
-    print(f"Processed training dataset size: {len(swb_eval)}")
+    print(f"Processed training dataset size: {len(data_eval)}")
     # Also verify the dataset format
-    print("Dataset features:", swb_train.features)
+    print("Dataset features:", data_train.features)
 
     # ---------------------------------------------------- end of prepare dataset --------------------------------------------
 
@@ -270,16 +269,33 @@ def SpeechLaughWhisper(args):
         pred_transcripts = [transform_number_words(transcript, reverse=True) for transcript in pred_decoded]
 
         eval_transformation = jiwer.Compose([
-            jiwer.RemoveMultipleSpaces(),
-            jiwer.Strip(),
-            jiwer.ToLowerCase(),
+            jiwer.RemoveEmptyStrings(),
             jiwer.ExpandCommonEnglishContractions(),
             jiwer.RemovePunctuation(),
             jiwer.SubstituteWords({
                 "uhhuh": "uh-huh",
+                "uh huh": "uh-huh",
                 "mmhmm": "um-hum",
+                "mm hmm": "um-hum",
+                "mmhum": "um-hum",
+                "mm hum": "um-hum",
                 "umhum": "um-hum",
-            })
+                "um hum": "um-hum",
+                "umhmm": "um-hum",
+            }),
+            jiwer.RemoveMultipleSpaces(),
+            jiwer.Strip(),
+            jiwer.ToLowerCase() #lowercase the transcript
+            # jiwer.RemoveMultipleSpaces(),
+            # jiwer.Strip(),
+            # jiwer.ToLowerCase(),
+            # jiwer.ExpandCommonEnglishContractions(),
+            # jiwer.RemovePunctuation(),
+            # jiwer.SubstituteWords({
+            #     "uhhuh": "uh-huh",
+            #     "mmhmm": "um-hum",
+            #     "umhum": "um-hum",
+            # })
         ])
 
         # NORMALISED THE TRANSCRIPT
@@ -311,7 +327,7 @@ def SpeechLaughWhisper(args):
 
         # max_steps=6000, #6000 steps shows good results - try  8000 steps with larger batch size, smaller lr (LONGER TRAINING :(()))
         # warmup_steps=1000, #warmup at longer steps for effectively learning the existence of <laugh> token
-        num_train_epochs=10, #10 epochs - FIXME: Try 30 epochs
+        num_train_epochs=2, #10 epochs - FIXME: (10 epochs for switchboard) || 3 epochs for buckeye
         warmup_ratio=0.10, #USE 10-15% of the total steps for warmup to better learn the <laugh> token
 
         
@@ -359,7 +375,7 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         adam_beta2=0.98,
-        torch_empty_cache_steps=1000,
+        # torch_empty_cache_steps=1000,
         #-----------------------------------------------------
 
         # Dataloader Configs--------------------------------
@@ -397,15 +413,15 @@ def SpeechLaughWhisper(args):
         model=model,
         args=training_args,
         tokenizer=tokenizer,
-        train_dataset=swb_train,
-        eval_dataset=swb_eval, #test_dataset
+        train_dataset=data_train,
+        eval_dataset=data_eval, #test_dataset
         data_collator=speech_laugh_collator,
         compute_metrics=compute_metrics,
         callbacks=[
             early_stopping, 
             memory_callback,
             MetricsCallback(
-                file_path=f"../logs/whisper/validation_{args.checkpoint_id}.csv"
+                file_path=f"../logs/whisper/buckeye/validation_{args.checkpoint_id}.csv"
             )
         ]
     )
@@ -435,7 +451,7 @@ def SpeechLaughWhisper(args):
     finally:
         log_history = trainer.state.log_history
         # save the log history to txt file
-        with open(os.path.join("../logs/whisper", f"train_log_{args.checkpoint_id}.txt"), "w") as f:
+        with open(os.path.join("../logs/whisper/buckeye", f"train_log_{args.checkpoint_id}.txt"), "w") as f:
             for entry in log_history:
                 f.write(str(entry) + "\n")
         cleanup_workers() #clear the CUDA memory cache

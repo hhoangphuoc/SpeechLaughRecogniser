@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=calculate_total_laugh-speechlaugh-words         # Job name
+#SBATCH --job-name=split-buckeye3         # Job name
 #SBATCH -c 8                                               # Number of cores
 #SBATCH --mem=8G                                            # Request 8GB memory
 #SBATCH --gres=gpu:ampere:1                                 # Request 1 GPU
