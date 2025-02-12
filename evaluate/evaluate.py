@@ -312,20 +312,21 @@ def get_transcripts(
                 hyp_transcript = None
 
                 if model_name.startswith("openai/whisper") or model_name.startswith("finetuned-whisper"):
+                    
                     #------------------------ PROCESSING USING TOKENIZER DECODER --------------------------
-                    # Load and preprocess the audio
-                    input_features = processor.feature_extractor(
-                        audio, 
-                        sampling_rate=16000,
-                        return_tensors="pt"
-                    ).input_features
+                    # # Load and preprocess the audio
+                    # input_features = processor.feature_extractor(
+                    #     audio, 
+                    #     sampling_rate=16000,
+                    #     return_tensors="pt"
+                    # ).input_features
 
-                    input_features = input_features.to(device) # Move input feature to GPUs
+                    # input_features = input_features.to(device) # Move input feature to GPUs
 
-                    with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
-                        # Generate the predicted transcript
-                        predicted_ids = model.generate(input_features)
-                    hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                    # with torch.no_grad(): #FIXME: added `with torch.no_grad()` to avoid gradient computation
+                    #     # Generate the predicted transcript
+                    #     predicted_ids = model.generate(input_features)
+                    # hyp_transcript = processor.tokenizer.batch_decode(predicted_ids, skip_special_tokens=True)[0]
                     #--------------------------------------------------------------------------------------
 
 
@@ -336,33 +337,33 @@ def get_transcripts(
 
 
                     #------------------------ PROCESSING USING TOKENIZER DECODE + CHUNK -------------------#
-                    # chunk_length_s = 10.0 #chunk length in seconds (10s - 15s for accurate transcribing)
-                    # chunk_length_samples = int(chunk_length_s * sr) #chunk length in samples (rate)
+                    chunk_length_s = 10.0 #chunk length in seconds (10s - 15s for accurate transcribing)
+                    chunk_length_samples = int(chunk_length_s * sr) #chunk length in samples (rate)
 
-                    # hyp_transcript_chunks = []
+                    hyp_transcript_chunks = []
 
-                    # # Split the audio into chunks
-                    # for start_idx in range(0, len(audio), chunk_length_samples):
-                    #     end_idx = min(start_idx + chunk_length_samples, len(audio))
-                    #     chunk = audio[start_idx:end_idx]
+                    # Split the audio into chunks
+                    for start_idx in range(0, len(audio), chunk_length_samples):
+                        end_idx = min(start_idx + chunk_length_samples, len(audio))
+                        chunk = audio[start_idx:end_idx]
 
-                    #     # Process audio chunk
-                    #     input_features = processor(
-                    #         chunk, 
-                    #         sampling_rate=16000, 
-                    #         return_tensors="pt"
-                    #     ).input_features
+                        # Process audio chunk
+                        input_features = processor(
+                            chunk, 
+                            sampling_rate=16000, 
+                            return_tensors="pt"
+                        ).input_features
 
-                    #     input_features = input_features.to(device).half()
+                        input_features = input_features.to(device)
 
-                    #     with torch.no_grad():
-                    #         predicted_ids = model.generate(input_features) #TODO:use num_beams=5 for more audio content?
+                        with torch.no_grad():
+                            predicted_ids = model.generate(input_features) #TODO:use num_beams=5 for more audio content?
                         
-                    #     # hyp_transcript = processor.batch_decode(predicted_ids)[0]
-                    #     transcript_chunk = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-                    #     hyp_transcript_chunks.append(transcript_chunk)
+                        # hyp_transcript = processor.batch_decode(predicted_ids)[0]
+                        transcript_chunk = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
+                        hyp_transcript_chunks.append(transcript_chunk)
                     
-                    # hyp_transcript = " ".join(hyp_transcript_chunks)
+                    hyp_transcript = " ".join(hyp_transcript_chunks)
                     #--------------------------------------------------------------------------------------#
                 
 

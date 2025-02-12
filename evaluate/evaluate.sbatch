@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval-finetuned-whisper-nolaugh-swb          # Job name
+#SBATCH --job-name=eval-finetuned-wav2vec2-buckeye(switchboard)       # Job name
 #SBATCH -c 8                                                   # Number of cores
 #SBATCH --mem=12G                                                # Request 12GB memory (8GB swb_test + 4GB for the model)
 #SBATCH --gres=gpu:ampere:1                                     # Request 1 GPU
@@ -26,30 +26,72 @@ source activate .venv
 
 
 #===================================================================================================
-#                                   EVALUATE THE DATASET
+#                                   FINETUNED-MODELS ON SWB_TEST
 #===================================================================================================
 
-# WHISPER
+# WHISPER [DONE]
 # python evaluate.py \
-#     --dataset_dir ../datasets/buckeye2/buckeye_dataset \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
 #     --model_name openai/whisper-large-v2 \
 #     --model_type whisper \
 #     --pretrained_model_dir ../ref_models/pre_trained \
 #     --output_dir ../alignment_transcripts/buckeye2/whisper \
 
-# ==========================================================================================
-
-# # WAV2VEC2
+# # WAV2VEC2 [DONE]
 # python evaluate.py \
-#     --dataset_dir ../datasets/buckeye2/buckeye_dataset \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
 #     --model_name facebook/wav2vec2-large-960h-lv60 \
 #     --model_type wav2vec2 \
 #     --pretrained_model_dir ../ref_models/pre_trained \
 #     --output_dir ../alignment_transcripts/buckeye2/wav2vec2 \
 
-# ==========================================================================================
 
-# Fine-tuned Wav2Vec2 - version: checkpoint-20500
+
+# #=======================================================
+# #               FINETUNED WHISPER
+# #=======================================================
+
+# Finetuned-whisper-nolaugh-swb [DONE]
+# FINETUNED VERSION WITHOUT <LAUGH> TOKEN (finetuned-whisper-nolaugh)
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-whisper-nolaugh-10epochs\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_whisper_nolaugh \
+
+
+# Finetuned-whisper-swb [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_dataset \
+#     --model_name  finetuned-whisper-10epochs\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper/ \
+#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper \
+
+
+# Finetuned-whisper-buckeye [RUNNING]
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-whisper-buckeye\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_whisper-buckeye\
+
+
+# Finetuned-whisper-nolaugh-buckeye  [RUNNING]
+# python evaluate.py \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-whisper-nolaugh-buckeye\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_whisper_nolaugh-buckeye\
+
+#=======================================================
+#               FINETUNED WAV2VEC2
+#=======================================================
+
+# Fine-tuned wav2vec2-swb [DONE]
 # python evaluate.py \
 #     --dataset_dir ../datasets/buckeye2/buckeye_dataset \
 #     --model_name  finetuned-wav2vec2-checkpoint-20500\
@@ -57,8 +99,8 @@ source activate .venv
 #     --pretrained_model_dir ../checkpoints/wav2vec2-batch32 \
 #     --output_dir ../alignment_transcripts/buckeye2/finetuned_wav2vec2 \
 
-# ==========================================================================================
-# Fine-tuned Wav2Vec2-nolaugh - version: checkpoint-20100
+
+# Fine-tuned Wav2Vec2-nolaugh-swb [DONE]
 # python evaluate.py \
 #     --dataset_dir ../datasets/buckeye2/buckeye_dataset\
 #     --model_name  finetuned-wav2vec2-checkpoint-20100\
@@ -66,25 +108,124 @@ source activate .venv
 #     --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
 #     --output_dir ../alignment_transcripts/buckeye2/finetuned_wav2vec2_nolaugh \
 
-#===================================================================================================
 
-# Fine-tuned Whisper
-# FINETUNED VERSION WITHOUT <LAUGH> TOKEN (finetuned-whisper-nolaugh)
-python evaluate.py \
-    --dataset_dir ../datasets/switchboard/whisper/swb_test \
-    --model_name  finetuned-whisper-nolaugh-10epochs\
-    --model_type whisper \
-    --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
-    --output_dir ../alignment_transcripts/switchboard/finetuned_whisper_nolaugh \
+# Fine-tuned wav2vec2-buckeye
 
 
-# FINETUNED VERSION WITH: batch=16, lr=1e-4, 10epochs
+# Fine-tuned wav2vec2-nolaugh-buckeye [RUNNING]
 # python evaluate.py \
-#     --dataset_dir ../datasets/buckeye3/buckeye_dataset \
+#     --dataset_dir ../datasets/switchboard/whisper/swb_test \
+#     --model_name  finetuned-wav2vec2-nolaugh-buckeye\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_wav2vec2_nolaugh-buckeye\
+
+#===============================================================================================================
+
+
+
+# ================================================================================================================
+#                                       FINETUNED MODELS ON BUCKEYE_TEST 
+# ================================================================================================================
+
+
+# WHISPER [RUNNING]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name openai/whisper-large-v2 \
+#     --model_type whisper \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts/buckeye_test/whisper \
+
+# WAV2VEC2 [RUNNING]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name facebook/wav2vec2-large-960h-lv60 \
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../ref_models/pre_trained \
+#     --output_dir ../alignment_transcripts/buckeye_test/wav2vec2 \
+
+
+
+#=====================================================
+#               FINETUNED-WHISPER
+#=====================================================
+
+# Finetuned-whisper-buckeye [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-whisper-buckeye\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper \
+#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper-buckeye\
+
+
+# Finetuned-whisper-nolaugh-buckeye [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-whisper-nolaugh-buckeye\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
+#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper_nolaugh-buckeye\
+
+
+# Finetune-whisper-swb [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test\
 #     --model_name  finetuned-whisper-10epochs\
 #     --model_type whisper \
-#     --pretrained_model_dir ../fine-tuned/whisper/ \
-#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper \
+#     --output_dir ../alignment_transcripts/buckeye3/finetuned_whisper-swb\
+
+# Finetuned-whisper-nolaugh-swb [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-whisper-nolaugh-10epochs\
+#     --model_type whisper \
+#     --pretrained_model_dir ../fine-tuned/whisper-nolaugh \
+#     --output_dir ../alignment_transcripts/switchboard/finetuned_whisper_nolaugh-swb\
+
+
+#=====================================================
+#               FINETUNED-WAV2VEC2
+#=====================================================
+
+# Finetuned-wav2vec2-swb [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-wav2vec2-swb\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../fine-tuned/wav2vec2 \
+#     --output_dir ../alignment_transcripts/buckeye_test/finetuned_wav2vec2-swb\
+
+
+# Finetuned-wav2vec2-nolaugh-swb [DONE]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-wav2vec2-nolaugh-swb\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
+#     --output_dir ../alignment_transcripts/buckeye_test/finetuned_wav2vec2-nolaugh-swb\
+
+
+
+# Finetuned-wav2vec2-buckeye [NOT IMPLEMENTED]
+# python evaluate.py \
+#     --dataset_dir ../datasets/buckeye3/buckeye_test \
+#     --model_name  finetuned-wav2vec2-buckeye\
+#     --model_type wav2vec2 \
+#     --pretrained_model_dir ../fine-tuned/wav2vec2 \
+#     --output_dir ../alignment_transcripts/buckeye_test/finetuned_wav2vec2-buckeye\
+
+# Finetuned-wav2vec2-nolaugh-buckeye [RUNNING]
+python evaluate.py \
+    --dataset_dir ../datasets/buckeye3/buckeye_test \
+    --model_name  finetuned-wav2vec2-nolaugh-buckeye\
+    --model_type wav2vec2 \
+    --pretrained_model_dir ../fine-tuned/wav2vec2-nolaugh \
+    --output_dir ../alignment_transcripts/buckeye_test/finetuned_wav2vec2_nolaugh-buckeye\
+
+# ===============================================================================================================
     
 #----------------------------------------+
 # TO PRODUCE ALIGNMENT PLOTS

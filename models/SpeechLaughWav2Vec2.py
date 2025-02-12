@@ -9,7 +9,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import torch
-from IPython.display import display, HTML
 from transformers import (
     Wav2Vec2Processor,
     Wav2Vec2CTCTokenizer,
@@ -18,20 +17,17 @@ from transformers import (
     TrainingArguments,
     Trainer,
 )
+from transformers.trainer_callback import EarlyStoppingCallback
 from datasets import load_dataset, ClassLabel, load_from_disk
+
 import evaluate
 
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Union
 from dataclasses import dataclass
 
 from huggingface_hub import login, HfApi
 from dotenv import load_dotenv
 
-from preprocess import (
-    split_dataset, 
-    transform_number_words,
-    find_total_laughter_speechlaugh
-)
 import jiwer
 # REMOVE TF WARNINGS
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -92,7 +88,7 @@ class DataCollatorCTCWithPadding:
         return batch
 
 # ================================== UTILS ===========================================
-chars_to_remove_regex = '[\,\?\.\!\-\;\:\"\“\%\‘\”\�\']'
+chars_to_remove_regex = '[\,\?\.\!\-\;\:\"\“\%\‘\”\�]'
 
 def remove_special_characters(batch):
     batch["transcript"] = re.sub(chars_to_remove_regex, '', batch["transcript"]).lower()
@@ -121,69 +117,87 @@ def show_random_elements(dataset, num_examples=10):
         picks.append(pick)
     print(dataset[picks])
 
+min_audio_length_in_seconds = 0.2  #  Example: Filter out audio < 0.2 seconds
+sampling_rate = 16000  # Make sure this matches your feature extractor
+def filter_short_audio(example):
+    audio_length = len(example["audio"]["array"]) / example["audio"]["sampling_rate"]
+    return audio_length >= min_audio_length_in_seconds
+
+#============================================================================================================
+
+
+
+# ================================== PATHS ==================================================================
+global_checkpoint_path = "../fine-tuned/wav2vec2/finetuned-wav2vec2-buckeye-v4/"
+#============================================================================================================
 
 
 # ================================== LOAD DATASET ============================================================
-# switchboard = load_dataset("hhoangphuoc/switchboard")
-# switchboard = load_from_disk("../datasets/switchboard/swb_all")
-# print(switchboard)
-
-# #Shuffle the dataset
-# switchboard = switchboard.shuffle(seed=42)
-
-
-# swb_train, swb_eval, swb_test = split_dataset(
-#     switchboard, 
-#     split_ratio=0.8, 
-#     val_split_ratio=0.1
-# )
 
 # Load splitted dataset from disk
-swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
-print("Original Train Dataset (70%):", swb_train)
+# swb_train = load_from_disk("../datasets/switchboard/whisper/swb_train")
+data_train = load_from_disk("../datasets/buckeye3/buckeye_train")
+data_eval = load_from_disk("../datasets/buckeye3/buckeye_eval")
 
-# filter out the dataset with laughter-only transcript: <LAUGH> ============================================
-swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
-swb_train = swb_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-print("Train Dataset (after filtered):", swb_train)
-show_random_elements(swb_train, num_examples=10)
-# ==========================================================================================================
+print("Original Train Dataset (70%):", data_train)
+print("Original Validation Dataset (10%):", data_eval)
+
+# =========================================== PROCESS DATASET FOR FINETUNED WITHOUT <LAUGH>  ==================================================
+# #Remove <LAUGH> in transcript and filter out the dataset with laughter-only transcript: <LAUGH> 
+# data_train = data_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
+# data_train = data_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Train dataset")
+
+# data_eval = data_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
+# data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+#=============================================UNCOMMENTED ABOVE CODE IF USE (FINETUNED WITHOUT <LAUGH>)===========================
+
+
+
+# # ============================================ PROCESS DATASET FOR FINETUNED WITH <LAUGH> ==================================================
+# Remove empty transcript
+data_train = data_train.filter(lambda x: len(x["transcript"]) > 0, desc="Filtering out empty transcript in Train dataset")
+data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0, desc="Filtering out empty transcript in Eval dataset")
 
 # Transform the <LAUGH> token into "<" for CTC
-# swb_train = swb_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Train dataset")
-
-#========================================== FOR EVALUATION DATASET ===========================================
-swb_eval = load_from_disk("../datasets/switchboard/whisper/swb_eval")
-print("Original Validation Dataset (10%):", swb_eval)
-# swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Eval dataset")
-swb_eval = swb_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
-
-# skip empty transcript
-swb_eval = swb_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-print("Validation Dataset (after filtered):", swb_eval)
+data_train = data_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Train dataset")
+data_eval = data_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '<')}, desc="Replacing <LAUGH> with < for CTC in Eval dataset")
+#=======================================================UNCOMMENTED ABOVE CODE IF USE (FINETUNED WITH <LAUGH>) ===========================================================
 
 
+# ============================================ FILTER OUT SHORT AUDIO ==================================================
+# Filter out audio < 0.2 seconds
+data_train = data_train.filter(filter_short_audio, desc="Filtering out audio < 0.2 seconds in Train dataset")
+data_eval = data_eval.filter(filter_short_audio, desc="Filtering out audio < 0.2 seconds in Eval dataset")
+#=====================================================================================================================
 
-# ================================================ PREPROCESSING ===================================================
+
+# =====================================================================================================================
+print("Train Dataset (after filtered):", data_train)
+print("Validation Dataset (after filtered):", data_eval)
+# =====================================================================================================================
+
+
+# ================================================ PREPROCESSING VOCAB ================================================
+
 # remove special characters
-swb_train = swb_train.map(
+data_train = data_train.map(
     remove_special_characters,
-    desc="Removing special characters in swb_train"
+    desc="Removing special characters in data_train"
     )
-swb_eval = swb_eval.map(
+data_eval = data_eval.map(
     remove_special_characters,
-    desc="Removing special characters in swb_eval"
+    desc="Removing special characters in data_eval"
     )
 
 # VOCAB MAPPING
-vocab_train = swb_train.map(
-    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=swb_train.column_names,
-    desc="Extracting vocab in swb_train"
-    )
-vocab_eval = swb_eval.map(
-    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=swb_eval.column_names,
-    desc="Extracting vocab in swb_eval"
-    )
+vocab_train = data_train.map(
+    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=data_train.column_names,
+    desc="Extracting vocab in data_train"
+)
+vocab_eval = data_eval.map(
+    extract_all_chars, batched=True, batch_size=-1, keep_in_memory=True, remove_columns=data_eval.column_names,
+    desc="Extracting vocab in data_eval"
+)
 
 # combined 2 sets of vocab in training and evaluation dataset
 vocab_list = list(set(vocab_train["vocab"][0]) | set(vocab_eval["vocab"][0]))
@@ -202,14 +216,14 @@ vocab_dict["[PAD]"] = len(vocab_dict)
 print("Vocab Dictionary:",vocab_dict)
 
 # Save the vocab
-with open("vocab_nolaugh.json", "w") as vocab_file:
+with open("vocab_buckeye_v4.json", "w") as vocab_file:
     json.dump(vocab_dict, vocab_file)
 
-#================================================================================================
+#=====================================================================================================================
 
 
 # CONFIGURE MODEL COMPONENTS
-tokenizer = Wav2Vec2CTCTokenizer("./vocab_nolaugh.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
+tokenizer = Wav2Vec2CTCTokenizer("./vocab_buckeye_v4.json", unk_token="[UNK]", pad_token="[PAD]", word_delimiter_token="|")
 feature_extractor = Wav2Vec2FeatureExtractor(
     feature_size=1, sampling_rate=16000, padding_value=0.0, do_normalize=True, return_attention_mask=True
 )
@@ -217,8 +231,8 @@ processor = Wav2Vec2Processor(feature_extractor=feature_extractor, tokenizer=tok
 
 # Save the tokenizer
 print("Saving Wav2Vec2 tokenizer and feature extractor...")
-tokenizer.save_pretrained("../fine-tuned/wav2vec2-batch32-nolaugh/tokenizer")
-feature_extractor.save_pretrained("../fine-tuned/wav2vec2-batch32-nolaugh/feature_extractor")
+tokenizer.save_pretrained(os.path.join(global_checkpoint_path, "tokenizer"))
+feature_extractor.save_pretrained(os.path.join(global_checkpoint_path, "feature_extractor"))
 
 # =============================== PROCESSING DATASET =====================================
 def prepare_dataset(batch):
@@ -231,17 +245,17 @@ def prepare_dataset(batch):
     
     return batch
 
-swb_train = swb_train.map(
+data_train = data_train.map(
     prepare_dataset, 
-    remove_columns=swb_train.column_names, 
+    remove_columns=data_train.column_names, 
     # batch_size=8, num_proc=4
-    desc="Preparing dataset for swb_train"
+    desc="Preparing dataset for data_train"
 )
-swb_eval = swb_eval.map(
+data_eval = data_eval.map(
     prepare_dataset,
-    remove_columns=swb_eval.column_names,
+    remove_columns=data_eval.column_names,
     # batch_size=8, num_proc=4
-    desc="Preparing dataset for swb_eval"
+    desc="Preparing dataset for data_eval"
 )
 
 # ================================== METRICS ===========================================
@@ -256,6 +270,29 @@ def compute_metrics(pred):
     # we do not want to group tokens when computing the metrics
     label_str = processor.batch_decode(pred.label_ids, group_tokens=False)
 
+    eval_transformation = jiwer.Compose([
+            jiwer.ExpandCommonEnglishContractions(),
+            jiwer.RemovePunctuation(),
+            jiwer.SubstituteWords({
+                "uhhuh": "uh-huh",
+                "uh huh": "uh-huh",
+                "mmhmm": "um-hum",
+                "mm hmm": "um-hum",
+                "mmhum": "um-hum",
+                "mm hum": "um-hum",
+                "umhum": "um-hum",
+                "um hum": "um-hum",
+                "umhmm": "um-hum",
+            }),
+            jiwer.RemoveMultipleSpaces(),
+            jiwer.Strip(),
+            jiwer.ToLowerCase()
+    ])
+
+    pred_str = eval_transformation(pred_str)
+    label_str = eval_transformation(label_str)
+
+
     wer = jiwer.wer(reference=label_str, hypothesis=pred_str)
 
     return {"wer": wer}
@@ -268,7 +305,8 @@ model = Wav2Vec2ForCTC.from_pretrained(
     "facebook/wav2vec2-large-lv60",
     cache_dir="../ref_models/pre_trained",
     local_files_only=True,
-    mask_time_prob=0.3,
+    mask_time_length=5,
+    mask_time_prob=0.3, #FIXME: change to 0.2
     mask_feature_prob=0.3,
     ctc_loss_reduction="mean",
     pad_token_id=processor.tokenizer.pad_token_id,
@@ -277,28 +315,33 @@ model = Wav2Vec2ForCTC.from_pretrained(
 
 model.freeze_feature_encoder()
 
+early_stopping_callback = EarlyStoppingCallback(
+    early_stopping_patience=3,    # Stop if WER doesn't improve for 3 evaluations
+    early_stopping_threshold=0.005, # Consider it an improvement if WER decreases by 0.005 (0.5%)
+)
+
 # ================================== TRAINING ARGUMENTS ============================================
 training_args = TrainingArguments(
-    output_dir="../checkpoints/wav2vec2-batch32-nolaugh/",
+    output_dir=global_checkpoint_path,
     group_by_length=True,
-    per_device_train_batch_size=32, #16
+    per_device_train_batch_size=16, #16
     gradient_accumulation_steps=2, 
     evaluation_strategy="steps",
-    num_train_epochs=10,
+    num_train_epochs=40, #FIXME: increase to 30 or even 40 if it is not converge
 
     gradient_checkpointing=True,
     fp16=True,
     adam_beta2=0.98,
 
-    save_steps=100, #50
-    eval_steps=100, #50
-    logging_steps=50, #50
+    save_steps=25, #50
+    eval_steps=25, #50
+    logging_steps=25, #50
 
-    learning_rate=1e-4, #7e-5
+    learning_rate=6e-5, #1e-4 - FIXME: use 5e-5 due to small dataset
     weight_decay=0.005,
-    warmup_ratio=0.1,
+    warmup_ratio=0.15, #FIXME: change to 0.1 if for
     
-    save_total_limit=2,
+    save_total_limit=3,
     
     torch_empty_cache_steps=100, # Force garbage collection if necessary
     load_best_model_at_end=True
@@ -309,23 +352,24 @@ trainer = Trainer(
     data_collator=data_collator,
     args=training_args,
     compute_metrics=compute_metrics,
-    train_dataset=swb_train,
-    eval_dataset=swb_eval,
+    train_dataset=data_train,
+    eval_dataset=data_eval,
     tokenizer=processor.feature_extractor,
+    # callbacks=[early_stopping_callback]
 )
 
-# ================================== TRAINING ============================================
+# ================================== TRAINING PROCESS ============================================
 
-#====================================
+
 #   MONITOR GPU MEMORY
-#====================================
-
+#=============================================
 def cleanup_workers():
     """Cleanup function for workers"""
     print("Cleaning CUDA memory cache...")
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     gc.collect()
+#=============================================
 
 try:
     print("Training the model...")
@@ -337,12 +381,13 @@ except Exception as e:
 finally:
     log_history = trainer.state.log_history
     # save the log history to txt file
-    with open(os.path.join("../logs/wav2vec2", "log_history_batch32-nolaugh.txt"), "w") as f:
+    with open(os.path.join("../logs/wav2vec2", "log_history_finetuned-wav2vec2-buckeye-v4.txt"), "w") as f:
         for entry in log_history:
             f.write(str(entry) + "\n")
     cleanup_workers() #clear the CUDA memory cache
-trainer.train()
+# trainer.train()
 
-model.save_pretrained("../fine-tuned/wav2vec2/wav2vec2-batch32-nolaugh")
+model.save_pretrained(os.path.join(global_checkpoint_path, "model"))
+#================================================================================================
 # trainer.push_in_progress = None
 # trainer.push_to_hub("wav2vec2-large-lv60-speechlaugh-swb")
