@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=finetuned-whisper-batch(16x4)-eval(8x4)-10epochs-lr1e4     # Job name
+#SBATCH --job-name=finetuned-whisper-nolaugh-buckeye   # Job name
 #SBATCH -c 32                                      # Number of cores
 #SBATCH --cpus-per-task=16                         # Allocate 16 cores per task
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
@@ -61,13 +61,31 @@ echo "SLURM_CPUS_PER_TASK:          "$SLURM_CPUS_PER_TASK
 # Activate your environment (if applicable)
 source activate .venv
 
+#================================================================================================
+#                           FINE-TUNING FOR SWITCHBOARD
+#================================================================================================
+# <LAUGH> and NO-LAUGH
 # Run your script with the appropriate arguments
+# python SpeechLaughWhisper.py \
+#     --dataset_dir ../datasets/switchboard \
+#     --model_path openai/whisper-large-v2 \
+#     --model_output_dir ../fine-tuned/whisper/finetuned-whisper-nolaugh/ \
+#     --checkpoint_dir ../checkpoints/ \
+#     --checkpoint_id finetuned-whisper-nolaugh \
+#     --log_dir ../logs \
+#     --evaluate_dir ../evaluate
+
+
+#================================================================================================
+#                           FINE-TUNING FOR BUCKEYE
+#================================================================================================
+# <LAUGH> and NO-LAUGH
 python SpeechLaughWhisper.py \
-    --dataset_dir ../datasets/switchboard \
+    --dataset_dir ../datasets/buckeye3 \
     --model_path openai/whisper-large-v2 \
-    --model_output_dir ../fine-tuned/whisper/finetuned-whisper-nolaugh/ \
+    --model_output_dir ../fine-tuned/whisper-nolaugh/finetuned-whisper-nolaugh-buckeye/ \
     --checkpoint_dir ../checkpoints/ \
-    --checkpoint_id finetuned-whisper-nolaugh \
+    --checkpoint_id finetuned-whisper-nolaugh-buckeye \
     --log_dir ../logs \
     --evaluate_dir ../evaluate
 

@@ -13,14 +13,8 @@ from huggingface_hub import login
 # For Fine-tuned Model--------------------------------
 from transformers import (
     WhisperProcessor, 
-    WhisperTokenizer, 
-    WhisperFeatureExtractor, 
     WhisperForConditionalGeneration, 
-    Seq2SeqTrainer, 
     Seq2SeqTrainingArguments, 
-    EvalPrediction,
-    TrainerCallback, GenerationConfig,
-    get_linear_schedule_with_warmup
 )
 from transformers.trainer_callback import EarlyStoppingCallback
 from torch.utils.tensorboard import SummaryWriter
@@ -33,11 +27,6 @@ from modules import (
     MemoryEfficientCallback,
     MetricsCallback,
     CustomSeq2SeqTrainer
-)
-from preprocess import (
-    split_dataset, 
-    transform_number_words,
-    find_total_laughter_speechlaugh
 )
 
 # Evaluation
@@ -158,20 +147,31 @@ def SpeechLaughWhisper(args):
     print("------------------------------------------------------")
 
     #--------------------------------------------------------------------------------------------------------------------------
-    # FIXME: UNCOMMENT THIS PART IF WORKING WITH FINETUNED NOLAUGH
+    # Remove empty transcripts
+    data_train = data_train.filter(lambda x: len(x["transcript"]) > 0, desc="Filtering out empty transcript in Train dataset")
+    print("Train Dataset (after filtered):", data_train)
+    data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0, desc="Filtering out empty transcript in Eval dataset")
+    print("Validation Dataset (after filtered):", data_eval)
+    #--------------------------------------------------------------------------------------------------------------------------
 
-    # #REMOVE LAUGHTER IN TRAIN
-    # data_train = data_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
-    # data_train = data_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-    # print("Train Dataset (after filtered):", data_train)
 
-    # #REMOVE LAUGHTER IN EVAL
-    # data_eval = data_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
-    # data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
-    # print("Validation Dataset (after filtered):", data_eval)
-    # print("------------------------------------------------------")
 
     #--------------------------------------------------------------------------------------------------------------------------
+    # FIXME: UNCOMMENT THIS PART IF WORKING WITH FINETUNED NOLAUGH
+
+    #=========================================================================================================================
+    #REMOVE LAUGHTER IN TRAIN
+    data_train = data_train.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '')}, desc="Removing <LAUGH> for NOLAUGH finetuning in Train dataset")
+    data_train = data_train.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    print("Train Dataset (after filtered):", data_train)
+
+    #REMOVE LAUGHTER IN EVAL
+    data_eval = data_eval.map(lambda x: {'transcript': x['transcript'].replace('<LAUGH>', '').strip()}, desc="Removing <LAUGH> for NOLAUGH finetuning in Eval dataset")
+    data_eval = data_eval.filter(lambda x: len(x["transcript"]) > 0 and x["transcript"] !="<LAUGH>", desc="Filtering out <LAUGH only> and empty transcript in Eval dataset")
+    print("Validation Dataset (after filtered):", data_eval)
+    print("------------------------------------------------------")
+    #=========================================================================================================================
+
 
 
     #===============================================================================================
@@ -263,13 +263,27 @@ def SpeechLaughWhisper(args):
         pred_ids = pred.predictions
 
         # Reconstruct the REF and HYP transcripts at Decoder
-        ref_transcripts = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #REF transcript, contains laughter tokens [LAUGHTER] and [SPEECH_LAUGH]
+        ref_decoded = tokenizer.batch_decode(label_ids, skip_special_tokens=True) #REF transcript, contains laughter tokens [LAUGHTER] and [SPEECH_LAUGH]
         pred_decoded = tokenizer.batch_decode(pred_ids, skip_special_tokens=True) #HYP transcript
         
-        pred_transcripts = [transform_number_words(transcript, reverse=True) for transcript in pred_decoded]
+        #-----------------------------------------------------------------------------------------
+        # THIS CODE TO ENSURE  THE TRANSCRIPTS ARE NOT EMPTY
+        # ref_transcripts, pred_transcripts = [], []
 
+        # for i, (ref, pred) in enumerate(zip(ref_decoded, pred_decoded)):
+        #     if not pred.strip() or not ref.strip():
+        #         print("Empty transcript! Skipping...")
+        #         continue
+        #     ref_transcripts.append(ref)
+        #     pred_transcripts.append(pred)
+
+        # assert len(ref_transcripts) == len(pred_transcripts), "The number of transcripts should be equal!"
+        #--------------------------------------------------------------------------------------------
+
+        #-----------------------------------------------------------------------------------------
+        #                   NORMALISED THE TRANSCRIPT
+        #-----------------------------------------------------------------------------------------
         eval_transformation = jiwer.Compose([
-            jiwer.RemoveEmptyStrings(),
             jiwer.ExpandCommonEnglishContractions(),
             jiwer.RemovePunctuation(),
             jiwer.SubstituteWords({
@@ -285,25 +299,15 @@ def SpeechLaughWhisper(args):
             }),
             jiwer.RemoveMultipleSpaces(),
             jiwer.Strip(),
-            jiwer.ToLowerCase() #lowercase the transcript
-            # jiwer.RemoveMultipleSpaces(),
-            # jiwer.Strip(),
-            # jiwer.ToLowerCase(),
-            # jiwer.ExpandCommonEnglishContractions(),
-            # jiwer.RemovePunctuation(),
-            # jiwer.SubstituteWords({
-            #     "uhhuh": "uh-huh",
-            #     "mmhmm": "um-hum",
-            #     "umhum": "um-hum",
-            # })
+            jiwer.ToLowerCase()
         ])
 
         # NORMALISED THE TRANSCRIPT
-        ref_transcripts = eval_transformation(ref_transcripts) #lowercase
-        pred_transcripts = eval_transformation(pred_transcripts) #lowercase
+        ref_decoded = eval_transformation(ref_decoded) #lowercase
+        pred_decoded = eval_transformation(pred_decoded) #lowercase
 
         #-----------------------------------------------------------------------------------------
-        wer = wer_metric.compute(predictions=pred_transcripts, references=ref_transcripts) #*100 - NOT USE x100, observing range from 0-1
+        wer = wer_metric.compute(predictions=pred_decoded, references=ref_decoded) #*100 - NOT USE x100, observing range from 0-1
 
         # wer = jiwer.wer(reference=ref_transcripts, hypothesis=pred_transcripts)
         #-----------------------------------------------------------------------------------------
@@ -327,8 +331,8 @@ def SpeechLaughWhisper(args):
 
         # max_steps=6000, #6000 steps shows good results - try  8000 steps with larger batch size, smaller lr (LONGER TRAINING :(()))
         # warmup_steps=1000, #warmup at longer steps for effectively learning the existence of <laugh> token
-        num_train_epochs=2, #10 epochs - FIXME: (10 epochs for switchboard) || 3 epochs for buckeye
-        warmup_ratio=0.10, #USE 10-15% of the total steps for warmup to better learn the <laugh> token
+        num_train_epochs=10, #10 epochs - FIXME: (10 epochs for switchboard) || 3 epochs for buckeye
+        warmup_ratio=0.15, #USE 10-15% of the total steps for warmup to better learn the <laugh> token
 
         
         #Training Configs--------------------------------
@@ -341,7 +345,7 @@ def SpeechLaughWhisper(args):
         # eval_steps=500, #evaluate the model every 1000 steps - Executed compute_metrics()
         
         eval_strategy="epoch", #evaluate the model every epoch
-        per_device_eval_batch_size=8, #FIXME: Use larger batch size for evaluation (improved WER, loss)
+        per_device_eval_batch_size=8, #8 FIXME: Use larger batch size for evaluation (improved WER, loss)
         eval_accumulation_steps=4, #try with 8 to faster evaluation
         
 
@@ -375,7 +379,7 @@ def SpeechLaughWhisper(args):
         gradient_checkpointing=True,
         fp16=True, #use mixed precision training
         adam_beta2=0.98,
-        # torch_empty_cache_steps=1000,
+        torch_empty_cache_steps=1000,
         #-----------------------------------------------------
 
         # Dataloader Configs--------------------------------

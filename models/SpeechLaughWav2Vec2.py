@@ -337,7 +337,7 @@ training_args = TrainingArguments(
     eval_steps=25, #50
     logging_steps=25, #50
 
-    learning_rate=6e-5, #1e-4 - FIXME: use 5e-5 due to small dataset
+    learning_rate=5e-5, #1e-4 - FIXME: use 5e-5 due to small dataset
     weight_decay=0.005,
     warmup_ratio=0.15, #FIXME: change to 0.1 if for
     

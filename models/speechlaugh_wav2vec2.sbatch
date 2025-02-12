@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=speechlaugh-wav2vec2-nolaugh-10epochs     # Job name
+#SBATCH --job-name=finetuned-wav2vec2-buckeye     # Job name
 #SBATCH -c 8                                      # Number of cores
 #SBATCH --gres=gpu:ampere:1                        # Request 1 GPU
 #SBATCH --constraint=a40
