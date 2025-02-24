@@ -292,22 +292,27 @@ def retokenize_transcript_pattern(
             elif word.startswith("<ext-") or word.startswith("<hes-"):
                 word = word[:-1].split('-')[1] # KEEP the word
             else:
-                word = word
+                word = word # normal word
             
             #===RETOKENIZE SPEECH_LAUGH AND LAUGHTER============================
             if word.startswith("<laugh-") or word.startswith("<laugh="):
                 laughed_word = word[7:-1]
-                if len(laughed_word.split("_")) > 1:
-                    # contruct the word as a sentence of all words
-                    laughed_word = " ".join(laughed_word.split("_"))
+                # if len(laughed_word.split("_")) > 1:
+                #     # contruct the word as a sentence of all words
+                #     laughed_word = " ".join(laughed_word.split("_"))
                 word = laughed_word.upper()
 
             elif re.match(laugh_pattern, word):
                 word = "<LAUGH>"
             #==================================================================
+            # FINALLY processing edge cases in the output word
             #if word contains = in the middle, remove it
             if "=" in word:
                 word = word.split("=")[1]
+
+            if len(word.split("_")) > 1:
+                # contruct the word as a sentence of all words
+                word = " ".join(word.split("_"))
             #==================================================================
             new_line += " " + word + " "
 
